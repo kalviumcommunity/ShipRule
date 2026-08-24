@@ -148,3 +148,24 @@ Expected Output:
 
 - **Pinned Requirements**: `requirements.txt` contains strict version pins generated via `pip freeze` to ensure deterministic builds across all platforms.
 - **Fresh Install Verification**: Teammates can clone the repo, run `python -m venv .venv`, run `pip install -r requirements.txt`, and immediately start development without dependency conflicts.
+
+---
+
+## Sprint-Level Analytical Tasks (Workflow Placeholders)
+
+Three sprint-level analytical tasks have been created as issues in the repository and assigned to the user (`minnu04`):
+
+1. **[Analyze and design optimal document chunking strategy for ChromaDB ingestion](https://github.com/kalviumcommunity/ShipRule/issues/2)**
+   - **Label**: `data-pipeline`
+   - **Assignee**: `minnu04`
+   - **Description**: Analyze chunking sizes (e.g., 500, 1000 tokens) and overlap ratios (10%, 20%) to optimize similarity search precision and avoid LLM context window pollution.
+2. **[Evaluate embedding model performance on domain-specific dataset](https://github.com/kalviumcommunity/ShipRule/issues/3)**
+   - **Label**: `data-pipeline`
+   - **Assignee**: `minnu04`
+   - **Description**: Benchmark `text-embedding-3-small` against domain-specific queries and calculate retrieval metrics (Hit Rate @ K, MRR).
+3. **[Design evaluation framework for LLM response quality assessment](https://github.com/kalviumcommunity/ShipRule/issues/4)**
+   - **Label**: `feature`
+   - **Assignee**: `minnu04`
+   - **Description**: Formulate metrics (faithfulness, answer relevance, context recall) and design the structure for the evaluation framework inside the codebase.
+
+A screenshot of the created issues is available at [docs/issues_list.png](file:///c:/Users/HP/OneDrive/Desktop/ShipRule/docs/issues_list.png).
