@@ -1,103 +1,181 @@
-import os
-import logging
-from dotenv import load_dotenv
-from openai import OpenAI, AuthenticationError, RateLimitError, APIConnectionError, APIError
 
-# Configure structured logging
+
+import os
+import sys
+import logging
+
+from dotenv import load_dotenv
+from groq import (
+    Groq,
+    AuthenticationError as GroqAuthError,
+    RateLimitError as GroqRateError,
+    APIConnectionError as GroqConnError,
+    APIError as GroqAPIError,
+)
+
+
+# Ensure UTF-8 output handling on Windows
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
+
+# Configure logging - use WARNING by default to keep CLI interaction clean
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.WARNING,
     format="%(asctime)s [%(levelname)s] %(message)s"
 )
 
-def run_chat_completion(custom_messages=None, model_override=None, api_key_override=None):
+
+def run_chat_completion(
+    question,
+    context=None,
+    model_override=None,
+    api_key_override=None
+):
     """
-    Executes a chat completion call against an OpenAI-compatible API,
-    logs the request, response, and token usage, and handles common errors cleanly.
+    Send a question and optional RAG context to Groq/LLM and return the model response.
     """
-    # Task 1: Load configuration from environment variables
+
+    # Load .env
     load_dotenv()
-    
-    base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
-    api_key = api_key_override if api_key_override is not None else os.getenv("OPENAI_API_KEY", "")
-    model = model_override or os.getenv("CHAT_MODEL", "gpt-4o-mini")
 
-    logging.info("=== Initializing OpenAI-Compatible LLM Client ===")
-    logging.info("[Config] Base URL: %s", base_url)
-    logging.info("[Config] Model: %s", model)
-    logging.info("[Config] API Key Configured: %s", "Yes" if api_key else "No (Empty)")
-
-    if not api_key:
-        logging.warning("[Warning] OPENAI_API_KEY is empty. The completion request will likely fail unless using an unauthenticated local endpoint.")
-
-    # Initialize OpenAI client
-    client = OpenAI(
-        base_url=base_url,
-        api_key=api_key or "placeholder_key"
+    # -----------------------------------------
+    # Get Groq configuration
+    # -----------------------------------------
+    api_key = (
+        api_key_override
+        if api_key_override is not None
+        else (os.getenv("GROQ_API_KEY")  )
     )
 
-    # Default messages if none provided
-    messages = custom_messages or [
+    model = (
+        model_override
+        or os.getenv("CHAT_MODEL", "openai/gpt-oss-120b")
+    )
+
+    logging.info("=== Initializing Groq / LLM Client ===")
+    logging.info("[Config] Model: %s", model)
+    logging.info(
+        "[Config] API Key Configured: %s",
+        "Yes" if api_key else "No"
+    )
+
+    # -----------------------------------------
+    # Check API key
+    # -----------------------------------------
+    if not api_key:
+        print(
+            "\n[ERROR] GROQ_API_KEY is not configured."
+        )
+        print(
+            "Please add GROQ_API_KEY to your .env file."
+        )
+        return None
+
+    # -----------------------------------------
+    # Initialize Groq client
+    # -----------------------------------------
+    client = Groq(api_key=api_key)
+
+    # -----------------------------------------
+    # Create messages with RAG Context
+    # -----------------------------------------
+    system_prompt = (
+        "You are a helpful assistant for ShipRule CDLP. "
+        "Use the retrieved context if relevant to answer the question. "
+        "If the retrieved context is irrelevant or does not contain the information requested, "
+        "rely on your general knowledge to answer accurately."
+    )
+
+    if context:
+        user_content = f"Retrieved Context:\n{context}\n\nQuestion:\n{question}"
+    else:
+        user_content = question
+
+    messages = [
         {
             "role": "system",
-            "content": "You are a concise customs compliance assistant for ShipRule CDLP."
+            "content": system_prompt
         },
         {
             "role": "user",
-            "content": "Say hello in one sentence and explain why source traceability matters for customs duty lookups."
+            "content": user_content
         }
     ]
 
-    # Task 3: Log outgoing request payload
     logging.info("[Request] Target Model: %s", model)
-    logging.info("[Request] Messages Payload: %s", messages)
+    logging.info("[Request] User Question: %s", question)
 
-    try:
-        # Task 2: Send chat completion request
-        logging.info("[API Call] Sending chat completion request...")
-        resp = client.chat.completions.create(
-            model=model,
-            messages=messages
-        )
+    # List of candidate models to try in case of model error or availability fallback
+    models_to_try = [model]
+    for fallback in ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b"]:
+        if fallback not in models_to_try:
+            models_to_try.append(fallback)
 
-        reply_text = resp.choices[0].message.content
-        
-        # Task 2 & 3: Print reply and log response & token usage
-        print("\n--- Model Response ---")
-        print(reply_text)
-        print("----------------------\n")
-
-        logging.info("[Response] Content: %s", reply_text)
-
-        if hasattr(resp, "usage") and resp.usage:
-            logging.info(
-                "[Usage] Tokens -> Prompt: %s | Completion: %s | Total: %s",
-                resp.usage.prompt_tokens,
-                resp.usage.completion_tokens,
-                resp.usage.total_tokens
+    last_error = None
+    for current_model in models_to_try:
+        try:
+            response = client.chat.completions.create(
+                model=current_model,
+                messages=messages
             )
-        else:
-            logging.info("[Usage] Token usage metadata not returned by provider.")
 
-        return resp
+            # Get answer
+            reply_text = response.choices[0].message.content
+            return reply_text
 
-    # Task 4: Error Handling
-    except AuthenticationError as e:
-        print("\n[ERROR] Auth failed (401): Check OPENAI_API_KEY in your .env file.")
-        logging.error("AuthenticationError (401): %s", e)
-    except RateLimitError as e:
-        print("\n[ERROR] Rate limited (429): Slow down and retry with backoff.")
-        logging.error("RateLimitError (429): %s", e)
-    except APIConnectionError as e:
-        print(f"\n[ERROR] Connection failed: Unable to reach base URL ({base_url}).")
-        logging.error("APIConnectionError: %s", e)
-    except APIError as e:
-        print(f"\n[ERROR] API Error: {e.message if hasattr(e, 'message') else str(e)}")
-        logging.error("APIError: %s", e)
-    except Exception as e:
-        print(f"\n[ERROR] Unexpected error occurred: {str(e)}")
-        logging.error("Unexpected Exception: %s", e, exc_info=True)
+        except GroqAPIError as e:
+            last_error = e
+            # If rate limit or auth error, don't keep retrying other models
+            if hasattr(e, 'status_code') and e.status_code in (401, 429):
+                break
+            logging.warning("Model %s failed with %s. Trying fallback model...", current_model, e)
+        except Exception as e:
+            last_error = e
+            break
+
+    # -----------------------------------------
+    # Error handling
+    # -----------------------------------------
+    if isinstance(last_error, GroqAuthError):
+        print(
+            "\n[ERROR] Authentication failed (401). "
+            "Check your GROQ_API_KEY."
+        )
+        logging.error("AuthenticationError: %s", last_error)
+
+    elif isinstance(last_error, GroqRateError):
+        print(
+            "\n[ERROR] Rate limit reached (429). "
+            "Please wait and try again."
+        )
+        logging.error("RateLimitError: %s", last_error)
+
+    elif isinstance(last_error, GroqConnError):
+        print(
+            "\n[ERROR] Could not connect to Groq."
+        )
+        logging.error("APIConnectionError: %s", last_error)
+
+    elif isinstance(last_error, GroqAPIError):
+        print(
+            f"\n[ERROR] Groq API error: {last_error}"
+        )
+        logging.error("APIError: %s", last_error)
+
+    elif last_error is not None:
+        print(
+            f"\n[ERROR] Unexpected error: {last_error}"
+        )
+        logging.error(
+            "Unexpected Exception: %s",
+            last_error,
+            exc_info=True
+        )
 
     return None
 
+
 if __name__ == "__main__":
-    run_chat_completion()
+    question = input("Ask your question: ")
+    run_chat_completion(question)
