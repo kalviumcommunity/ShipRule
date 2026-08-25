@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 import chromadb
-import openai
+from src.llm_completion import run_chat_completion
 
 def main():
     # Load environment variables from .env
@@ -32,7 +32,11 @@ def main():
     results = collection.query(query_texts=["Setup"], n_results=1)
     print(f"[Vector DB] Successfully stored and queried ChromaDB doc: '{results['documents'][0][0]}'")
 
+    print("\n[LLM Completion] Executing chat completion call...")
+    run_chat_completion()
+
     print("\n[Status] RAG Application Foundation environment successfully verified!")
 
 if __name__ == "__main__":
     main()
+
