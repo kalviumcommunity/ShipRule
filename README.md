@@ -120,26 +120,30 @@ To execute the application foundation and verify that OpenAI, ChromaDB, and envi
 python src/main.py
 ```
 
-Expected Output:
-```text
-=== RAG Application Starter ===
-[Config] Chat Model: gpt-4o-mini
-[Config] Embed Model: text-embedding-3-small
-[Config] Base URL: https://api.openai.com/v1
-[Config] API Key Set: Yes
+### LLM Chat Completion & Error Handling Script
 
-[Vector DB] Initializing ChromaDB client...
-[Vector DB] Successfully stored and queried ChromaDB doc: 'RAG Application Day 1 Setup Initialized Successfully.'
+You can also run the dedicated LLM completion script directly:
 
-[Status] RAG Application Foundation environment successfully verified!
+```bash
+python src/llm_completion.py
 ```
+
+This script:
+- Configures an OpenAI-compatible client from `.env` (`OPENAI_BASE_URL`, `OPENAI_API_KEY`, `CHAT_MODEL`).
+- Sends a chat completion request with system & user roles.
+- Logs outgoing request payloads, response text, and token usage (`prompt_tokens`, `completion_tokens`, `total_tokens`).
+- Catches and explains common errors:
+  - **401 Unauthorized**: Explains missing/invalid `OPENAI_API_KEY`.
+  - **429 Too Many Requests**: Explains rate limits/quota exhaustion.
+
+Sample run logs are captured and saved in [`outputs/sample_output.txt`](file:///c:/Users/dhars/OneDrive/Desktop/ShipRule/outputs/sample_output.txt).
 
 ---
 
 ## Security Guidelines
 
 1. **No API Keys in Repository**: `.env` is listed in `.gitignore`. Always inspect `.env.example` to ensure no sensitive values are present before committing.
-2. **Untracked Local Data & Outputs**: Document files placed inside `data/` and generated outputs in `outputs/` are ignored by default to prevent accidental data leaks.
+2. **Untracked Local Data & Outputs**: Document files placed inside `data/` and generated outputs in `outputs/` are ignored by default (except approved sample outputs) to prevent accidental data leaks.
 3. **Environment Isolation**: `.venv/` is ignored to ensure environment dependencies remain isolated per developer system.
 
 ---
@@ -148,3 +152,4 @@ Expected Output:
 
 - **Pinned Requirements**: `requirements.txt` contains strict version pins generated via `pip freeze` to ensure deterministic builds across all platforms.
 - **Fresh Install Verification**: Teammates can clone the repo, run `python -m venv .venv`, run `pip install -r requirements.txt`, and immediately start development without dependency conflicts.
+
