@@ -26,15 +26,25 @@ logging.basicConfig(
 )
 
 
+from src.context_manager import prepare_context, total_tokens
+
+
 def run_chat_completion(
-    question,
+    question=None,
     context=None,
     model_override=None,
     api_key_override=None,
-    system_prompt_override=None
+    system_prompt_override=None,
+    messages_override=None,
+    history=None,
+    max_context_tokens=4096,
+    response_reserve_tokens=500,
+    strategy="trim",
+    preserve_recent=2
 ):
     """
     Send a question and optional RAG context to Groq/LLM and return the model response.
+    Supports multi-turn history and context budgeting.
     """
 
     # Load .env
@@ -79,39 +89,45 @@ def run_chat_completion(
     client = Groq(api_key=api_key)
 
     # -----------------------------------------
-    # Create messages with RAG Context & System Role
+    # Create or prepare messages with Context Budgeting
     # -----------------------------------------
-    if system_prompt_override:
-        system_prompt = system_prompt_override
+    if messages_override:
+        messages = messages_override
     else:
-        # Load constrained production system prompt for CDLP / ShipRule
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        prompt_file = os.path.join(base_dir, "prompts", "system_prompt_v2_constrained.txt")
-        if os.path.exists(prompt_file):
-            with open(prompt_file, "r", encoding="utf-8") as f:
-                system_prompt = f.read().strip()
+        if system_prompt_override:
+            system_prompt = system_prompt_override
         else:
-            system_prompt = (
-                "You are an official AI Support Assistant for the Customs Duty & Documentation Lookup Platform (CDLP / ShipRule). "
-                "Answer ONLY questions related to logistics, customs duties, import documents, HS codes, and shipment rules in 2-3 sentences. "
-                "Refuse non-logistics queries strictly."
-            )
+            # Load constrained production system prompt for CDLP / ShipRule
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            prompt_file = os.path.join(base_dir, "prompts", "system_prompt_v2_constrained.txt")
+            if os.path.exists(prompt_file):
+                with open(prompt_file, "r", encoding="utf-8") as f:
+                    system_prompt = f.read().strip()
+            else:
+                system_prompt = (
+                    "You are an official AI Support Assistant for the Customs Duty & Documentation Lookup Platform (CDLP / ShipRule). "
+                    "Answer ONLY questions related to logistics, customs duties, import documents, HS codes, and shipment rules in 2-3 sentences. "
+                    "Refuse non-logistics queries strictly."
+                )
 
-    if context:
-        user_content = f"Retrieved Context:\n{context}\n\nQuestion:\n{question}"
-    else:
-        user_content = question
-
-    messages = [
-        {
-            "role": "system",
-            "content": system_prompt
-        },
-        {
-            "role": "user",
-            "content": user_content
-        }
-    ]
+        prep_result = prepare_context(
+            history=history or [],
+            retrieved_context=context,
+            user_message=question or "",
+            max_tokens=max_context_tokens,
+            reserve_tokens=response_reserve_tokens,
+            strategy=strategy,
+            preserve_recent=preserve_recent,
+            system_prompt=system_prompt
+        )
+        messages = prep_result["messages"]
+        logging.info(
+            "[Context Budget] Tokens: %d / %d (Reserved: %d) | Strategy Applied: %s",
+            prep_result["total_tokens"],
+            prep_result["budget"],
+            response_reserve_tokens,
+            prep_result["strategy_applied"]
+        )
 
     logging.info("[Request] Target Model: %s", model)
     logging.info("[Request] User Question: %s", question)

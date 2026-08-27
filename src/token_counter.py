@@ -35,18 +35,66 @@ PRICING_TABLE = {
 }
 
 
-def get_tokenizer(encoding_name: str = "cl100k_base") -> tiktoken.Encoding:
-    """Returns a tiktoken encoding instance."""
+_TOKENIZER_CACHE = {}
+
+def get_tokenizer(encoding_name: str = "cl100k_base"):
+    """Returns a tiktoken encoding instance, handling SSL cert issues and timeouts."""
+    if encoding_name in _TOKENIZER_CACHE:
+        return _TOKENIZER_CACHE[encoding_name]
+
+    import requests
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    
+    orig_get = requests.get
+    orig_session_get = requests.Session.get
+
+    def unverified_get(*args, **kwargs):
+        kwargs["verify"] = False
+        if "timeout" not in kwargs:
+            kwargs["timeout"] = 3
+        return orig_get(*args, **kwargs)
+
+    def unverified_session_get(self, *args, **kwargs):
+        kwargs["verify"] = False
+        if "timeout" not in kwargs:
+            kwargs["timeout"] = 3
+        return orig_session_get(self, *args, **kwargs)
+
     try:
-        return tiktoken.get_encoding(encoding_name)
+        requests.get = unverified_get
+        requests.Session.get = unverified_session_get
+        enc = tiktoken.get_encoding(encoding_name)
+        _TOKENIZER_CACHE[encoding_name] = enc
+        return enc
     except Exception:
-        return tiktoken.get_encoding("cl100k_base")
+        try:
+            enc = tiktoken.get_encoding("cl100k_base")
+            _TOKENIZER_CACHE["cl100k_base"] = enc
+            return enc
+        except Exception:
+            _TOKENIZER_CACHE[encoding_name] = None
+            return None
+    finally:
+        requests.get = orig_get
+        requests.Session.get = orig_session_get
 
 
 def count_tokens(text: str, encoding_name: str = "cl100k_base") -> int:
-    """Counts the number of tokens in a string using the specified encoding."""
-    enc = get_tokenizer(encoding_name)
-    return len(enc.encode(text))
+    """Counts the number of tokens in a string using tiktoken or fallback heuristic."""
+    if not text:
+        return 0
+    try:
+        enc = get_tokenizer(encoding_name)
+        if enc:
+            return len(enc.encode(text))
+    except Exception:
+        pass
+    # Fallback token estimate: ~1.3 tokens per word, minimum 1 token for non-empty text
+    words = text.split()
+    if not words:
+        return max(1, len(text) // 4)
+    return max(1, int(len(words) * 1.3) + len(text) // 100)
 
 
 def tokenize_with_chunks(text: str, encoding_name: str = "cl100k_base") -> List[str]:

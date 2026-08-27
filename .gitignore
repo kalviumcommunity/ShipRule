@@ -16,13 +16,18 @@ node_modules/
 data/*
 !data/.gitkeep
 
+# Vector DB & Storage
+chroma_db/
+.chroma/
+*.sqlite3
+*.db
+
 # Generated Output Files (Ignore contents, allow .gitkeep placeholder and sample outputs)
 outputs/*
 !outputs/.gitkeep
 !outputs/sample_output.txt
 !outputs/prompt_comparison_output.txt
 !outputs/token_analysis_output.txt
-
 
 # Python Bytecode & Cache
 __pycache__/
@@ -31,13 +36,21 @@ __pycache__/
 *.so
 .Python
 
-# Testing & IDE Metadata
+# Testing, Logs & Temporary Files
 .pytest_cache/
 .coverage
 htmlcov/
 .mypy_cache/
+*.log
+*.tmp
+*.temp
+*.bak
+
+# IDE & OS Metadata
 .idea/
 .vscode/
 *.swp
 *.swo
 .DS_Store
+Thumbs.db
+
