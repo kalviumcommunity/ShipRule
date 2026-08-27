@@ -15,6 +15,10 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 
+# Default per-token pricing rates for ShipRule CDLP token cost estimation
+INPUT_RATE = float(os.getenv("INPUT_RATE", "0.000002"))
+OUTPUT_RATE = float(os.getenv("OUTPUT_RATE", "0.000006"))
+
 # Default pricing rates per 1 Million tokens (as of standard OpenAI pricing)
 PRICING_TABLE = {
     "gpt-4o": {
@@ -102,6 +106,72 @@ def tokenize_with_chunks(text: str, encoding_name: str = "cl100k_base") -> List[
     enc = get_tokenizer(encoding_name)
     token_ids = enc.encode(text)
     return [enc.decode([token_id]) for token_id in token_ids]
+
+
+def calculate_token_cost(
+    input_tokens: int,
+    output_tokens: int,
+    input_rate: float = INPUT_RATE,
+    output_rate: float = OUTPUT_RATE,
+    tokenizer_name: str = "tiktoken",
+    encoding_name: str = "cl100k_base"
+) -> Dict[str, Any]:
+    """
+    Calculates input, output, and total costs based on token counts and per-token rates.
+    """
+    input_cost = input_tokens * input_rate
+    output_cost = output_tokens * output_rate
+    total_cost = input_cost + output_cost
+
+    return {
+        "tokenizer": tokenizer_name,
+        "encoding": encoding_name,
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "total_tokens": input_tokens + output_tokens,
+        "input_rate": input_rate,
+        "output_rate": output_rate,
+        "input_cost": input_cost,
+        "output_cost": output_cost,
+        "total_cost": total_cost,
+    }
+
+
+def format_token_cost_report(
+    input_tokens: int,
+    output_tokens: int,
+    input_rate: float = INPUT_RATE,
+    output_rate: float = OUTPUT_RATE,
+    tokenizer_name: str = "tiktoken",
+    encoding_name: str = "cl100k_base"
+) -> str:
+    """
+    Formats the token usage and cost report string adhering to the required output format.
+    """
+    cost_info = calculate_token_cost(
+        input_tokens, output_tokens, input_rate, output_rate, tokenizer_name, encoding_name
+    )
+
+    report = (
+        "\n==================================================\n"
+        "SHIPRULE - TOKEN USAGE & COST\n"
+        "==================================================\n\n"
+        f"Tokenizer Used: {cost_info['tokenizer']}\n"
+        f"Encoding Used: {cost_info['encoding']}\n\n"
+        "--------------------------------------------------\n"
+        "CURRENT REQUEST\n"
+        "--------------------------------------------------\n\n"
+        f"Input Tokens: {cost_info['input_tokens']}\n"
+        f"Output Tokens: {cost_info['output_tokens']}\n\n"
+        "Input Cost:\n"
+        f"{cost_info['input_tokens']} × {cost_info['input_rate']:.6f} = ${cost_info['input_cost']:.6f}\n\n"
+        "Output Cost:\n"
+        f"{cost_info['output_tokens']} × {cost_info['output_rate']:.6f} = ${cost_info['output_cost']:.6f}\n\n"
+        "Total Cost:\n"
+        f"${cost_info['total_cost']:.6f}\n"
+        "=================================================="
+    )
+    return report
 
 
 def estimate_cost(

@@ -28,6 +28,10 @@ logging.basicConfig(
 
 from src.context_manager import prepare_context, total_tokens
 
+# Default LLM Output Control Parameters
+LLM_TEMPERATURE = 0.1
+LLM_MAX_TOKENS = 300
+
 
 def run_chat_completion(
     question=None,
@@ -40,18 +44,20 @@ def run_chat_completion(
     max_context_tokens=4096,
     response_reserve_tokens=500,
     strategy="trim",
-    preserve_recent=2
+    preserve_recent=2,
+    temperature_override=None,
+    max_tokens_override=None
 ):
     """
     Send a question and optional RAG context to Groq/LLM and return the model response.
-    Supports multi-turn history and context budgeting.
+    Supports multi-turn history, context budgeting, and output control parameters.
     """
 
     # Load .env
     load_dotenv()
 
     # -----------------------------------------
-    # Get Groq configuration
+    # Get Groq configuration & parameters
     # -----------------------------------------
     api_key = (
         api_key_override
@@ -64,8 +70,20 @@ def run_chat_completion(
         or os.getenv("CHAT_MODEL", "openai/gpt-oss-120b")
     )
 
+    temperature = (
+        temperature_override
+        if temperature_override is not None
+        else float(os.getenv("LLM_TEMPERATURE", str(LLM_TEMPERATURE)))
+    )
+
+    max_tokens = (
+        max_tokens_override
+        if max_tokens_override is not None
+        else int(os.getenv("LLM_MAX_TOKENS", str(LLM_MAX_TOKENS)))
+    )
+
     logging.info("=== Initializing Groq / LLM Client ===")
-    logging.info("[Config] Model: %s", model)
+    logging.info("[Config] Model: %s | Temperature: %.2f | Max Output Tokens: %d", model, temperature, max_tokens)
     logging.info(
         "[Config] API Key Configured: %s",
         "Yes" if api_key else "No"
@@ -129,7 +147,7 @@ def run_chat_completion(
             prep_result["strategy_applied"]
         )
 
-    logging.info("[Request] Target Model: %s", model)
+    logging.info("[Request] Target Model: %s (Temp: %.2f, Max Tokens: %d)", model, temperature, max_tokens)
     logging.info("[Request] User Question: %s", question)
 
     # List of candidate models to try in case of model error or availability fallback
@@ -143,7 +161,9 @@ def run_chat_completion(
         try:
             response = client.chat.completions.create(
                 model=current_model,
-                messages=messages
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens
             )
 
             # Get answer
