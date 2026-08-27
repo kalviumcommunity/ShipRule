@@ -21,6 +21,7 @@ outputs/*
 !outputs/.gitkeep
 !outputs/sample_output.txt
 !outputs/prompt_comparison_output.txt
+!outputs/token_analysis_output.txt
 
 
 # Python Bytecode & Cache
