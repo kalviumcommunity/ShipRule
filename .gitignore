@@ -16,10 +16,11 @@ node_modules/
 data/*
 !data/.gitkeep
 
-# Generated Output Files (Ignore contents, allow .gitkeep placeholder and sample output)
+# Generated Output Files (Ignore contents, allow .gitkeep placeholder and sample outputs)
 outputs/*
 !outputs/.gitkeep
 !outputs/sample_output.txt
+!outputs/prompt_comparison_output.txt
 
 
 # Python Bytecode & Cache
