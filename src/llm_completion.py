@@ -30,7 +30,8 @@ def run_chat_completion(
     question,
     context=None,
     model_override=None,
-    api_key_override=None
+    api_key_override=None,
+    system_prompt_override=None
 ):
     """
     Send a question and optional RAG context to Groq/LLM and return the model response.
@@ -78,14 +79,23 @@ def run_chat_completion(
     client = Groq(api_key=api_key)
 
     # -----------------------------------------
-    # Create messages with RAG Context
+    # Create messages with RAG Context & System Role
     # -----------------------------------------
-    system_prompt = (
-        "You are a helpful assistant for ShipRule CDLP. "
-        "Use the retrieved context if relevant to answer the question. "
-        "If the retrieved context is irrelevant or does not contain the information requested, "
-        "rely on your general knowledge to answer accurately."
-    )
+    if system_prompt_override:
+        system_prompt = system_prompt_override
+    else:
+        # Load constrained production system prompt for CDLP / ShipRule
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        prompt_file = os.path.join(base_dir, "prompts", "system_prompt_v2_constrained.txt")
+        if os.path.exists(prompt_file):
+            with open(prompt_file, "r", encoding="utf-8") as f:
+                system_prompt = f.read().strip()
+        else:
+            system_prompt = (
+                "You are an official AI Support Assistant for the Customs Duty & Documentation Lookup Platform (CDLP / ShipRule). "
+                "Answer ONLY questions related to logistics, customs duties, import documents, HS codes, and shipment rules in 2-3 sentences. "
+                "Refuse non-logistics queries strictly."
+            )
 
     if context:
         user_content = f"Retrieved Context:\n{context}\n\nQuestion:\n{question}"
