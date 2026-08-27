@@ -14,6 +14,7 @@ import chromadb
 from src.llm_completion import run_chat_completion
 from src.context_manager import ContextManager, total_tokens
 from src.scope_guard import is_in_scope, OUT_OF_SCOPE_RESPONSE
+from src.token_counter import count_tokens, format_token_cost_report, INPUT_RATE, OUTPUT_RATE
 
 
 def main():
@@ -48,11 +49,15 @@ def main():
     response_reserve_tokens = int(os.getenv("RESPONSE_RESERVE_TOKENS", "500"))
     strategy = os.getenv("CONTEXT_STRATEGY", "trim")
     preserve_recent = int(os.getenv("NUM_RECENT_TURNS_PRESERVE", "2"))
+    llm_temperature = float(os.getenv("LLM_TEMPERATURE", "0.1"))
+    llm_max_tokens = int(os.getenv("LLM_MAX_TOKENS", "300"))
 
     print(f"[Config] Chat Model: {chat_model}")
     print(f"[Config] Embed Model: {embed_model}")
     print(f"[Config] Base URL: {openai_base_url}")
     print(f"[Config] API Key Set: {api_key_status}")
+    print(f"[Config] Temperature: {llm_temperature}")
+    print(f"[Config] Max Output Tokens: {llm_max_tokens}")
     print(f"[Config] Max Context Budget: {max_context_tokens} tokens (Reserve: {response_reserve_tokens})")
     print(f"[Config] History Strategy: {strategy} (Preserve Recent: {preserve_recent} turns)")
 
@@ -162,13 +167,15 @@ def main():
         # Prepare context payload via ContextManager
         prep = ctx_manager.get_prepared_payload(question, retrieved_context=context)
         print(f"[Context Budget] Tokens: {prep['total_tokens']}/{prep['budget']} | Strategy: {prep['strategy_applied']}")
-        print("[LLM Completion] Querying Groq API...")
+        print(f"[LLM Completion] Querying Groq API (Temperature: {llm_temperature}, Max Tokens: {llm_max_tokens})...")
 
         try:
             # Send prepared messages to LLM
             response = run_chat_completion(
                 messages_override=prep["messages"],
-                model_override=chat_model
+                model_override=chat_model,
+                temperature_override=llm_temperature,
+                max_tokens_override=llm_max_tokens
             )
 
             if response:
@@ -180,6 +187,17 @@ def main():
                 print(response)
                 print("----------------------")
                 print(f"[History Stats] Current History Turns: {(len(ctx_manager.history) - 1) // 2} turn(s)")
+
+                # Calculate Output Tokens & Report Token Usage & Cost
+                input_tokens = prep["total_tokens"]
+                output_tokens = count_tokens(response)
+                cost_report = format_token_cost_report(
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                    input_rate=INPUT_RATE,
+                    output_rate=OUTPUT_RATE
+                )
+                print(cost_report)
             else:
                 print("\n[ERROR] No response received from model.")
 
