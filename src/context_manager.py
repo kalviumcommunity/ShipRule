@@ -20,6 +20,12 @@ try:
 except ImportError:
     from token_counter import count_tokens
 
+try:
+    from src.prompt_templates import render, ANSWER_TEMPLATE
+except ImportError:
+    from prompt_templates import render, ANSWER_TEMPLATE
+
+
 # Configure module logger
 logger = logging.getLogger(__name__)
 
@@ -273,7 +279,7 @@ def prepare_context(
                 rag_text = "[Context Omitted to fit context budget]"
             strategy_applied = (strategy_applied + "+rag_trimmed") if strategy_applied != "none" else "rag_trimmed"
 
-        effective_user_content = f"Retrieved Context:\n{rag_text}\n\nQuestion:\n{user_message}"
+        effective_user_content = render(ANSWER_TEMPLATE, context=rag_text, question=user_message)
 
     if user_message:
         built_messages.append({"role": "user", "content": effective_user_content})

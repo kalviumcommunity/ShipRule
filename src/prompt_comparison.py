@@ -11,6 +11,12 @@ if hasattr(sys.stdout, "reconfigure"):
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
+try:
+    from src.prompt_templates import render, BATCH_EVAL_TEMPLATE, SYSTEM_PROMPT_TEMPLATE
+except ImportError:
+    from prompt_templates import render, BATCH_EVAL_TEMPLATE, SYSTEM_PROMPT_TEMPLATE
+
+
 
 def load_prompt_file(filepath):
     with open(filepath, "r", encoding="utf-8") as f:
@@ -68,6 +74,15 @@ def run_prompt_comparison():
         print(query_section)
         output_lines.append(query_section)
 
+        # Render evaluation query payload using centralized PromptTemplate (Task 3 reuse)
+        user_payload = render(
+            BATCH_EVAL_TEMPLATE,
+            category=test["category"],
+            domain="Customs Compliance & Duty Lookup",
+            context="ShipRule CDLP platform duty classification database.",
+            question=test["prompt"]
+        )
+
         # 1. Run Vague Prompt
         vague_res = "ERROR"
         for current_model in models_to_try:
@@ -76,7 +91,7 @@ def run_prompt_comparison():
                     model=current_model,
                     messages=[
                         {"role": "system", "content": vague_system_prompt},
-                        {"role": "user", "content": test["prompt"]}
+                        {"role": "user", "content": user_payload}
                     ]
                 )
                 vague_res = res.choices[0].message.content.strip()
@@ -92,7 +107,7 @@ def run_prompt_comparison():
                     model=current_model,
                     messages=[
                         {"role": "system", "content": constrained_system_prompt},
-                        {"role": "user", "content": test["prompt"]}
+                        {"role": "user", "content": user_payload}
                     ]
                 )
                 constrained_res = res.choices[0].message.content.strip()
