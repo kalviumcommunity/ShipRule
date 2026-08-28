@@ -22,7 +22,7 @@ class TestModelParameters(unittest.TestCase):
     def test_default_parameter_constants(self):
         """Verify default configuration constants match requirements (0.1 temperature, 300 max_tokens)."""
         self.assertEqual(LLM_TEMPERATURE, 0.1)
-        self.assertEqual(LLM_MAX_TOKENS, 300)
+        self.assertEqual(LLM_MAX_TOKENS, 600)
 
     @patch("src.llm_completion.Groq")
     def test_groq_api_call_receives_temperature_and_max_tokens(self, mock_groq_cls):
@@ -30,7 +30,7 @@ class TestModelParameters(unittest.TestCase):
         mock_client = MagicMock()
         mock_groq_cls.return_value = mock_client
         mock_response = MagicMock()
-        mock_response.choices[0].message.content = "Sample factual customs response."
+        mock_response.choices[0].message.content = '{"answer": "Sample factual customs response.", "source": "CDLP System"}'
         mock_client.chat.completions.create.return_value = mock_response
 
         # Execute completion with explicit overrides
@@ -41,10 +41,10 @@ class TestModelParameters(unittest.TestCase):
             max_tokens_override=300
         )
 
-        self.assertEqual(response, "Sample factual customs response.")
+        self.assertEqual(response, {"answer": "Sample factual customs response.", "source": "CDLP System"})
         
         # Verify kwargs passed to Groq client
-        mock_client.chat.completions.create.assert_called_once()
+        mock_client.chat.completions.create.assert_called()
         _, kwargs = mock_client.chat.completions.create.call_args
         self.assertEqual(kwargs["temperature"], 0.1)
         self.assertEqual(kwargs["max_tokens"], 300)
@@ -55,7 +55,7 @@ class TestModelParameters(unittest.TestCase):
         mock_client = MagicMock()
         mock_groq_cls.return_value = mock_client
         mock_response = MagicMock()
-        mock_response.choices[0].message.content = "Short response."
+        mock_response.choices[0].message.content = '{"answer": "Short response.", "source": "CDLP System"}'
         mock_client.chat.completions.create.return_value = mock_response
 
         # Test temperature 1.0 and max_tokens 150

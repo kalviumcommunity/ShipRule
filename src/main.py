@@ -50,7 +50,7 @@ def main():
     strategy = os.getenv("CONTEXT_STRATEGY", "trim")
     preserve_recent = int(os.getenv("NUM_RECENT_TURNS_PRESERVE", "2"))
     llm_temperature = float(os.getenv("LLM_TEMPERATURE", "0.1"))
-    llm_max_tokens = int(os.getenv("LLM_MAX_TOKENS", "300"))
+    llm_max_tokens = int(os.getenv("LLM_MAX_TOKENS", "600"))
 
     print(f"[Config] Chat Model: {chat_model}")
     print(f"[Config] Embed Model: {embed_model}")
@@ -179,18 +179,28 @@ def main():
             )
 
             if response:
+                # Handle structured JSON response dict
+                if isinstance(response, dict):
+                    answer_text = response.get("answer", "")
+                    source_info = response.get("source", "CDLP System")
+                else:
+                    answer_text = str(response)
+                    source_info = "CDLP System"
+
                 # Add to persistent context manager history
                 ctx_manager.history = list(prep["messages"])
-                ctx_manager.add_assistant_message(response)
+                ctx_manager.add_assistant_message(answer_text)
 
                 print("\n--- Model Response ---")
-                print(response)
+                print(answer_text)
+                if source_info:
+                    print(f"\n[Source Citation: {source_info}]")
                 print("----------------------")
                 print(f"[History Stats] Current History Turns: {(len(ctx_manager.history) - 1) // 2} turn(s)")
 
                 # Calculate Output Tokens & Report Token Usage & Cost
                 input_tokens = prep["total_tokens"]
-                output_tokens = count_tokens(response)
+                output_tokens = count_tokens(answer_text)
                 cost_report = format_token_cost_report(
                     input_tokens=input_tokens,
                     output_tokens=output_tokens,

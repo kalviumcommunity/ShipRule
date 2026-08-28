@@ -26,11 +26,61 @@ logging.basicConfig(
 )
 
 
+import json
 from src.context_manager import prepare_context, total_tokens
 
 # Default LLM Output Control Parameters
 LLM_TEMPERATURE = 0.1
-LLM_MAX_TOKENS = 300
+LLM_MAX_TOKENS = 600
+
+
+def parse_and_validate_json_response(raw_text: str) -> dict:
+    """
+    Parses raw AI completion text into JSON and validates required fields ('answer' and 'source').
+    Safely extracts JSON objects from Markdown code fences (```json ... ```) or surrounding text.
+    Raises ValueError with descriptive standard error message on validation failure.
+    """
+    if not raw_text or not isinstance(raw_text, str) or not raw_text.strip():
+        logging.warning("[RAW MODEL RESPONSE]: %s", repr(raw_text))
+        raise ValueError("Malformed AI response")
+
+    text = raw_text.strip()
+    logging.info("[RAW MODEL RESPONSE]: %s", repr(text))
+
+    # Safely extract JSON object bounds '{' ... '}'
+    first_brace = text.find("{")
+    last_brace = text.rfind("}")
+
+    if first_brace == -1 or last_brace == -1 or last_brace <= first_brace:
+        logging.warning("[RAW MODEL RESPONSE NO JSON BOUNDS]: %s", repr(text))
+        raise ValueError("Malformed AI response")
+
+    json_candidate = text[first_brace : last_brace + 1]
+
+    try:
+        data = json.loads(json_candidate)
+    except Exception as parse_err:
+        logging.warning("[RAW MODEL RESPONSE PARSE FAIL] %s: %s", repr(json_candidate), parse_err)
+        raise ValueError("Malformed AI response")
+
+    if not isinstance(data, dict):
+        logging.warning("[RAW MODEL RESPONSE NOT DICT]: %s", repr(data))
+        raise ValueError("Malformed AI response")
+
+    if "answer" not in data or data["answer"] is None:
+        raise ValueError("Missing required field: answer")
+    if not isinstance(data["answer"], str) or not data["answer"].strip():
+        raise ValueError("Missing required field: answer")
+
+    if "source" not in data or data["source"] is None:
+        raise ValueError("Missing required field: source")
+    if not isinstance(data["source"], str):
+        raise ValueError("Missing required field: source")
+
+    return {
+        "answer": data["answer"].strip(),
+        "source": data["source"].strip()
+    }
 
 
 def run_chat_completion(
@@ -49,8 +99,9 @@ def run_chat_completion(
     max_tokens_override=None
 ):
     """
-    Send a question and optional RAG context to Groq/LLM and return the model response.
-    Supports multi-turn history, context budgeting, and output control parameters.
+    Send a question and optional RAG context to Groq/LLM and return structured JSON model response.
+    Supports multi-turn history, context budgeting, output control parameters, defensive parsing,
+    and single retry on malformed JSON outputs.
     """
 
     # Load .env
@@ -62,7 +113,7 @@ def run_chat_completion(
     api_key = (
         api_key_override
         if api_key_override is not None
-        else (os.getenv("GROQ_API_KEY")  )
+        else (os.getenv("GROQ_API_KEY"))
     )
 
     model = (
@@ -73,7 +124,7 @@ def run_chat_completion(
     temperature = (
         temperature_override
         if temperature_override is not None
-        else float(os.getenv("LLM_TEMPERATURE", str(LLM_TEMPERATURE)))
+        else float(os.getenv("LLM_TEMPERATURE", "0.0"))
     )
 
     max_tokens = (
@@ -123,9 +174,11 @@ def run_chat_completion(
                     system_prompt = f.read().strip()
             else:
                 system_prompt = (
-                    "You are an official AI Support Assistant for the Customs Duty & Documentation Lookup Platform (CDLP / ShipRule). "
-                    "Answer ONLY questions related to logistics, customs duties, import documents, HS codes, and shipment rules in 2-3 sentences. "
-                    "Refuse non-logistics queries strictly."
+                    "You are an official AI Support Assistant for the Customs Duty & Documentation Lookup Platform (CDLP / ShipRule).\n"
+                    "Return ONLY valid JSON:\n"
+                    "{\n  \"answer\": \"concise answer\",\n  \"source\": \"source name\"\n}\n"
+                    "Keep the answer concise and within approximately 150 words.\n"
+                    "Do not use Markdown.\nDo not use code fences.\nDo not add text outside the JSON object."
                 )
 
         prep_result = prepare_context(
@@ -159,20 +212,80 @@ def run_chat_completion(
     last_error = None
     for current_model in models_to_try:
         try:
-            response = client.chat.completions.create(
-                model=current_model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens
-            )
+            # Attempt 1: Call API with response_format={"type": "json_object"} if supported
+            try:
+                response = client.chat.completions.create(
+                    model=current_model,
+                    messages=messages,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    response_format={"type": "json_object"}
+                )
+            except (TypeError, GroqAPIError):
+                # Fallback if specific model or API version doesn't accept response_format kwarg
+                response = client.chat.completions.create(
+                    model=current_model,
+                    messages=messages,
+                    temperature=temperature,
+                    max_tokens=max_tokens
+                )
 
-            # Get answer
             reply_text = response.choices[0].message.content
-            return reply_text
+
+            # Parse and validate JSON structure
+            try:
+                return parse_and_validate_json_response(reply_text)
+            except ValueError as parse_err:
+                logging.warning(
+                    "Initial JSON parsing failed (%s). Retrying ONCE with stronger JSON instruction...",
+                    parse_err
+                )
+                # Retry once with a stronger instruction
+                retry_messages = list(messages) + [
+                    {"role": "assistant", "content": reply_text or ""},
+                    {
+                        "role": "user",
+                        "content": (
+                            "Your previous response was incomplete/truncated.\n"
+                            "Return a COMPLETE valid JSON object.\n"
+                            "Use exactly these fields:\n"
+                            "{\"answer\":\"...\",\"source\":\"...\"}\n"
+                            "Keep the answer concise.\n"
+                            "Do not exceed approximately 120 words.\n"
+                            "Do not use Markdown or code fences.\n"
+                            "Return nothing except the JSON object."
+                        )
+                    }
+                ]
+                try:
+                    retry_response = client.chat.completions.create(
+                        model=current_model,
+                        messages=retry_messages,
+                        temperature=0.0,
+                        max_tokens=max_tokens,
+                        response_format={"type": "json_object"}
+                    )
+                except (TypeError, GroqAPIError):
+                    retry_response = client.chat.completions.create(
+                        model=current_model,
+                        messages=retry_messages,
+                        temperature=0.0,
+                        max_tokens=max_tokens
+                    )
+                
+                retry_text = retry_response.choices[0].message.content
+                try:
+                    return parse_and_validate_json_response(retry_text)
+                except ValueError as retry_parse_err:
+                    logging.error("Retry JSON parsing failed: %s", retry_parse_err)
+                    return {
+                        "answer": f"Error: Unable to process response. ({retry_parse_err})",
+                        "source": "CDLP System",
+                        "error": str(retry_parse_err)
+                    }
 
         except GroqAPIError as e:
             last_error = e
-            # If rate limit or auth error, don't keep retrying other models
             if hasattr(e, 'status_code') and e.status_code in (401, 429):
                 break
             logging.warning("Model %s failed with %s. Trying fallback model...", current_model, e)
@@ -219,9 +332,15 @@ def run_chat_completion(
             exc_info=True
         )
 
-    return None
+    return {
+        "answer": "Error: Failed to obtain response from language model.",
+        "source": "CDLP System",
+        "error": "API Execution Error"
+    }
 
 
 if __name__ == "__main__":
     question = input("Ask your question: ")
-    run_chat_completion(question)
+    res = run_chat_completion(question)
+    print(res)
+
