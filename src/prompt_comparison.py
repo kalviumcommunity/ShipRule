@@ -67,7 +67,7 @@ def run_prompt_comparison():
     print(header)
     output_lines.append(header)
 
-    models_to_try = [model, "openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b"]
+    models_to_try = [model, "groq/compound-mini", "qwen/qwen3.6-27b", "openai/gpt-oss-20b", "openai/gpt-oss-120b"]
 
     for idx, test in enumerate(test_queries, 1):
         query_section = f"\nTEST CASE {idx}: [{test['category']}]\nUSER QUESTION: \"{test['prompt']}\"\n" + "-" * 80
@@ -87,6 +87,8 @@ def run_prompt_comparison():
         vague_res = "ERROR"
         for current_model in models_to_try:
             try:
+                import time
+                time.sleep(1)
                 res = client.chat.completions.create(
                     model=current_model,
                     messages=[
@@ -103,6 +105,8 @@ def run_prompt_comparison():
         constrained_res = "ERROR"
         for current_model in models_to_try:
             try:
+                import time
+                time.sleep(1)
                 res = client.chat.completions.create(
                     model=current_model,
                     messages=[

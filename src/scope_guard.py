@@ -25,7 +25,9 @@ LOGISTICS_KEYWORDS = [
     r"\bbis registration\b", r"\bcif\b", r"\bfob\b", r"\bincoterms?\b", r"\bdeclaration\b",
     r"\bdgft\b", r"\btrade regulation\b", r"\bcourier\b", r"\bconsignee\b", r"\bconsignor\b",
     r"\bport of entry\b", r"\bport of origin\b", r"\bexcise\b", r"\btaxation\b", r"\btaxes?\b",
-    r"\bborder\b", r"\brestricted goods\b", r"\bimport license\b", r"\bcustoms officer\b"
+    r"\bborder\b", r"\brestricted goods\b", r"\bimport license\b", r"\bcustoms officer\b",
+    r"\bcdlp\b", r"\bprd\b", r"\bpersona\b", r"\brequirement\b", r"\bsla\b", r"\bmvp\b",
+    r"\bgoal\b", r"\bmetrics?\b", r"\bverification\b", r"\bgap\b", r"\btraceability\b"
 ]
 
 # Explicit out-of-scope question patterns
