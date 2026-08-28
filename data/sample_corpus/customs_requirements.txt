@@ -1,0 +1,5 @@
+Customs duties may vary according to the product type, declared value, country of origin, and destination country. Every imported commodity is classified under a specific Harmonized System (HS) code that dictates the applicable Basic Customs Duty (BCD), national goods and services taxes, and auxiliary cess charges.
+
+Preferential tariff rates may be granted if the shipment is accompanied by a valid Certificate of Origin under a Bilateral or Multilateral Free Trade Agreement (FTA). Importers must ensure that the country of origin criteria and value addition thresholds are strictly satisfied.
+
+Certain regulated product categories—including information technology hardware, telecommunications equipment, medical devices, and chemicals—require mandatory statutory registrations prior to customs assessment. In particular, IT electronics require Bureau of Indian Standards (BIS) Compulsory Registration Scheme (CRS) compliance, and wireless radio frequency modules require Equipment Type Approval (ETA).

@@ -138,6 +138,22 @@ This script:
 
 Sample run logs are captured and saved in [`outputs/sample_output.txt`](file:///c:/Users/dhars/OneDrive/Desktop/ShipRule/outputs/sample_output.txt).
 
+### Multi-Format Document Loader & Intake Engine
+
+ShipRule includes a document loader supporting multiple document formats:
+- **Supported Formats**: `.txt` (Plain text), `.pdf` (PDF documents via `pypdf`), and `.md` (Markdown).
+- **Sample Corpus**: Located in `data/sample_corpus/` (`shipping_rules.txt`, `customs_requirements.txt`, `international_shipping_guide.pdf`).
+- **Execution Command**:
+  ```bash
+  python document_loader.py
+  ```
+  or
+  ```bash
+  python -m src.document_loader
+  ```
+- **Intake Demonstration**: Extracts plain text, preserves source identity (`filename`), reports character lengths, displays formatted text snippet samples, and gracefully handles missing, corrupt, or unsupported files with warnings without interrupting batch processing.
+
+
 ---
 
 ## Security Guidelines
