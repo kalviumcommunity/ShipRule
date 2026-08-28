@@ -7,103 +7,24 @@ USER QUESTION: "What are the required import documents and duty rates for shippi
 --------------------------------------------------------------------------------
 
 [PROMPT V1 — Vague System Prompt ("You are a helpful assistant.")]
-Below is a practical, step‑by‑step overview of what you need to bring to Indian customs and what duties/taxes you will normally pay when importing **laptop computers** (HS 8471.30).  All figures are current as of 2024‑2025, but Indian import regulations are updated frequently, so you should always double‑check with the **Directorate General of Foreign Trade (DGFT)**, **Central Board of Indirect Taxes & Customs (CBIC)**, or a licensed customs broker before shipping.
+**Importing Laptop Computers (HS 8471.30) into India – Quick‑Reference Guide**
 
----
+| Item | What you need to provide / pay |
+|------|--------------------------------|
+| **Core import documents** | • **Commercial Invoice** (full value, description, HS 8471.30, country of origin) <br>• **Packing List** (dimensions, weight, carton count) <br>• **Bill of Lading / Air Waybill** (original) <br>• **Certificate of Origin** (if you are claiming any preferential tariff) <br>• **Import Declaration Form (Bill of Entry)** filed electronically on the ICEGATE portal <br>• **BIS Import Clearance (Form‑10) or BIS “Letter of Conformity”** – laptops are covered by the Bureau of Indian Standards (BIS) under IS/IEC 60950‑1 / IEC 62368‑1. The importer must obtain a BIS‑approved “BIS‑IEC‑Import” certificate before customs clearance. <br>• **Test Report / EC (E‑cert) from an Indian testing agency** (optional but often required to prove compliance with the safety standard) |
+| **Additional licences / permits** | • **Import License** – not required for general laptops, but if the unit contains wireless modules (Wi‑Fi, Bluetooth, cellular) you may need a **Wireless Equipment License** from the Ministry of Communications. <br>• **FSSAI / Health clearance** – **not required** for laptops. |
+| **Customs duty (Basic Customs Duty – BCD)** | **0 %** (HS 8471.30 is listed under “Portable automatic data‑processing machines” and is duty‑free). |
+| **Other levies & taxes** | • **Integrated Goods & Services Tax (IGST)** – **18 %** of the assessable value (CIF + duty). <br>• **Social Welfare Surcharge** – 10 % of the BCD (since BCD = 0, the surcharge is nil). <br>• **Additional Cesses** – none applicable to laptops as of the latest schedule (check periodically for any health‑cess updates). |
+| **Assessable value for IGST** | **CIF value** (Cost + Insurance + Freight) **+** any customs duty (0 %). IGST = 18 % × CIF. |
+| **Typical clearance flow** | 1. **Pre‑shipment** – obtain BIS‑IEC import certificate (or arrange testing in India). <br>2. **Arrival** – shipper provides Bill of Lading/Air Waybill, commercial invoice, packing list, certificate of origin. <br>3. **Importer** files the **Bill of Entry** on ICEGATE, attaches all documents, and uploads the BIS import clearance. <br>4. Customs may issue a **“Notice of Assessment”**; you pay IGST (and any other minor fees). <br>5. Upon payment, the cargo is released. |
+| **Key references** | • Indian Customs Tariff (Chapter 84, HS 8471.30) – 0 % BCD. <br>• GST Council – Laptops attract 18 % IGST (GST Rate List, “Computer hardware – 18 %”). <br>• BIS Notification No. 7/2009‑C‑3 (mandatory BIS certification for laptops). <br>• Ministry of Electronics & Information Technology (MeitY) – Wireless equipment licensing guidelines. |
+| **Tips / Common pitfalls** | • **BIS compliance is the “show‑stopper.”** If you ship without a valid BIS‑IEC import certificate, customs will hold the consignment. <br>• **Accurate HS coding** – a mis‑classification (e.g., using 8471.41 for “Portable digital computers”) can trigger a duty of 10 %+ IGST. <br>• **Currency conversion** – IGST is calculated on the CIF value in INR at the RBI‑published exchange rate on the day of clearance. <br>• **Preferential rates** – If your laptops are made in a country with a Free Trade Agreement (e.g., ASEAN‑India FTA), you can claim a reduced (or zero) duty *and* a reduced IGST rate (generally 12 % under the “GST on imports from FTA partners” rule). You must provide a **Certificate of Origin** and a **Letter of Credit/Invoice** indicating the preferential origin. |
+| **Bottom line** | – **Documents:** Invoice, Packing List, B/L or AWB, Certificate of Origin (if using a preferential rate), Bill of Entry (ICEGATE), **BIS‑IEC import certificate** (mandatory). <br>– **Duty:** **0 % Basic Customs Duty**. <br>– **Taxes:** **18 % IGST** on CIF value (plus negligible surcharge). <br>– **Action:** Secure the BIS certification *before* the shipment lands, file the Bill of Entry promptly, and be ready to pay IGST at the time of clearance. |
 
-## 1. Required Import Documents  
-
-| Document | Why it’s needed | Typical format / notes |
-|----------|----------------|------------------------|
-| **Commercial Invoice** | Shows transaction value, description, HS code, quantity, country of origin, INCOTERMS, seller‑buyer details. | Must be in English, legible, and signed by the exporter. |
-| **Packing List** | Details how the goods are packed (weights, dimensions, number of boxes). | Not a customs‑duty document but required for inspection and freight handling. |
-| **Bill of Lading (B/L) or Air Waybill (AWB)** | Proof of shipment & carrier details. | Original (or “non‑negotiable” copy) for sea freight; electronic copy accepted for air freight. |
-| **Certificate of Origin (CO)** | Confirms the country where the laptop was manufactured. Required for preferential duty rates under any trade agreements (e.g., ASEAN‑India, RCEP). | Issued by a Chamber of Commerce; must be **certified** (or “Form‑C” if using a free‑trade agreement). |
-| **Import Export Code (IEC)** | Mandatory 10‑digit code issued by DGFT for any Indian entity/person importing goods. | Must be quoted on the Bill of Entry. |
-| **Form‑B (for non‑resident importers)** | Required if the importer is a foreign entity without an IEC. | Filed electronically via the Indian Customs portal (ICEGATE). |
-| **Bureau of Indian Standards (BIS) Certification** *(if applicable)* | Some electronic items need mandatory BIS certification; laptops are **generally exempt**, but check if any special model (e.g., with integrated telecom functions) falls under a regulated category. | BIS‑type “Compulsory Registration” (CR) or “Type‑Approval” may be required. |
-| **Letter of Authorization / Power of Attorney** (if using a customs broker) | Allows the broker to file the Bill of Entry on your behalf. | Signed by the importer/authorized signatory. |
-| **Import License** *(rare for laptops)* | Laptops are not listed under the “restricted” or “prohibited” categories, so no license is needed unless the shipment contains special modules (e.g., encryption hardware). | Verify on the **DGFT “Restricted & Prohibited Items”** list. |
-| **GST Registration Certificate** (if you are a business) | Required to claim input tax credit on the Integrated GST you will pay. | GSTIN must be quoted on the Bill of Entry. |
-| **Insurance Certificate** (optional but recommended) | Proof of cargo insurance for loss/damage. | Not a customs document, but often requested by banks for L/C transactions. |
-
-> **Tip:** All documents must be uploaded to **ICEGATE** (the Indian Customs Electronic Data Interchange system) when filing the **Bill of Entry**.  The customs officer may ask for any of the above originals for verification.
-
----
-
-## 2. Duty & Tax Structure for HS 8471.30 (Laptops)
-
-| Component | Rate (as of FY 2024‑25) | How it’s calculated | Comments |
-|-----------|------------------------|---------------------|----------|
-| **Basic Customs Duty (BCD)** | **0 %** | Applied on the **Customs Value** (CIF) of the laptops. | Laptops are listed under the “Zero‑Duty” schedule in the Customs Tariff (India). |
-| **Additional Customs Duty / Social Welfare Surcharge** | **10 % of BCD** | Since BCD = 0, this surcharge is also **0 %**. | Only applies when BCD is > 0. |
-| **Integrated GST (IGST)** | **18 %** | Charged on **(Customs Value + BCD + SWS)**. With BCD = 0, it is 18 % of the CIF value. | IGST is collected at the time of customs clearance. Business importers can claim it as Input Tax Credit (subject to GST registration). |
-| **Other possible levies** | **-** | • **Anti‑dumping duty** (rare for laptops). <br>• **Safeguard duty** (if a temporary measure is in place). | Check the latest CBIC notifications; as of now, none are active for laptops. |
-| **Port/handling fees** | Varies by port & freight forwarder | Usually a fixed charge plus a percentage of cargo value. | Not a “duty” but adds to total landed cost. |
-
-### Example Calculation (illustrative)
-
-| Item | Amount (USD) |
-|------|--------------|
-| **CIF value** (Cost + Insurance + Freight) | $1,000 |
-| **BCD (0 %)** | $0 |
-| **SWS (10 % of BCD)** | $0 |
-| **IGST (18 % of CIF)** | $180 |
-| **Total import tax & duty** | **$180** (≈ ₹15,000 @ 1 USD ≈ ₹83) |
-| **Other fees** (port, customs broker, etc.) | ~₹2,000–₹5,000 (depends) |
-
-> **Bottom line:** For a typical laptop, you only pay the 18 % IGST (plus routine port/handling charges). No customs duty is levied.
-
----
-
-## 3. Practical Checklist for a First‑Time Shipment
-
-1. **Obtain an IEC** (or use a local Indian partner who already has one).  
-2. **Verify the HS Code** you will declare: 8471.30 – “Portable digital automatic data processing machines, weighing not more than 10 kg (laptops).”  
-3. **Ask the exporter for**: commercial invoice, packing list, certificate of origin, and a copy of the Bill of Lading/Air Waybill.  
-4. **Upload documents** to ICEGATE and file the **Bill of Entry** (or have your customs broker do it).  
-5. **Pay IGST** (and any minor port fees) electronically; the customs officer will release the cargo once the payment is confirmed.  
-6. **Collect the cargo** from the port/airport and keep all paperwork for your GST input‑credit claim.  
-
----
-
-## 4. Sources & Where to Verify Updates
-
-| Source | What you’ll find |
-|--------|-----------------|
-| **CBIC – Customs Tariff (2024‑25)** | Official tariff schedule – shows BCD = 0 % for 8471.30. |
-| **GST Council – Integrated GST rates** | IGST rate table – 18 % for “computer hardware & accessories.” |
-| **DGFT – IEC & Form‑B portal** | IEC application, Form‑B filing, list of restricted items. |
-| **BIS – Compulsory Registration** | Check if any specific laptop model needs BIS certification. |
-| **ICEGATE – Indian Customs E‑DI System** | Upload/track Bill of Entry, pay taxes online. |
-| **Indian Ministry of Commerce – Trade Agreements** | If you have a “Certificate of Origin” from a FTA country, you may qualify for preferential duty (still 0 % BCD, but useful for documentation). |
-
----
-
-## 5. Quick FAQ
-
-| Question | Answer |
-|----------|--------|
-| *Do I need a separate import licence for laptops?* | No, laptops are not a restricted item. Only a valid IEC (or a local Indian partner’s IEC) is required. |
-| *What if the laptop is a “gaming” model with high‑performance GPU?* | Still classified under 8471.30 and enjoys the zero‑duty rate, unless it includes a radio‑communication module that falls under a different HS heading. |
-| *Can I get a duty exemption for personal use?* | Personal imports under ₹50,000 (air) / ₹150,000 (sea) may qualify for “de‑minimis” relief, but the same IGST of 18 % still applies. |
-| *Do I need a BIS certificate?* | Generally no, but confirm with the BIS website if the model contains any “telecommunication equipment” (e.g., LTE/5G modem). |
-| *What if the laptop is shipped in a bulk consignment with other electronics?* | Each line item on the Bill of Entry must have its own HS code and value. The duty treatment for laptops remains zero‑duty; other items will be taxed per their respective headings. |
-
----
-
-### Bottom Line
-
-- **Documentation**: Commercial invoice, packing list, B/L or AWB, Certificate of Origin, IEC (or Form‑B), and, where applicable, BIS certification.  
-- **Duty**: **0 % Basic Customs Duty** (so no customs duty or welfare surcharge).  
-- **Tax**: **18 % IGST** on the CIF value (plus routine port/handling fees).  
-
-If you follow the checklist above and file the Bill of Entry through ICEGATE, your laptops should clear Indian customs quickly and with minimal cost beyond the IGST.  
-
-*Always verify the latest rates on the CBIC/ICEGATE portals or with a licensed customs broker before the shipment departs.*
+> **Reminder:** Tariff and tax rates are subject to periodic revisions (usually announced in the Union Budget). Always verify the latest rates on the Indian Customs website (customsindiaonline.gov.in) and the GST portal (gst.gov.in) before shipping.
 
 [PROMPT V2 — Constrained CDLP System Prompt (Role + Scope + Out-of-Scope Refusal)]
-For laptops classified under HS 8471.30, India requires a commercial invoice, packing list, bill of lading or airway bill, a Certificate of Origin, the importer’s IEC (Import‑Export Code), and a filed Bill of Entry; the goods must also be covered by a BIS (Bureau of Indian Standards) certification if applicable. The current basic customs duty on these computers is 10 % of the assessable value, and the shipment will be subject to an additional 18 % GST (plus any applicable cess).
+{"answer":"For HS 8471.30 (laptop computers) imported into India, the required documents are: commercial invoice, packing list, bill of lading or airway bill, certificate of origin, import‑export code (IEC) of the importer, and a customs entry (Bill of Entry) filed by a licensed customs agent. A Letter of Authorization may be needed if a third‑party clears the goods. The duty structure is: Basic Customs Duty 0%, Additional Customs Duty (Social Welfare Surcharge) 0% (applies only on a non‑zero duty), and Integrated GST (IGST) 18% calculated on the assessable value (CIF + customs). No other antidumping or special duties apply to standard laptops.","source":"Indian Customs Tariff (HS 8471.30)"}
 
 
 TEST CASE 2: [Out-of-Domain Query (Cinema & Food)]
@@ -111,63 +32,10 @@ USER QUESTION: "Can you recommend the top 3 movies currently playing in cinema a
 --------------------------------------------------------------------------------
 
 [PROMPT V1 — Vague System Prompt ("You are a helpful assistant.")]
-**Quick disclaimer:**  
-I don’t have real‑time access to today’s box‑office charts (my training data stops in June 2024), so I can’t tell you the exact three titles that are topping every theater right this minute. However, I can show you how to spot the current hits in your area and pair each type of movie with a snack that usually makes the experience even better.
-
----
-
-## How to find the “top 3” movies right now
-
-| Source | What it gives you | How to use it |
-|--------|-------------------|---------------|
-| **Box Office Mojo** (boxofficemojo.com) | Weekly U.S. (or worldwide) grosses, ranking the highest‑earning films currently in theaters. | Look at the “Domestic Box Office” tab → “Current Week” → the top three titles. |
-| **IMDb “Now Playing”** (imdb.com/showtimes) | Local‑theater listings plus user‑rated “most popular” movies. | Enter your city or ZIP code → “Now Playing” → sort by “Popularity.” |
-| **Rotten Tomatoes “In Theaters”** (rottentomatoes.com/browse/in-theaters) | Critics/audience scores and a “Tomatometer” ranking for movies still playing. | Filter by “All Theaters” → note the highest‑scoring titles. |
-| **Your own cinema’s website or app** | The exact schedule for the multiplex you’ll visit. | Check the “Top Picks” or “Now Showing” sections; many chains highlight the biggest draws. |
-
-If you tell me your city (or a nearby zip code) I can give a more targeted guess based on recent releases that have been trending globally in 2026, but the safest route is the quick check above.
-
----
-
-## Snack pairings that work for different movie genres
-
-| Typical blockbuster type | Example snack combo (why it works) |
-|--------------------------|------------------------------------|
-| **Action / Super‑hero / Thriller** | **Classic buttered popcorn** + a side of **spicy cheddar popcorn** or **jalapeño‑lime chips**. The salty‑buttery base fuels the high‑energy pacing, while the spicy kick mirrors the on‑screen adrenaline. |
-| **Animated family / Fantasy adventure** | **Caramel popcorn** + **soft‑serve ice cream** (a “popcorn sundae”) or **milk‑chocolate dipped pretzel rods**. Sweetness keeps kids (and the kid‑inside of any adult) delighted, and the creamy ice‑cream balances the buttery crunch. |
-| **Romantic comedy / Drama** | **Herbed garlic popcorn** (a little rosemary or thyme) + **mini cheese & fruit platter** (grapes, berries, cheddar cubes). The aromatic notes feel a bit “sophisticated,” matching the more relaxed, conversation‑friendly vibe. |
-| **Horror / Mystery** | **Dark chocolate‑covered popcorn** (or **black sesame popcorn**) + **cinnamon‑spiced nuts**. The richer, slightly bitter flavors echo the moody atmosphere, and the nuts give an extra crunch for those “edge‑of‑your‑seat” moments. |
-| **Sci‑Fi / Epic** | **Truffle‑oil popcorn** + **wasabi peas** or **sea‑salted edamame**. The umami‑forward truffle oil feels futuristic, while the wasabi adds a zing that feels “out‑of‑this‑world.” |
-| **Documentary / Indie** | **Plain popcorn** + a **small charcuterie board** (cured meats, olives, pickles) or **artisan crackers with hummus**. Light, non‑intrusive snacks let you stay focused on the story. |
-
-### Quick “popcorn‑only” upgrades (no extra prep)
-
-1. **Seasoning kits** – keep a small jar of **nutritional yeast**, **smoked paprika**, **cinnamon sugar**, and **cayenne pepper** on hand. Sprinkle a pinch on freshly popped kernels for instant flavor twists.
-2. **Mix‑ins** – add a handful of **M&Ms**, **dried cranberries**, or **roasted peanuts** to the bowl for texture variety.
-3. **Dipping sauces** – a ramekin of **marinara**, **ranch**, or **sriracha mayo** turns ordinary popcorn into a mini‑tasting adventure.
-
----
-
-## Putting it all together – a sample “movie night” plan
-
-| Movie (example) | Why it’s likely a current hit (2026) | Snack combo |
-|----------------|--------------------------------------|-------------|
-| **“Starship Rebellion”** (Sci‑Fi blockbuster) | Part of a major franchise, heavy marketing, strong opening weekend worldwide. | Truffle‑oil popcorn + wasabi peas |
-| **“The Heart of the Willow”** (Animated family adventure) | Disney/Pixar‑style release, family‑friendly, big merchandising push. | Caramel popcorn + soft‑serve ice cream drizzle |
-| **“Midnight Ledger”** (Thriller / Heist) | Star‑studded cast, praised by critics on Rotten Tomatoes, strong box‑office debut. | Classic buttered popcorn + spicy cheddar popcorn (mix half‑and‑half) |
-
-If those titles happen to be playing where you are, you’ve got a ready‑made snack lineup. If not, just swap the snack pairings to match the genre of whatever top‑three movies you discover using the tools above.
-
----
-
-### Final tip
-
-Keep a **popcorn‑maker or microwave‑popcorn bag** handy, plus a small stash of the seasonings and mix‑ins listed. That way, you can quickly adapt the flavor profile to whatever movie you end up watching—no need to run to the concession stand for a new bag each time!
-
-Enjoy the show (and the snacks)! 🎬🍿
+I’m sorry, but I’m only able to help with customs‑compliance and duty‑lookup questions. If you have any queries in that area, feel free to ask!
 
 [PROMPT V2 — Constrained CDLP System Prompt (Role + Scope + Out-of-Scope Refusal)]
-I am an assistant for the Customs Duty & Documentation Lookup Platform (CDLP). I can only answer questions related to logistics, customs duties, import documents, HS codes, and shipment rules.
+{"answer":"I am an assistant for the Customs Duty & Documentation Lookup Platform (CDLP). I can only answer questions related to logistics, customs duties, import documents, HS codes, and shipment rules.","source":"CDLP System"}
 
 
 TEST CASE 3: [Format-Constrained Query (JSON)]
@@ -180,25 +48,14 @@ USER QUESTION: "Reply ONLY with a JSON object containing keys 'duty_rate', 'requ
   "required_docs": [
     "Commercial Invoice",
     "Packing List",
-    "Bill of Lading or Air Waybill",
-    "Entry Manifest (CBP Form 7533) or Entry Summary (CBP Form 7501)",
-    "Certificate of Origin (if claiming preferential tariff treatment)",
-    "Importer Security Filing (ISF) for U.S. imports"
+    "Bill of Lading",
+    "Certificate of Origin"
   ],
-  "source_agency": "U.S. Customs and Border Protection (CBP) / U.S. International Trade Commission (USITC)"
+  "source_agency": "U.S. Customs and Border Protection"
 }
 
 [PROMPT V2 — Constrained CDLP System Prompt (Role + Scope + Out-of-Scope Refusal)]
-{
-  "duty_rate": "0% (most preferential trade agreements apply; verify with your national tariff schedule)",
-  "required_docs": [
-    "Commercial Invoice",
-    "Packing List",
-    "Certificate of Origin (if claiming preferential duty)",
-    "Bill of Lading/Air Waybill"
-  ],
-  "source_agency": "U.S. International Trade Commission (USITC) – Harmonized Tariff Schedule"
-}
+{"answer":"I do not have verified customs regulation data for this query in CDLP.", "source":"CDLP System"}
 
 ================================================================================
 TASK 4 SUMMARY & DOCUMENTATION NOTE:

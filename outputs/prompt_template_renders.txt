@@ -1,0 +1,101 @@
+================================================================================
+CDLP PROMPT TEMPLATE RENDER EXAMPLES (ASSIGNMENT 3.18)
+================================================================================
+Generated Example Renders of PromptTemplates with Dynamic Runtime Injections
+================================================================================
+
+--------------------------------------------------------------------------------
+1. ANSWER_TEMPLATE Render Example (Interactive RAG Chat Path)
+--------------------------------------------------------------------------------
+Template Definition:
+  "You are a CDLP customs compliance assistant. Answer ONLY from the context provided.\n"
+  "If the answer isn't in the context, state clearly that you do not know.\n\n"
+  "Context:\n{context}\n\n"
+  "Question:\n{question}"
+
+Injected Values:
+  - context: "ShipRule CDLP is an automated customs compliance and duty classification platform. Import duty rate for HS Code 8471.30 (Laptops) into India is 7.5% basic customs duty + 10% Social Welfare Surcharge."
+  - question: "What is the duty rate and compliance requirement for importing laptops?"
+
+Rendered Output:
+You are a CDLP customs compliance assistant. Answer ONLY from the context provided.
+If the answer isn't in the context, state clearly that you do not know.
+
+Context:
+ShipRule CDLP is an automated customs compliance and duty classification platform. Import duty rate for HS Code 8471.30 (Laptops) into India is 7.5% basic customs duty + 10% Social Welfare Surcharge.
+
+Question:
+What is the duty rate and compliance requirement for importing laptops?
+
+--------------------------------------------------------------------------------
+2. SYSTEM_PROMPT_TEMPLATE Render Example (Dynamic System Role Allocation)
+--------------------------------------------------------------------------------
+Template Definition:
+  "You are an AI assistant specialized in {domain}.\n"
+  "Role: {role}\n"
+  "Constraints: {constraints}"
+
+Injected Values:
+  - domain: "Logistics, Tariff Codes & Trade Regulations"
+  - role: "Senior Customs Duty Auditor"
+  - constraints: "Always cite official agency regulations. Refuse out-of-scope entertainment/general knowledge queries immediately."
+
+Rendered Output:
+You are an AI assistant specialized in Logistics, Tariff Codes & Trade Regulations.
+Role: Senior Customs Duty Auditor
+Constraints: Always cite official agency regulations. Refuse out-of-scope entertainment/general knowledge queries immediately.
+
+--------------------------------------------------------------------------------
+3. BATCH_EVAL_TEMPLATE Render Example (Batch Evaluation & CLI Pipeline Path)
+--------------------------------------------------------------------------------
+Template Definition:
+  "=== CDLP Batch Evaluation Item ===\n"
+  "Category: {category}\n"
+  "Target Domain: {domain}\n"
+  "Retrieved Context:\n{context}\n\n"
+  "User Query: {question}"
+
+Injected Values:
+  - category: "In-Domain Logistics Query"
+  - domain: "Customs Compliance & Duty Lookup"
+  - context: "Source traceability ensures every duty lookup is verified against official trade and customs regulations."
+  - question: "What are the required import documents for shipping laptop computers (HS Code 8471.30) to India?"
+
+Rendered Output:
+=== CDLP Batch Evaluation Item ===
+Category: In-Domain Logistics Query
+Target Domain: Customs Compliance & Duty Lookup
+Retrieved Context:
+Source traceability ensures every duty lookup is verified against official trade and customs regulations.
+
+User Query: What are the required import documents for shipping laptop computers (HS Code 8471.30) to India?
+
+--------------------------------------------------------------------------------
+4. STRUCTURED_JSON_TEMPLATE Render Example (Strict Format Control)
+--------------------------------------------------------------------------------
+Template Definition:
+  "You are a CDLP customs compliance assistant. Respond ONLY with a valid JSON object.\n"
+  "JSON Schema: {{\"answer\": \"<detailed response>\", \"source\": \"<citation source>\"}}\n\n"
+  "Context:\n{context}\n\n"
+  "Question:\n{question}"
+
+Injected Values:
+  - context: "Commercial invoice, packing list, and bill of lading are required by CBIC India."
+  - question: "Return JSON list of required documents for customs clearance."
+
+Rendered Output:
+You are a CDLP customs compliance assistant. Respond ONLY with a valid JSON object.
+JSON Schema: {"answer": "<detailed response>", "source": "<citation source>"}
+
+Context:
+Commercial invoice, packing list, and bill of lading are required by CBIC India.
+
+Question:
+Return JSON list of required documents for customs clearance.
+
+================================================================================
+SUMMARY & ADVANTAGES OF PROMPT TEMPLATING
+================================================================================
+1. Elimination of Inline Drift: Prompt wording and grounding rules are maintained in `src/prompt_templates.py` rather than duplicated across files.
+2. Multi-Feature Consistency: Both interactive RAG chat (`src/main.py`) and batch evaluation/CLI pipelines (`src/prompt_comparison.py`) consume identical template structures.
+3. Safe Maintenance & Versioning: Modifying a grounding constraint in `src/prompt_templates.py` instantly updates all application features without touching business logic.
