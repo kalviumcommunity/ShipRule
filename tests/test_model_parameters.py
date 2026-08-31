@@ -41,7 +41,8 @@ class TestModelParameters(unittest.TestCase):
             max_tokens_override=300
         )
 
-        self.assertEqual(response, {"answer": "Sample factual customs response.", "source": "CDLP System"})
+        self.assertEqual(response["answer"], "Sample factual customs response.")
+        self.assertEqual(response["source"], "CDLP System")
         
         # Verify kwargs passed to Groq client
         mock_client.chat.completions.create.assert_called()

@@ -9,6 +9,8 @@ from src.document_loader import (
     load_document,
     load_documents,
     load_directory,
+    chunk_document,
+    chunk_documents,
     run_intake_demonstration,
     SUPPORTED_EXTENSIONS,
     _normalize_sample_text,
