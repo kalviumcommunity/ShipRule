@@ -146,6 +146,17 @@ class TestDocumentLoader(unittest.TestCase):
         norm = _normalize_sample_text(raw, max_chars=50)
         self.assertEqual(norm, "Line 1 Line 2 Line 3")
 
+    def test_load_document_cleans_extracted_text(self):
+        """Test that load_document applies the clean function to extracted document text."""
+        dirty_txt_path = os.path.join(self.test_dir, "dirty_doc.txt")
+        with open(dirty_txt_path, "w", encoding="utf-8") as f:
+            f.write("Line 1\r\nPage 3 of 12\r\n\r\n\r\n   Line 2   with   spaces.   ")
+
+        doc = load_document(dirty_txt_path)
+        self.assertIsNotNone(doc)
+        self.assertEqual(doc["text"], "Line 1\n\nLine 2 with spaces.")
+
+
 
 if __name__ == "__main__":
     unittest.main()
