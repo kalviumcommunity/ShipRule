@@ -20,10 +20,13 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
+from src.text_cleaner import clean
+
 # Supported file extensions
 SUPPORTED_EXTENSIONS = {".txt", ".pdf", ".md"}
 
 logger = logging.getLogger(__name__)
+
 
 
 def _normalize_sample_text(text: str, max_chars: int = 140) -> str:
@@ -95,22 +98,27 @@ def load_document(file_path: str, verbose: bool = False) -> Optional[Dict[str, s
             print(warning_msg, flush=True)
             return None
 
-        if not text or not text.strip():
+        raw_text = text or ""
+        cleaned_text = clean(raw_text)
+
+        if not cleaned_text:
             warning_msg = f"[WARNING] Could not read: {filename} - skipping.\nReason: File is empty or contains no extractable text."
             print(warning_msg, flush=True)
             return None
 
         doc_payload = {
             "source": filename,
-            "text": text
+            "text": cleaned_text
         }
 
         if verbose:
-            sample_snippet = _normalize_sample_text(text)
-            print(f"[LOADED]", flush=True)
+            sample_before = _normalize_sample_text(raw_text)
+            sample_after = _normalize_sample_text(cleaned_text)
+            print(f"[LOADED & CLEANED]", flush=True)
             print(f"Source: {filename}", flush=True)
-            print(f"Text Length: {len(text)} characters", flush=True)
-            print(f"Sample: {sample_snippet}\n", flush=True)
+            print(f"{filename}: {len(raw_text)} -> {len(cleaned_text)} chars", flush=True)
+            print(f"BEFORE Sample: {sample_before}", flush=True)
+            print(f"AFTER Sample : {sample_after}\n", flush=True)
             print("--------------------------------------------------\n", flush=True)
 
         return doc_payload
@@ -201,14 +209,44 @@ def run_intake_demonstration():
             f.write("Dummy Word Document binary content")
         dummy_created = True
 
+    import io
+
+    # Intercept output to write to outputs/document_intake_results.txt
+    output_dir = os.path.join(project_root, "outputs")
+    os.makedirs(output_dir, exist_ok=True)
+    results_path = os.path.join(output_dir, "document_intake_results.txt")
+
+    buffer = io.StringIO()
+
+    class DualWriter:
+        def __init__(self, original_stdout, string_buffer):
+            self.stdout = original_stdout
+            self.buffer = string_buffer
+
+        def write(self, s):
+            self.stdout.write(s)
+            self.buffer.write(s)
+
+        def flush(self):
+            self.stdout.flush()
+            self.buffer.flush()
+
+    dual_writer = DualWriter(sys.stdout, buffer)
+    old_stdout = sys.stdout
+    sys.stdout = dual_writer
+
     try:
         load_documents(test_files, verbose=True)
+        with open(results_path, "w", encoding="utf-8") as f:
+            f.write(buffer.getvalue())
     finally:
+        sys.stdout = old_stdout
         if dummy_created and os.path.exists(dummy_unsupported):
             try:
                 os.remove(dummy_unsupported)
             except Exception:
                 pass
+
 
 
 if __name__ == "__main__":

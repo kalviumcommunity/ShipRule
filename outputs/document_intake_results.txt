@@ -2,24 +2,27 @@
 SHIPRULE DOCUMENT LOADER
 ==================================================
 
-[LOADED]
+[LOADED & CLEANED]
 Source: shipping_rules.txt
-Text Length: 826 characters
-Sample: All international shipments must include accurate shipping documentation. Required documents may include a commercial invoice and packing list...
+shipping_rules.txt: 826 -> 826 chars
+BEFORE Sample: All international shipments must include accurate shipping documentation. Required documents may include a commercial invoice and packing li...
+AFTER Sample : All international shipments must include accurate shipping documentation. Required documents may include a commercial invoice and packing li...
 
 --------------------------------------------------
 
-[LOADED]
+[LOADED & CLEANED]
 Source: customs_requirements.txt
-Text Length: 1005 characters
-Sample: Customs duties may vary according to the product type, declared value, country of origin, and destination country. Every imported commodity...
+customs_requirements.txt: 1005 -> 1005 chars
+BEFORE Sample: Customs duties may vary according to the product type, declared value, country of origin, and destination country. Every imported commodity...
+AFTER Sample : Customs duties may vary according to the product type, declared value, country of origin, and destination country. Every imported commodity...
 
 --------------------------------------------------
 
-[LOADED]
+[LOADED & CLEANED]
 Source: international_shipping_guide.pdf
-Text Length: 1204 characters
-Sample: Import and export shipments must comply with applicable customs procedures and destination-specific requirements. Cross-border trade operati...
+international_shipping_guide.pdf: 1204 -> 1204 chars
+BEFORE Sample: Import and export shipments must comply with applicable customs procedures and destination-specific requirements. Cross-border trade operati...
+AFTER Sample : Import and export shipments must comply with applicable customs procedures and destination-specific requirements. Cross-border trade operati...
 
 --------------------------------------------------
 
@@ -30,7 +33,6 @@ Sample: Import and export shipments must comply with applicable customs procedur
 ==================================================
 INTAKE SUMMARY
 ==================================================
-
 Files attempted: 5
 Files successfully loaded: 3
 Files skipped: 2

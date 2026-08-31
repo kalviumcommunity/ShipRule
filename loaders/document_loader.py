@@ -4,6 +4,7 @@ ShipRule CDLP - Document Intake & Loader Module
 Loaders package adapter for src.document_loader.
 """
 
+from src.text_cleaner import clean
 from src.document_loader import (
     load_document,
     load_documents,
