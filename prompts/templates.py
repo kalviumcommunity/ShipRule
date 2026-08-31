@@ -86,7 +86,9 @@ SHIPPING_PROMPT_TEMPLATE = PromptTemplate(
 
 ANSWER_TEMPLATE = PromptTemplate(
     "You are a CDLP customs compliance assistant. Answer ONLY from the context provided.\n"
-    "If the answer isn't in the context, state clearly that you do not know.\n\n"
+    "Respond ONLY with a valid JSON object matching this schema:\n"
+    "{{\"answer\": \"<factual response>\", \"sources\": [{{\"source\": \"<document>\", \"page\": \"<page>\"}}], \"confidence\": \"high|medium|low\", \"has_answer\": true|false}}\n"
+    "If the answer is not available in the context, set \"answer\" to \"I don't have enough information in the provided shipping rules to answer this question.\", \"sources\" to [], \"confidence\" to \"low\", and \"has_answer\" to false.\n\n"
     "Context:\n{context}\n\n"
     "Question:\n{question}"
 )
@@ -107,7 +109,8 @@ BATCH_EVAL_TEMPLATE = PromptTemplate(
 
 STRUCTURED_JSON_TEMPLATE = PromptTemplate(
     "You are a CDLP customs compliance assistant. Respond ONLY with a valid JSON object.\n"
-    "JSON Schema: {{\"answer\": \"<detailed response>\", \"source\": \"<citation source>\"}}\n\n"
+    "JSON Schema: {{\"answer\": \"<factual response>\", \"sources\": [{{\"source\": \"<document>\", \"page\": \"<page>\"}}], \"confidence\": \"high|medium|low\", \"has_answer\": true|false}}\n\n"
     "Context:\n{context}\n\n"
     "Question: {question}"
 )
+

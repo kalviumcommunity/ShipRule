@@ -149,6 +149,36 @@ class TestStructuredOutput(unittest.TestCase):
         self.assertEqual(kwargs.get("response_format"), {"type": "json_object"})
         self.assertEqual(kwargs.get("temperature"), 0.0)
 
+    def test_parse_4_field_schema(self):
+        """Test parsing valid 4-field schema with answer, sources array, confidence, and has_answer."""
+        raw_json = json.dumps({
+            "answer": "Commercial invoice and packing list are required.",
+            "sources": [{"source": "shipping_rules.txt", "page": "1"}],
+            "confidence": "high",
+            "has_answer": True
+        })
+        result = parse_and_validate_json_response(raw_json)
+        self.assertEqual(result["answer"], "Commercial invoice and packing list are required.")
+        self.assertEqual(len(result["sources"]), 1)
+        self.assertEqual(result["sources"][0]["source"], "shipping_rules.txt")
+        self.assertEqual(result["confidence"], "high")
+        self.assertTrue(result["has_answer"])
+
+    def test_parse_missing_info_schema(self):
+        """Test parsing fallback JSON when knowledge base has no answer."""
+        raw_json = json.dumps({
+            "answer": "I don't have enough information in the provided shipping rules to answer this question.",
+            "sources": [],
+            "confidence": "low",
+            "has_answer": False
+        })
+        result = parse_and_validate_json_response(raw_json)
+        self.assertIn("don't have enough information", result["answer"])
+        self.assertEqual(result["sources"], [])
+        self.assertEqual(result["confidence"], "low")
+        self.assertFalse(result["has_answer"])
+
 
 if __name__ == "__main__":
     unittest.main()
+

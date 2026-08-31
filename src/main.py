@@ -11,10 +11,14 @@ if project_root not in sys.path:
 
 from dotenv import load_dotenv
 import chromadb
+from src.document_loader import load_directory, chunk_documents
 from src.llm_completion import run_chat_completion
 from src.context_manager import ContextManager, total_tokens
 from src.scope_guard import is_in_scope, OUT_OF_SCOPE_RESPONSE
 from src.token_counter import count_tokens, format_token_cost_report, INPUT_RATE, OUTPUT_RATE
+
+# Maximum distance threshold for ChromaDB retrieval relevance (L2 distance)
+MAX_DISTANCE_THRESHOLD = 1.35
 
 
 def main():
@@ -62,47 +66,44 @@ def main():
     print(f"[Config] History Strategy: {strategy} (Preserve Recent: {preserve_recent} turns)")
 
     # -----------------------------------------
-    # 2. Initialize ChromaDB
+    # 2. Initialize ChromaDB & Ingest Corpus
     # -----------------------------------------
     print("\n[Vector DB] Initializing ChromaDB client...")
 
     chroma_client = chromadb.Client()
-
     collection = chroma_client.get_or_create_collection(
-        name="knowledge_base_test"
+        name="shiprule_knowledge_base"
     )
 
-    # Add initial knowledge base documents
-    collection.add(
-        documents=[
-            "ShipRule CDLP is an automated customs compliance and duty classification platform.",
-            "Source traceability ensures every duty lookup is verified against official trade and customs regulations.",
-            "RAG Application Day 1 Setup Initialized Successfully."
-        ],
-        metadatas=[
-            {"source": "platform_overview"},
-            {"source": "compliance_rules"},
-            {"source": "setup"}
-        ],
-        ids=[
-            "id1",
-            "id2",
-            "id3"
-        ]
-    )
+    # Ingest document corpus from data/sample_corpus or data directory
+    corpus_dir = os.path.join(project_root, "data", "sample_corpus")
+    if not os.path.exists(corpus_dir):
+        corpus_dir = os.path.join(project_root, "data")
 
-    # Test retrieval
-    results = collection.query(
-        query_texts=["Setup"],
-        n_results=1
-    )
+    raw_docs = load_directory(corpus_dir, verbose=False)
+    chunks = chunk_documents(raw_docs, max_chunk_size=500, overlap=100)
 
-    print(
-        "[Vector DB] Successfully stored and queried ChromaDB doc: "
-        f"'{results['documents'][0][0]}'"
-    )
+    if chunks:
+        # Avoid duplicate additions if collection persists
+        if collection.count() == 0:
+            collection.add(
+                ids=[c["id"] for c in chunks],
+                documents=[c["text"] for c in chunks],
+                metadatas=[c["metadata"] for c in chunks]
+            )
+        print(f"[Vector DB] Ingested {len(raw_docs)} document(s) into {len(chunks)} searchable chunk(s).")
+    else:
+        print("[WARNING] No document chunks found to ingest into vector store.")
 
     print("\n[Status] RAG foundation is ready!")
+
+    # Load system prompt v2 constrained for CDLP / ShipRule
+    prompt_file = os.path.join(project_root, "prompts", "system_prompt_v2_constrained.txt")
+    if os.path.exists(prompt_file):
+        with open(prompt_file, "r", encoding="utf-8") as f:
+            sys_prompt = f.read().strip()
+    else:
+        sys_prompt = None
 
     # -----------------------------------------
     # 3. Initialize Context Manager
@@ -112,7 +113,8 @@ def main():
         response_reserve_tokens=response_reserve_tokens,
         strategy=strategy,
         num_recent_turns_preserve=preserve_recent,
-        model_name=chat_model
+        model_name=chat_model,
+        system_prompt=sys_prompt
     )
 
     # -----------------------------------------
@@ -156,13 +158,28 @@ def main():
         print("\n[Vector DB] Querying ChromaDB for relevant context...")
         query_res = collection.query(
             query_texts=[question],
-            n_results=2
+            n_results=3,
+            include=["documents", "metadatas", "distances"]
         )
 
-        retrieved_docs = query_res.get("documents", [[]])[0]
-        context = "\n".join(retrieved_docs) if retrieved_docs else ""
+        doc_list = query_res.get("documents", [[]])[0]
+        meta_list = query_res.get("metadatas", [[]])[0]
+        dist_list = query_res.get("distances", [[]])[0]
 
-        print(f"[Vector DB] Retrieved {len(retrieved_docs)} context snippet(s).")
+        # Filter chunks by distance threshold to reject irrelevant matches
+        relevant_snippets = []
+        retrieved_sources = []
+        for doc_text, meta, dist in zip(doc_list, meta_list, dist_list):
+            if dist <= MAX_DISTANCE_THRESHOLD:
+                relevant_snippets.append(doc_text)
+                retrieved_sources.append(meta)
+
+        if relevant_snippets:
+            context = "\n\n".join(relevant_snippets)
+            print(f"[Vector DB] Retrieved {len(relevant_snippets)} relevant context snippet(s).")
+        else:
+            context = ""
+            print("[Vector DB] No relevant context snippets found in knowledge base (distance threshold exceeded).")
 
         # Prepare context payload via ContextManager
         prep = ctx_manager.get_prepared_payload(question, retrieved_context=context)
@@ -179,13 +196,16 @@ def main():
             )
 
             if response:
-                # Handle structured JSON response dict
                 if isinstance(response, dict):
                     answer_text = response.get("answer", "")
-                    source_info = response.get("source", "CDLP System")
+                    sources_list = response.get("sources", [])
+                    confidence = response.get("confidence", "low")
+                    has_answer = response.get("has_answer", False)
                 else:
                     answer_text = str(response)
-                    source_info = "CDLP System"
+                    sources_list = []
+                    confidence = "low"
+                    has_answer = False
 
                 # Add to persistent context manager history
                 ctx_manager.history = list(prep["messages"])
@@ -193,8 +213,18 @@ def main():
 
                 print("\n--- Model Response ---")
                 print(answer_text)
-                if source_info:
-                    print(f"\n[Source Citation: {source_info}]")
+                print(f"\n[Confidence: {confidence.upper()} | Has Answer: {has_answer}]")
+                if sources_list:
+                    print("Sources:")
+                    formatted_sources = set()
+                    for src in sources_list:
+                        s_name = src.get("source", "Unknown")
+                        s_page = src.get("page", "1")
+                        formatted_sources.add(f"  - {s_name}, page {s_page}")
+                    for f_src in sorted(formatted_sources):
+                        print(f_src)
+                else:
+                    print("Sources: None (No matching knowledge base documents cited)")
                 print("----------------------")
                 print(f"[History Stats] Current History Turns: {(len(ctx_manager.history) - 1) // 2} turn(s)")
 
