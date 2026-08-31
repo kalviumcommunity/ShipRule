@@ -125,15 +125,21 @@ def main():
     print("========================================")
     print("Type your question below.")
     print("Type 'reset' to clear conversation history.")
-    print("Type 'exit' to stop the application.")
+    print("Type 'exit' or 'quit' to stop the application.")
     print("========================================")
 
     while True:
-
-        question = input("\nAsk your question: ").strip()
+        try:
+            question = input("\nAsk your question: ").strip()
+        except EOFError:
+            print("\n[Input Stream Closed / EOF detected. Exiting RAG Application...]")
+            break
+        except KeyboardInterrupt:
+            print("\n[Operation cancelled by user. Exiting RAG Application...]")
+            break
 
         # Exit
-        if question.lower() == "exit":
+        if question.lower() in ("exit", "quit", "q"):
             print("\nExiting RAG Application...")
             break
 
@@ -147,6 +153,7 @@ def main():
         if not question:
             print("Please enter a question.")
             continue
+
 
         # -----------------------------------------
         # Strict Scope Guard Check
