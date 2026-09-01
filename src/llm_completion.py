@@ -255,7 +255,7 @@ def run_chat_completion(
 
     # List of candidate models to try in case of model error or availability fallback
     models_to_try = [model]
-    for fallback in ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b"]:
+    for fallback in ["groq/compound-mini", "qwen/qwen3.6-27b", "openai/gpt-oss-20b", "openai/gpt-oss-120b"]:
         if fallback not in models_to_try:
             models_to_try.append(fallback)
 
