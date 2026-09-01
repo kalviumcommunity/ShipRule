@@ -11,6 +11,7 @@ from src.document_loader import (
     load_directory,
     chunk_document,
     chunk_documents,
+    token_chunks,
     run_intake_demonstration,
     SUPPORTED_EXTENSIONS,
     _normalize_sample_text,

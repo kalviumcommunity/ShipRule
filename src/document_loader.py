@@ -21,6 +21,8 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from src.text_cleaner import clean
+import tiktoken
+from src.token_counter import get_tokenizer
 
 # Supported file extensions
 SUPPORTED_EXTENSIONS = {".txt", ".pdf", ".md"}
@@ -62,10 +64,82 @@ def _load_pdf(file_path: str) -> str:
     return extracted
 
 
-def chunk_document(doc: Dict[str, str], max_chunk_size: int = 500, overlap: int = 100) -> List[Dict[str, Any]]:
+def token_chunks(
+    text: str,
+    size: int = 400,
+    overlap: int = 60,
+    encoding_name: str = "cl100k_base"
+) -> List[Dict[str, Any]]:
     """
-    Splits a document's cleaned text into structured, overlapping chunks for embedding.
-    Preserves source name, detected page number, and chunk index in metadata.
+    Splits input text into token-based overlapping chunks using tiktoken.
+
+    Args:
+        text: Input string to chunk.
+        size: Maximum token count per chunk (default 400).
+        overlap: Token overlap count between adjacent chunks (default 60).
+        encoding_name: Name of the tiktoken encoding (default 'cl100k_base').
+
+    Returns:
+        List of dictionaries with keys: chunk_id, text, token_count, start_token, end_token, overlap.
+
+    Raises:
+        ValueError: If size <= 0, overlap < 0, or overlap >= size.
+    """
+    if size <= 0:
+        raise ValueError(f"Chunk size must be greater than 0, got {size}")
+    if overlap < 0:
+        raise ValueError(f"Overlap cannot be negative, got {overlap}")
+    if overlap >= size:
+        raise ValueError(f"Overlap ({overlap}) must be strictly less than chunk size ({size})")
+
+    if not text or not text.strip():
+        return []
+
+    try:
+        enc = get_tokenizer(encoding_name)
+    except Exception:
+        enc = None
+    if enc is None:
+        enc = tiktoken.get_encoding(encoding_name)
+
+    token_ids = enc.encode(text)
+    total_tokens = len(token_ids)
+
+    if total_tokens == 0:
+        return []
+
+    step = size - overlap
+    chunks = []
+    chunk_id = 1
+    start = 0
+
+    while start < total_tokens:
+        end = min(start + size, total_tokens)
+        chunk_token_ids = token_ids[start:end]
+        chunk_text = enc.decode(chunk_token_ids)
+
+        chunks.append({
+            "chunk_id": chunk_id,
+            "text": chunk_text,
+            "token_count": len(chunk_token_ids),
+            "start_token": start,
+            "end_token": end,
+            "overlap": overlap
+        })
+
+        if end == total_tokens:
+            break
+
+        start += step
+        chunk_id += 1
+
+    return chunks
+
+
+def chunk_document(doc: Dict[str, str], max_chunk_size: int = 400, overlap: int = 60) -> List[Dict[str, Any]]:
+    """
+    Splits a document's cleaned text into structured, token-aware overlapping chunks.
+    Preserves source name, detected page number, chunk index, and token metadata.
     """
     if not doc or not doc.get("text"):
         return []
@@ -73,40 +147,12 @@ def chunk_document(doc: Dict[str, str], max_chunk_size: int = 500, overlap: int 
     source = doc.get("source", "unknown")
     text = doc["text"]
 
-    # Split text by paragraphs first
-    paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
+    raw_token_chunks = token_chunks(text, size=max_chunk_size, overlap=overlap)
 
-    raw_chunks = []
-    current_chunk = ""
-    current_page = "1"
-
-    for para in paragraphs:
-        # Check for page marker [Page N]
-        page_match = re.search(r"\[Page\s+(\d+)\]", para)
-        if page_match:
-            current_page = page_match.group(1)
-            # Remove page marker from chunk text
-            para = re.sub(r"\[Page\s+\d+\]\n?", "", para).strip()
-            if not para:
-                continue
-
-        if not current_chunk:
-            current_chunk = para
-        elif len(current_chunk) + len(para) + 2 <= max_chunk_size:
-            current_chunk += "\n\n" + para
-        else:
-            raw_chunks.append((current_chunk, current_page))
-            # Keep overlap tail if paragraph is long
-            overlap_text = current_chunk[-overlap:] if len(current_chunk) > overlap else ""
-            current_chunk = (overlap_text + "\n\n" + para).strip() if overlap_text else para
-
-    if current_chunk:
-        raw_chunks.append((current_chunk, current_page))
-
-    # Format chunks with metadata
     chunks = []
-    for idx, (chunk_text, page_num) in enumerate(raw_chunks, start=1):
-        # Double-check page marker inside chunk text if missed
+    for idx, tc in enumerate(raw_token_chunks, start=1):
+        chunk_text = tc["text"]
+        page_num = "1"
         page_match = re.search(r"\[Page\s+(\d+)\]", chunk_text)
         if page_match:
             page_num = page_match.group(1)
@@ -118,15 +164,19 @@ def chunk_document(doc: Dict[str, str], max_chunk_size: int = 500, overlap: int 
             "metadata": {
                 "source": source,
                 "page": str(page_num),
-                "chunk_id": idx
+                "chunk_id": idx,
+                "token_count": tc["token_count"],
+                "start_token": tc["start_token"],
+                "end_token": tc["end_token"],
+                "overlap": tc["overlap"]
             }
         })
 
     return chunks
 
 
-def chunk_documents(docs: List[Dict[str, str]], max_chunk_size: int = 500, overlap: int = 100) -> List[Dict[str, Any]]:
-    """Chunks a list of loaded document dicts."""
+def chunk_documents(docs: List[Dict[str, str]], max_chunk_size: int = 400, overlap: int = 60) -> List[Dict[str, Any]]:
+    """Chunks a list of loaded document dicts using token-aware chunking."""
     all_chunks = []
     for doc in docs:
         all_chunks.extend(chunk_document(doc, max_chunk_size=max_chunk_size, overlap=overlap))
