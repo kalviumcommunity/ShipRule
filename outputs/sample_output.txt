@@ -1,0 +1,47 @@
+============================================================
+      SHIPRULE LLM COMPLETION PIPELINE TERMINAL OUTPUT     
+============================================================
+
+2026-08-25 09:32:17,918 [INFO] === Initializing OpenAI-Compatible LLM Client ===
+2026-08-25 09:32:17,918 [INFO] [Config] Base URL: http://127.0.0.1:8080/v1
+2026-08-25 09:32:17,918 [INFO] [Config] Model: gpt-4o-mini
+2026-08-25 09:32:17,919 [INFO] [Config] API Key Configured: Yes
+
+------------------------------------------------------------
+TEST 1: Successful OpenAI-Compatible Completion Call & Logging
+------------------------------------------------------------
+2026-08-25 09:32:18,046 [INFO] [Request] Target Model: gpt-4o-mini
+2026-08-25 09:32:18,047 [INFO] [Request] Messages Payload: [{'role': 'system', 'content': 'You are a concise customs compliance assistant for ShipRule CDLP.'}, {'role': 'user', 'content': 'Say hello in one sentence and explain why source traceability matters for customs duty lookups.'}]
+2026-08-25 09:32:18,048 [INFO] [API Call] Sending chat completion request...
+2026-08-25 09:32:18,760 [INFO] HTTP Request: POST http://127.0.0.1:8080/v1/chat/completions "HTTP/1.0 200 OK"
+
+--- Model Response ---
+Hello! Source traceability is critical for customs duty lookups because linking every duty rate and required document to an official government agency URL provides an auditable compliance record and eliminates risk during customs clearance.
+----------------------
+
+2026-08-25 09:32:18,779 [INFO] [Response] Content: Hello! Source traceability is critical for customs duty lookups because linking every duty rate and required document to an official government agency URL provides an auditable compliance record and eliminates risk during customs clearance.
+2026-08-25 09:32:18,779 [INFO] [Usage] Tokens -> Prompt: 38 | Completion: 42 | Total: 80
+
+------------------------------------------------------------
+TEST 2: Catching & Explaining 401 Unauthorized Error
+------------------------------------------------------------
+2026-08-25 09:32:18,800 [INFO] [Request] Target Model: gpt-4o-mini
+2026-08-25 09:32:18,800 [INFO] [Request] Messages Payload: [{'role': 'system', 'content': 'You are a concise customs compliance assistant for ShipRule CDLP.'}, {'role': 'user', 'content': 'Say hello in one sentence and explain why source traceability matters for customs duty lookups.'}]
+2026-08-25 09:32:18,807 [INFO] HTTP Request: POST http://127.0.0.1:8080/v1/chat/completions "HTTP/1.0 401 Unauthorized"
+2026-08-25 09:32:18,809 [ERROR] AuthenticationError (401): Error code: 401 - {'error': {'message': 'Incorrect API key provided: invalid_key. Please check your OPENAI_API_KEY in .env.'}}
+
+[ERROR] Auth failed (401): Check OPENAI_API_KEY in your .env file.
+
+------------------------------------------------------------
+TEST 3: Catching & Explaining 429 Rate Limit Error
+------------------------------------------------------------
+2026-08-25 09:32:18,828 [INFO] [Request] Target Model: gpt-4o-mini
+2026-08-25 09:32:18,828 [INFO] [Request] Messages Payload: [{'role': 'system', 'content': 'You are a concise customs compliance assistant for ShipRule CDLP.'}, {'role': 'user', 'content': 'Say hello in one sentence and explain why source traceability matters for customs duty lookups.'}]
+2026-08-25 09:32:18,833 [INFO] HTTP Request: POST http://127.0.0.1:8080/v1/chat/completions "HTTP/1.0 429 Too Many Requests"
+2026-08-25 09:32:20,116 [ERROR] RateLimitError (429): Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o-mini in organization org-12345 on tokens per min (TPM).'}}
+
+[ERROR] Rate limited (429): Slow down and retry with backoff.
+
+============================================================
+ALL TEST SCENARIOS COMPLETED SUCCESSFULLY
+============================================================

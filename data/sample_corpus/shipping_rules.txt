@@ -1,0 +1,7 @@
+All international shipments must include accurate shipping documentation. Required documents may include a commercial invoice and packing list, certificate of origin, and transport documents such as a bill of lading or air waybill.
+
+The commercial invoice must specify the seller, buyer, item description, harmonized tariff code (HS Code), unit value, and total invoice currency. Under-invoicing or misdeclaring product categories constitutes a regulatory violation subject to customs penalties.
+
+Packing lists must detail carton markings, net weight, gross weight, and package dimensions to facilitate physical verification at the port of departure and destination port of entry.
+
+For express courier consignments, simplified clearance applies for commercial samples with a declared value under standard statutory thresholds.

@@ -1,0 +1,39 @@
+==================================================
+SHIPRULE DOCUMENT LOADER
+==================================================
+
+[LOADED & CLEANED]
+Source: shipping_rules.txt
+shipping_rules.txt: 826 -> 826 chars
+BEFORE Sample: All international shipments must include accurate shipping documentation. Required documents may include a commercial invoice and packing li...
+AFTER Sample : All international shipments must include accurate shipping documentation. Required documents may include a commercial invoice and packing li...
+
+--------------------------------------------------
+
+[LOADED & CLEANED]
+Source: customs_requirements.txt
+customs_requirements.txt: 1005 -> 1005 chars
+BEFORE Sample: Customs duties may vary according to the product type, declared value, country of origin, and destination country. Every imported commodity...
+AFTER Sample : Customs duties may vary according to the product type, declared value, country of origin, and destination country. Every imported commodity...
+
+--------------------------------------------------
+
+[LOADED & CLEANED]
+Source: international_shipping_guide.pdf
+international_shipping_guide.pdf: 1213 -> 1213 chars
+BEFORE Sample: [Page 1] Import and export shipments must comply with applicable customs procedures and destination-specific requirements. Cross-border trad...
+AFTER Sample : [Page 1] Import and export shipments must comply with applicable customs procedures and destination-specific requirements. Cross-border trad...
+
+--------------------------------------------------
+
+[WARNING] File not found: missing_document.pdf - skipping.
+
+[WARNING] Unsupported file format: unsupported_document.docx - skipping.
+
+==================================================
+INTAKE SUMMARY
+==================================================
+Files attempted: 5
+Files successfully loaded: 3
+Files skipped: 2
+==================================================
