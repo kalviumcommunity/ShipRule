@@ -20,6 +20,73 @@ if project_root not in sys.path:
 import chromadb.utils.embedding_functions as ef
 
 
+# Standard Logistics Rules & Regulations Corpus aligned with CDLP PRD
+LOGISTICS_PRD_CORPUS = [
+    {
+        "id": "REG-IN-8471",
+        "title": "Customs Record - Laptop Computers (India)",
+        "text": (
+            "Customs Record for Laptop Computers in India: Destination Country: India. Commodity: Laptop Computers / "
+            "Portable Automatic Data Processing Machines. HS Code: 8471.30. Duty Rate: 7.5% Basic Customs Duty + 10% "
+            "Social Welfare Surcharge (SWS). Required Documents: Commercial Invoice, Bill of Lading, BIS Registration "
+            "Certificate, DGFT Import License. Restricted Status: Restricted (Import License Required). Source Agency: "
+            "Directorate General of Foreign Trade (DGFT) & CBIC, India. Source URL: https://www.cbic.gov.in. "
+            "Last Confirmed Date: 2026-02-10."
+        ),
+        "country": "India",
+        "hs_code": "8471.30"
+    },
+    {
+        "id": "REG-IT-8703",
+        "title": "Customs Record - Motor Vehicles (Italy)",
+        "text": (
+            "Customs Record for Cars / Motor Vehicles in Italy: Destination Country: Italy. Commodity: Cars / Motor Vehicles "
+            "principally designed for transport of persons. HS Code: 8703. Duty Rate: 10.0% Basic Customs Duty + 22% "
+            "Value Added Tax (VAT). Required Documents: Commercial Invoice, Certificate of Origin, Bill of Lading, EU "
+            "Type-Approval Certificate, EUR.1 Movement Certificate. Restricted Status: Unrestricted (subject to EU emissions "
+            "standards). Source Agency: Agenzia delle Dogane e dei Monopoli (ADM), Italy / European Union TARIC. "
+            "Source URL: https://ec.europa.eu/taxation_customs/dds2/taric. Last Confirmed Date: 2026-01-15."
+        ),
+        "country": "Italy",
+        "hs_code": "8703"
+    },
+    {
+        "id": "REG-DE-8541",
+        "title": "Customs Record - Solar Photovoltaic Modules (Germany)",
+        "text": (
+            "Customs Record for Solar Panels / Photovoltaic Modules in Germany: Destination Country: Germany. Commodity: "
+            "Photosensitive semiconductor devices / Solar PV Modules. HS Code: 8541.43. Duty Rate: 0.0% Basic Customs Duty + "
+            "19% VAT (0% VAT for residential PV installations). Required Documents: Commercial Invoice, Packing List, CE "
+            "Declaration of Conformity, Bill of Lading. Restricted Status: Unrestricted. Source Agency: Bundeszollverwaltung, "
+            "Germany / EU Customs. Source URL: https://www.zoll.de. Last Confirmed Date: 2026-01-20."
+        ),
+        "country": "Germany",
+        "hs_code": "8541.43"
+    },
+    {
+        "id": "REG-BR-9018",
+        "title": "Customs Record - Medical Diagnostic Equipment (Brazil)",
+        "text": (
+            "Customs Record for Medical Diagnostic Instruments in Brazil: Destination Country: Brazil. Commodity: Electromedical "
+            "instruments and appliances for medical diagnosis. HS Code: 9018.90. Duty Rate: 14.0% Import Duty (II) + 1.65% "
+            "PIS + 7.6% COFINS. Required Documents: Commercial Invoice, Air Waybill, ANVISA Sanitary Registration Certificate, "
+            "Certificate of Free Sale. Restricted Status: Restricted (ANVISA Sanitary Approval mandatory prior to customs clearance). "
+            "Source Agency: Receita Federal & ANVISA, Brazil. Source URL: https://www.gov.br/receitafederal. "
+            "Last Confirmed Date: 2026-02-01."
+        ),
+        "country": "Brazil",
+        "hs_code": "9018.90"
+    },
+    {
+        "id": "MISC-OFFICE-01",
+        "title": "Unrelated Document - Cafeteria Menu",
+        "text": "The corporate cafeteria lunch menu for today includes penne pasta arrabbiata, garlic bread, and fresh fruit salad.",
+        "country": "N/A",
+        "hs_code": "N/A"
+    }
+]
+
+
 def get_embedding_function():
     """
     Returns an embedding function for text vectorization.
@@ -102,13 +169,79 @@ def explain_vector_representation() -> Dict[str, str]:
     }
 
 
+def demo_logistics_query_matching() -> Dict[str, Any]:
+    """
+    Demonstrates embedding-based matching of user logistics queries against PRD logistics rules records.
+    """
+    user_query = "What are the required import documents and tariff rates for bringing laptops into India under CDLP rules?"
+    query_vec = embed_texts([user_query])[0]
+
+    corpus_texts = [item["text"] for item in LOGISTICS_PRD_CORPUS]
+    corpus_vecs = embed_texts(corpus_texts)
+
+    scored_records = []
+    for item, vec in zip(LOGISTICS_PRD_CORPUS, corpus_vecs):
+        score = cosine_similarity(query_vec, vec)
+        scored_records.append({
+            "id": item["id"],
+            "title": item["title"],
+            "country": item["country"],
+            "hs_code": item["hs_code"],
+            "cosine_similarity": round(score, 4),
+            "text_snippet": item["text"][:120] + "..."
+        })
+
+    # Sort descending by cosine similarity score
+    scored_records.sort(key=lambda x: x["cosine_similarity"], reverse=True)
+
+    top_match = scored_records[0]
+    passed = (top_match["id"] == "REG-IN-8471") and (top_match["cosine_similarity"] > 0.6)
+
+    return {
+        "user_query": user_query,
+        "ranked_results": scored_records,
+        "top_match_id": top_match["id"],
+        "top_match_title": top_match["title"],
+        "top_match_score": top_match["cosine_similarity"],
+        "test_passed": passed
+    }
+
+
+def demo_paraphrase_robustness() -> Dict[str, Any]:
+    """
+    Demonstrates how semantic embeddings score high similarity for paraphrased logistics queries
+    even when different vocabulary is used.
+    """
+    phrase1 = "What paperwork is mandatory for clearing customs when importing laptop computers to India?"
+    phrase2 = "Required import documentation and customs clearance requirements for Indian laptop shipments."
+    unrelated = "How to install a graphics card driver on Windows 11?"
+
+    vecs = embed_texts([phrase1, phrase2, unrelated])
+
+    sim_paraphrase = cosine_similarity(vecs[0], vecs[1])
+    sim_unrelated = cosine_similarity(vecs[0], vecs[2])
+
+    passed = sim_paraphrase > (sim_unrelated + 0.3)
+
+    return {
+        "phrase_a": phrase1,
+        "phrase_b_paraphrase": phrase2,
+        "unrelated_phrase": unrelated,
+        "paraphrase_similarity": round(sim_paraphrase, 4),
+        "unrelated_similarity": round(sim_unrelated, 4),
+        "test_passed": passed
+    }
+
+
 def run_embedding_demonstration() -> Dict[str, Any]:
     """
-    Executes tasks 1-4 of KDU 3.25:
+    Executes all tasks of KDU 3.25:
       - Task 1: Generate embeddings for sample texts (similar pair + CDLP PRD text + unrelated text)
       - Task 2: Report vector dimension & confirm equal lengths across all texts
       - Task 3: Compare similarity of similar vs. dissimilar text pairs using Cosine Similarity
       - Task 4: Explain what vector embeddings represent in plain terms
+      - Task 5: Logistics Query Matching against PRD Rules Corpus
+      - Task 6: Semantic Paraphrase Robustness Demo
     """
     # Sample texts: Pair with similar intent, CDLP PRD customs text, plus an unrelated topic
     sample_texts = [
@@ -135,6 +268,10 @@ def run_embedding_demonstration() -> Dict[str, Any]:
 
     # Task 4: Explanations
     explanations = explain_vector_representation()
+
+    # Additional Demos (Task 5 & 6)
+    logistics_match_demo = demo_logistics_query_matching()
+    paraphrase_demo = demo_paraphrase_robustness()
 
     results = {
         "sample_texts": [
@@ -166,7 +303,9 @@ def run_embedding_demonstration() -> Dict[str, Any]:
             },
             "ranking_test_passed": ranking_passed
         },
-        "explanations": explanations
+        "explanations": explanations,
+        "logistics_rules_matching_demo": logistics_match_demo,
+        "paraphrase_robustness_demo": paraphrase_demo
     }
 
     return results
@@ -221,6 +360,23 @@ def export_demonstration_outputs():
     lines.append(f"What is an Embedding Vector?\n  {exp['what_is_embedding']}\n")
     lines.append(f"What does Vector Dimension represent?\n  {exp['what_is_dimension']}\n")
     lines.append(f"Why does this enable Semantic Search in RAG?\n  {exp['why_semantic_search']}\n")
+
+    lines.append("--- TASK 5: LOGISTICS RULES & PRD MATCHING DEMO ---")
+    log_demo = results["logistics_rules_matching_demo"]
+    lines.append(f"User Query: \"{log_demo['user_query']}\"\n")
+    lines.append("Corpus Similarity Ranking:")
+    for rank, item in enumerate(log_demo["ranked_results"], start=1):
+        lines.append(f"  Rank #{rank}: [{item['id']}] {item['title']} (Score: {item['cosine_similarity']:.4f})")
+    lines.append(f"\nTop Match: [{log_demo['top_match_id']}] {log_demo['top_match_title']} (Score: {log_demo['top_match_score']:.4f})")
+    lines.append(f"Logistics Retrieval Test: {'PASSED' if log_demo['test_passed'] else 'FAILED'}\n")
+
+    lines.append("--- TASK 6: PARAPHRASE ROBUSTNESS DEMO ---")
+    para_demo = results["paraphrase_robustness_demo"]
+    lines.append(f"Phrase A: \"{para_demo['phrase_a']}\"")
+    lines.append(f"Phrase B (Paraphrase): \"{para_demo['phrase_b_paraphrase']}\"")
+    lines.append(f"Paraphrase Similarity Score: {para_demo['paraphrase_similarity']:.4f}")
+    lines.append(f"Unrelated Topic Similarity Score: {para_demo['unrelated_similarity']:.4f}")
+    lines.append(f"Paraphrase Robustness Test: {'PASSED' if para_demo['test_passed'] else 'FAILED'}\n")
 
     output_text = "\n".join(lines)
 
