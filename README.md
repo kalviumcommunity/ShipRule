@@ -19,7 +19,7 @@ A production-ready Retrieval-Augmented Generation (RAG) system engineered for sh
   - [3. Multi-Format Document Loader & Intake Engine](#3-multi-format-document-loader--intake-engine)
   - [4. Document Chunking Strategies](#4-document-chunking-strategies)
   - [5. Corpus Preparation & Ingestion Validation](#5-corpus-preparation--ingestion-validation)
-  - [6. Concept 13 — Token-Aware Chunk Sizing & Overlap](#6-concept-13--token-aware-chunk-sizing--overlap)
+  - [6. Generating Embeddings via API](#6-generating-embeddings-via-api)
 - [End-to-End RAG Execution](#end-to-end-rag-execution)
 - [Testing & Quality Assurance](#testing--quality-assurance)
 - [Security Guidelines](#security-guidelines)
@@ -35,6 +35,7 @@ The application architecture encompasses:
 - **Multi-Format Document Intake**: Robust ingestion of `.txt`, `.pdf`, and `.md` policy files with whitespace normalization and failure isolation.
 - **Configurable Chunking Engine**: Fixed-size, paragraph-based, and sentence-based chunking with boundary inspection and metadata preservation.
 - **Corpus Ingestion & Reconciliation**: End-to-end manifest tracking with mathematical zero-drop reconciliation assertions ($Discovered = Success + Failed + Skipped$).
+- **API-Driven Embeddings**: OpenAI-compatible embedding generation converting textual chunks into dense numerical vectors while preserving source traceability.
 - **Context & Token Budget Management**: History trimming, token tracking via `tiktoken`, and real-time per-query API cost calculation.
 - **Vector Storage Foundation**: ChromaDB integration for dense semantic similarity retrieval.
 
@@ -47,6 +48,7 @@ ShipRule/
 ├── app.py                      # Main RAG interactive terminal session entry point
 ├── chunker.py                  # Document chunking CLI entry point
 ├── ingest.py                   # Corpus ingestion & validation pipeline CLI entry point
+├── embed.py                    # Embedding generation CLI entry point
 ├── document_loader.py          # Document intake demonstration CLI entry point
 ├── data/
 │   └── sample_corpus/          # ShipRule knowledge base documents (TXT, PDF)
@@ -58,6 +60,7 @@ ShipRule/
 │   ├── main.py                 # Interactive RAG CLI loop with scope guard & ChromaDB
 │   ├── chunker.py              # Chunking strategies, stats & boundary inspection
 │   ├── ingestion.py            # Corpus ingestion, manifest & reconciliation validation
+│   ├── embeddings.py           # Embeddings API client, vector generation & validation
 │   ├── document_loader.py      # Multi-format plain-text extraction (PDF, TXT, MD)
 │   ├── text_cleaner.py         # Whitespace normalization & text sanitization
 │   ├── token_counter.py        # Token counting & model cost estimation
@@ -68,17 +71,21 @@ ShipRule/
 ├── prompts/                    # System prompt specifications & constraints
 │   ├── system_prompt_v1.txt
 │   └── system_prompt_v2_constrained.txt
-├── outputs/                    # Generated manifests, chunks, and analytical reports
+├── outputs/                    # Generated manifests, chunks, embeddings, and reports
 │   ├── corpus_manifest.json
 │   ├── ingestion_report.json
 │   ├── ingestion_failures.json
 │   ├── processed_chunks.json
 │   ├── ingestion_log.txt
+│   ├── embedded_chunks.json
+│   ├── embedding_report.json
+│   ├── sample_embedding_output.json
 │   ├── chunks_fixed.json
 │   ├── chunks_paragraph.json
 │   ├── chunks_sentence.json
 │   └── chunking_report.json
-├── tests/                      # Comprehensive unit test suite (89 passing tests)
+├── tests/                      # Comprehensive unit test suite (115 passing tests)
+│   ├── test_embeddings.py
 │   ├── test_ingestion.py
 │   ├── test_chunking.py
 │   ├── test_document_loader.py
@@ -88,6 +95,7 @@ ShipRule/
 │   ├── test_prompt_templates.py
 │   ├── test_scope_guard.py
 │   └── test_structured_output.py
+
 ├── .env.example                # Environment variable configuration template
 ├── .gitignore                  # Git ignore rules for secrets, venv, and local outputs
 ├── requirements.txt            # Pinned dependency specifications
@@ -408,6 +416,110 @@ pytest tests/test_token_chunks.py
 
 ---
 
+### 6. Generating Embeddings via API
+
+Transforms validated text chunks into dense mathematical vector representations ($d=1536$ for `text-embedding-3-small`) to enable cosine similarity and dense semantic retrieval in ChromaDB.
+
+#### Why ShipRule Converts Chunks into Vectors
+- **Semantic Understanding**: Keyword search fails when users ask questions with synonyms (e.g. searching *"air waybill"* vs. *"freight manifest"*). Dense embeddings capture semantic proximity in high-dimensional vector space.
+- **Traceability Preservation**: Every generated vector retains its full source lineage (`chunk_id`, `source`, `document_type`, `strategy`, `chunk_index`, `character_count`, `chunk_text`).
+- **Mathematical Consistency**: Validates that all vectors returned by the model have identical dimensionality, non-zero magnitudes, and numeric float values.
+
+#### Complete Pipeline Flow
+
+```
+Shipping Documents (.txt, .pdf, .md)
+      ↓
+Document Loading & Sanitization
+      ↓
+Document Chunking (Paragraph-based)
+      ↓
+Metadata Tagging & Validation
+      ↓
+Validated Chunks (outputs/processed_chunks.json)
+      ↓
+Embeddings API (text-embedding-3-small)
+      ↓
+Text → Dense Numerical Vectors
+      ↓
+Vectors + Source Text + Metadata (outputs/embedded_chunks.json)
+      ↓
+NEXT: ChromaDB Semantic Search & Vector Storage
+```
+
+#### Separate Providers: Chat Generation vs. Embeddings API
+
+ShipRule supports configuring dedicated, independent providers for text generation and vector embeddings:
+
+```text
+Chat / LLM Generation
+        ↓
+    Groq API
+        ↓
+   CHAT_MODEL
+(e.g., openai/gpt-oss-120b)
+
+Embeddings Generation
+        ↓
+ Embedding API Provider
+        ↓
+   EMBED_MODEL
+(e.g., text-embedding-3-small)
+        ↓
+ Dense Embedding Vectors
+```
+
+> **Why Separate Providers?**
+> An OpenAI-compatible API endpoint (such as Groq) offers specialized LLM inference for chat completions but does not host proprietary OpenAI embedding models (such as `text-embedding-3-small`). ShipRule cleanly separates these configurations to avoid routing embedding requests to chat-only endpoints.
+
+#### Environment Configuration
+
+Configure both providers in your local `.env` file (copied from `.env.example`):
+
+```env
+# Chat / LLM Generation Provider (e.g., Groq)
+GROQ_API_KEY=your_groq_api_key_here
+GROQ_BASE_URL=https://api.groq.com/openai/v1
+CHAT_MODEL=openai/gpt-oss-120b
+
+# Embeddings API Provider (e.g., OpenAI)
+EMBEDDING_API_KEY=your_embedding_provider_key_here
+EMBEDDING_BASE_URL=https://api.openai.com/v1
+EMBED_MODEL=text-embedding-3-small
+```
+
+> ⚠️ **Security Notice**: `.env` is listed in `.gitignore` and must never be committed to version control. Never hardcode API keys or provider URLs in source code.
+
+#### Execution Command
+
+Run embedding generation over validated chunks:
+```bash
+python embed.py
+```
+or
+```bash
+python -m src.embeddings
+```
+
+Cost control and custom options:
+```bash
+# Process only the first 5 chunks for cost control
+python embed.py --max-chunks 5
+
+# Override provider endpoint or model via CLI
+python embed.py --model text-embedding-3-small --base-url https://api.openai.com/v1
+```
+
+#### Generated Embedding Artifacts
+
+Saved in [`outputs/`](file:///outputs):
+- [`outputs/embedded_chunks.json`](file:///outputs/embedded_chunks.json): Full embedded chunk collection containing complete vectors, original text, and complete metadata.
+- [`outputs/embedding_report.json`](file:///outputs/embedding_report.json): Execution timestamp, model identifier, chunk counts, vector dimension, and validation audit.
+- [`outputs/sample_embedding_output.json`](file:///outputs/sample_embedding_output.json): Lightweight sample containing metadata and trimmed vector previews (`[v0, v1, v2, ...]`) suitable for version control.
+
+
+---
+
 ## End-to-End RAG Execution
 
 To launch the full interactive ShipRule Customs Duty & Documentation Lookup session:
@@ -427,14 +539,15 @@ python app.py
 
 ## Testing & Quality Assurance
 
-ShipRule includes a unit test suite testing loaders, cleaners, chunking strategies, token estimators, context managers, scope guards, and the ingestion pipeline.
+ShipRule includes a unit test suite testing loaders, cleaners, chunking strategies, token estimators, context managers, scope guards, the ingestion pipeline, and mocked embedding API generation.
 
 Run the test suite:
 ```bash
 python -m unittest discover tests
 ```
 
-**Test Suite Coverage (89 passing tests)**:
+**Test Suite Coverage (115 passing tests)**:
+- `test_embeddings.py` (14 tests): Loading prepared chunks, mocked vector generation, numerical validation, vector dimension detection, consistent dimension validation, metadata preservation, error handling, report generation.
 - `test_ingestion.py` (13 tests): Recursive discovery, reconciliation checks, metadata validation, failure isolation, resumability.
 - `test_chunking.py` (13 tests): Fixed-size, paragraph, sentence chunking, overlap mechanics, boundary inspection, sample corpus execution.
 - `test_document_loader.py` (10 tests): Multi-format intake (TXT, PDF), corrupted file handling, unsupported file skipping.
@@ -444,6 +557,8 @@ python -m unittest discover tests
 - `test_prompt_templates.py` (7 tests): System & user template formatting.
 - `test_scope_guard.py` (7 tests): In-scope and out-of-scope query guardrails.
 - `test_structured_output.py` (11 tests): Structured JSON extraction and model response retries.
+- `test_embedding_demo.py` (6 tests): Dimension verification and cosine similarity calculations.
+- `test_chunk_metadata.py` (6 tests): Metadata schema and source traceability.
 
 ---
 
