@@ -1,5 +1,11 @@
-import unittest
-from chunking import chunk_text
+import os
+import sys
+
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+from src.chunking import chunk_text
 
 class TestChunking(unittest.TestCase):
     def test_empty_string(self):
