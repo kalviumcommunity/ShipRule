@@ -15,6 +15,8 @@ from src.embedding_demo import (
     embed_texts,
     cosine_similarity,
     explain_vector_representation,
+    demo_logistics_query_matching,
+    demo_paraphrase_robustness,
     run_embedding_demonstration
 )
 
@@ -43,6 +45,17 @@ class TestEmbeddingDemo(unittest.TestCase):
         sim = cosine_similarity(vec_a, vec_b)
         self.assertAlmostEqual(sim, 0.0, places=4)
 
+    def test_logistics_query_matching_demo(self):
+        res = demo_logistics_query_matching()
+        self.assertTrue(res["test_passed"])
+        self.assertEqual(res["top_match_id"], "REG-IN-8471")
+        self.assertGreater(res["top_match_score"], 0.5)
+
+    def test_paraphrase_robustness_demo(self):
+        res = demo_paraphrase_robustness()
+        self.assertTrue(res["test_passed"])
+        self.assertGreater(res["paraphrase_similarity"], res["unrelated_similarity"])
+
     def test_embedding_demonstration_execution(self):
         results = run_embedding_demonstration()
 
@@ -57,6 +70,12 @@ class TestEmbeddingDemo(unittest.TestCase):
 
         self.assertGreater(sim_similar, sim_dissimilar)
         self.assertTrue(results["similarity_comparison"]["ranking_test_passed"])
+
+        self.assertIn("logistics_rules_matching_demo", results)
+        self.assertTrue(results["logistics_rules_matching_demo"]["test_passed"])
+
+        self.assertIn("paraphrase_robustness_demo", results)
+        self.assertTrue(results["paraphrase_robustness_demo"]["test_passed"])
 
     def test_explanation_content(self):
         explanations = explain_vector_representation()
