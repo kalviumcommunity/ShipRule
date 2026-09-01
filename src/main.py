@@ -366,12 +366,15 @@ def main():
 
         retrieved_docs = query_res.get("documents", [[]])[0]
         retrieved_metas = query_res.get("metadatas", [[]])[0]
+        retrieved_dists = query_res.get("distances", [[]])[0]
 
         citations = []
         for idx, (doc_text, meta) in enumerate(zip(retrieved_docs, retrieved_metas)):
+            dist = retrieved_dists[idx] if idx < len(retrieved_dists) else 0.0
+            similarity_score = max(0.0, 1.0 - (dist / 2.0))
             trace_info = trace_chunk_source(meta)
             citations.append(trace_info["formatted_citation"])
-            print(f"[Chunk #{idx+1} Traceback] {trace_info['formatted_citation']}")
+            print(f"[Chunk #{idx+1} Traceback] [Similarity Score: {similarity_score:.4f}] {trace_info['formatted_citation']}")
 
         context = "\n".join(retrieved_docs) if retrieved_docs else ""
 
