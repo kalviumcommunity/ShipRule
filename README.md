@@ -281,7 +281,138 @@ An automated, resumable ingestion pipeline that connects file discovery, loading
   python ingest.py --resume
   ```
 - **Generated Artifacts in `outputs/`**:
-  - `corpus_manifest.json`, `ingestion_report.json`, `ingestion_failures.json`, `processed_chunks.json`, `ingestion_log.txt`.
+---
+
+### 6. Concept 13 — Token-Aware Chunk Sizing & Overlap
+
+#### What is Token-Based Chunking?
+Token-based chunking is the process of splitting text into chunks based on **token count** as determined by a tokenizer (`tiktoken` `cl100k_base`), rather than arbitrary character or word counts.
+
+#### Why Characters Are Not Reliable for Model Context
+Large Language Models (LLMs) and embedding models operate exclusively on **tokens**, not characters or words. Character count varies wildly based on text structure:
+- **Standard English**: ~4 characters per token.
+- **Code & Punctuation**: ~1.5 to 2.5 characters per token.
+- **Non-Latin Scripts (e.g. Hindi, Chinese)**: Multiple bytes/tokens per character.
+
+Chunking by character length risks either overflowing the model's context window (for token-dense text) or producing unnecessarily tiny chunks (for token-sparse text). Determining chunk sizes directly with `tiktoken` guarantees strict context window compliance.
+
+#### What are Tokens?
+Tokens are the fundamental subword units into which text is broken down before processing by neural networks. Common words may be a single token (e.g., `" shipping"`), while rare terms, code, or non-English scripts are split into subword fragments.
+
+#### Why Overlap is Needed
+When documents are split into discrete chunks, information located near the edge/boundary of a chunk can be cleanly severed. Overlap repeats a fixed window of tokens across consecutive chunks, ensuring that key context and semantic relationships spanning chunk boundaries are preserved in both chunks.
+
+---
+
+#### How the Implementation Works
+The core function `token_chunks()` in [`src/document_loader.py`](file:///c:/Users/hp/Desktop/ShipRule/src/document_loader.py) uses `tiktoken` (`cl100k_base`):
+
+```python
+def token_chunks(text: str, size: int = 400, overlap: int = 60, encoding_name: str = "cl100k_base") -> List[Dict[str, Any]]:
+```
+
+##### Step-by-Step Movement
+1. The input string is encoded into token IDs via `enc.encode(text)`.
+2. A sliding window iterates over token IDs with step size `step = size - overlap` (`400 - 60 = 340`).
+3. Each token range `tokens[start:end]` is decoded back into text using `enc.decode()`.
+4. Detailed metadata is returned for each chunk:
+   ```json
+   {
+     "chunk_id": 1,
+     "text": "...",
+     "token_count": 400,
+     "start_token": 0,
+     "end_token": 400,
+     "overlap": 60
+   }
+   ```
+
+---
+
+#### Overlap Demonstration (400-Token Chunks, 60-Token Overlap)
+- **Chunk 1**: Token range `0 – 399` (400 tokens)
+- **Chunk 2**: Token range `340 – 739` (400 tokens)
+- **Shared Context Window**: Tokens `340 – 399` (60 tokens repeated in both chunks).
+
+Information near token 380 is available in both Chunk 1 and Chunk 2, so retrieval matches either chunk without losing boundary context.
+
+---
+
+#### Overlap Value Comparison
+
+Running an 865-token document across different overlap values yields empirical metrics:
+
+| Overlap (Tokens) | Chunks Generated | Total Tokens | Duplicated Tokens | Overhead (%) |
+| :--- | :--- | :--- | :--- | :--- |
+| **0 tokens** | 3 | 865 | 0 | 0.00% |
+| **20 tokens** | 3 | 905 | 40 | 4.62% |
+| **40 tokens** | 3 | 945 | 80 | 9.25% |
+| **60 tokens** | 3 | 985 | 120 | 13.87% |
+
+---
+
+#### Cost of Overlap vs. Context Preservation
+
+Higher overlap creates a direct tradeoff:
+
+$$\text{More Repeated Text} \longrightarrow \text{More Chunks} \longrightarrow \text{More Embeddings} \longrightarrow \text{Higher Vector Storage \& Retrieval Cost}$$
+
+- **Too Little Overlap (e.g. 0 tokens)**: Lowest cost, but critical facts across boundaries are split and missed by vector search.
+- **Too Much Overlap (e.g. > 30%)**: Excellent context preservation, but excessive duplicate embeddings increase database size and search latency.
+- **Balance**: Overlap balances **Context Preservation $\leftrightarrow$ Processing Cost**.
+
+---
+
+#### Boundary Context Example (Case A vs. Case B)
+
+##### Case A — No Overlap (0 tokens)
+A critical rule line `"CRITICAL REQUIREMENT: For all high-value electronic imports... MUST be attached to Commercial Invoice"` falls exactly at token 400.
+- **Chunk 1 Tail**: `"...in verifying cross-border documentation. All shipments passing through international trade corridors must strictly"`
+- **Chunk 2 Head**: `"adhere to import regulations. ShipRule CDLP is an automated customs compliance..."`
+- **Result**: The requirement sentence is broken. Neither chunk contains the full context required to answer a search query.
+
+##### Case B — 60-Token Overlap
+- **Chunk 1 Tail**: Contains `tokens 340-400`.
+- **Chunk 2 Head**: Starts at `token 340`, repeating `tokens 340-400` as context before continuing.
+- **Result**: The entire sentence and its preceding context are completely preserved inside Chunk 2. RAG vector retrieval successfully matches Chunk 2.
+
+---
+
+#### Relationship Between Chunk Size, Top-k, and Context Window
+
+Chunk size cannot be chosen independently of vector retrieval `top_k` and the model's max context limit:
+
+$$\text{(Chunk Size } \times \text{ top\_k) } + \text{ System Instructions } + \text{ User Query } \le \text{ Model Context Limit}$$
+
+For example:
+- **Chunk Size**: `400` tokens
+- **Top-K Chunks**: `5`
+- **Retrieved Context**: $400 \times 5 = 2,000$ tokens.
+- Adding prompt instructions (~500 tokens) and user query (~100 tokens) gives ~2,600 tokens total, comfortably fitting within standard context windows (e.g. 4,096 or 128k).
+
+---
+
+#### Rationale for 400 Tokens / 60 Tokens Initial Configuration
+
+- **Overlap Ratio**: $60 / 400 \times 100 = 15\%$.
+- **Starting Benchmark**: 10%–15% overlap is the standard recommended baseline for RAG pipelines.
+- **Flexibility**: 400 tokens is large enough to contain complete technical paragraphs while small enough to allow retrieving multiple distinct chunks (`top_k=3 to 5`) within token budget.
+- *Note*: 400/60 is a starting default and should be tuned based on specific document types, embedding models, and context limits.
+
+---
+
+#### How to Run Implementation & Tests
+
+##### Run Token Chunking Demonstration:
+```bash
+python src/token_chunk_demo.py
+```
+Output is printed to the terminal and saved to [`outputs/token_chunking_results.txt`](file:///c:/Users/hp/Desktop/ShipRule/outputs/token_chunking_results.txt).
+
+##### Run Unit Tests:
+```bash
+pytest tests/test_token_chunks.py
+```
 
 ---
 
