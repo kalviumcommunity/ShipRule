@@ -26,6 +26,7 @@ logging.basicConfig(
 )
 
 
+import re
 import json
 from src.context_manager import prepare_context, total_tokens
 
@@ -36,9 +37,10 @@ LLM_MAX_TOKENS = 600
 
 def parse_and_validate_json_response(raw_text: str) -> dict:
     """
-    Parses raw AI completion text into JSON and validates required fields ('answer' and 'source').
+    Parses raw AI completion text into JSON and validates required schema fields:
+    ('answer', 'sources', 'confidence', 'has_answer').
     Safely extracts JSON objects from Markdown code fences (```json ... ```) or surrounding text.
-    Raises ValueError with descriptive standard error message on validation failure.
+    Raises ValueError on validation failure so retry can take place.
     """
     if not raw_text or not isinstance(raw_text, str) or not raw_text.strip():
         logging.warning("[RAW MODEL RESPONSE]: %s", repr(raw_text))
@@ -46,6 +48,12 @@ def parse_and_validate_json_response(raw_text: str) -> dict:
 
     text = raw_text.strip()
     logging.info("[RAW MODEL RESPONSE]: %s", repr(text))
+
+    # Strip markdown code blocks if present
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"\s*```$", "", text)
+        text = text.strip()
 
     # Safely extract JSON object bounds '{' ... '}'
     first_brace = text.find("{")
@@ -67,20 +75,62 @@ def parse_and_validate_json_response(raw_text: str) -> dict:
         logging.warning("[RAW MODEL RESPONSE NOT DICT]: %s", repr(data))
         raise ValueError("Malformed AI response")
 
+    # 1. Answer field check
     if "answer" not in data or data["answer"] is None:
         raise ValueError("Missing required field: answer")
-    if not isinstance(data["answer"], str) or not data["answer"].strip():
+    answer_str = str(data["answer"]).strip()
+    if not answer_str:
         raise ValueError("Missing required field: answer")
 
-    if "source" not in data or data["source"] is None:
-        raise ValueError("Missing required field: source")
-    if not isinstance(data["source"], str):
+    # 2. Normalize sources field (array of objects with source and page)
+    if "sources" not in data and "source" not in data:
         raise ValueError("Missing required field: source")
 
+    sources = []
+    if "sources" in data and isinstance(data["sources"], list):
+        for item in data["sources"]:
+            if isinstance(item, dict):
+                src_name = str(item.get("source", "")).strip()
+                pg_num = str(item.get("page", "1")).strip()
+                if src_name:
+                    sources.append({"source": src_name, "page": pg_num})
+            elif isinstance(item, str) and item.strip():
+                sources.append({"source": item.strip(), "page": "1"})
+    elif "source" in data and data["source"] is not None:
+        src_val = str(data["source"]).strip()
+        if src_val:
+            sources.append({"source": src_val, "page": "1"})
+
+    # Backward compatibility: populate top-level 'source' string
+    if sources:
+        top_source = ", ".join(dict.fromkeys(s["source"] for s in sources))
+    else:
+        top_source = str(data.get("source", "CDLP System")).strip() if data.get("source") else "CDLP System"
+
+    # 3. has_answer field check/inference
+    if "has_answer" in data and isinstance(data["has_answer"], bool):
+        has_answer = data["has_answer"]
+    else:
+        lower_ans = answer_str.lower()
+        if "don't have enough information" in lower_ans or "not contain enough information" in lower_ans or "i do not know" in lower_ans or "no verified" in lower_ans:
+            has_answer = False
+        else:
+            has_answer = True
+
+    # 4. confidence field check/inference
+    if "confidence" in data and str(data["confidence"]).lower() in {"high", "medium", "low"}:
+        confidence = str(data["confidence"]).lower()
+    else:
+        confidence = "high" if has_answer else "low"
+
     return {
-        "answer": data["answer"].strip(),
-        "source": data["source"].strip()
+        "answer": answer_str,
+        "sources": sources,
+        "source": top_source,
+        "confidence": confidence,
+        "has_answer": has_answer
     }
+
 
 
 def run_chat_completion(
@@ -246,12 +296,14 @@ def run_chat_completion(
                     {
                         "role": "user",
                         "content": (
-                            "Your previous response was incomplete/truncated.\n"
-                            "Return a COMPLETE valid JSON object.\n"
-                            "Use exactly these fields:\n"
-                            "{\"answer\":\"...\",\"source\":\"...\"}\n"
-                            "Keep the answer concise.\n"
-                            "Do not exceed approximately 120 words.\n"
+                            "Your previous response did not return a valid JSON object matching the required schema.\n"
+                            "Return ONLY a complete valid JSON object using exactly these fields:\n"
+                            "{\n"
+                            '  "answer": "factual response",\n'
+                            '  "sources": [{"source": "document filename", "page": "page or section"}],\n'
+                            '  "confidence": "high|medium|low",\n'
+                            '  "has_answer": true\n'
+                            "}\n"
                             "Do not use Markdown or code fences.\n"
                             "Return nothing except the JSON object."
                         )
@@ -272,7 +324,7 @@ def run_chat_completion(
                         temperature=0.0,
                         max_tokens=max_tokens
                     )
-                
+
                 retry_text = retry_response.choices[0].message.content
                 try:
                     return parse_and_validate_json_response(retry_text)
@@ -280,7 +332,10 @@ def run_chat_completion(
                     logging.error("Retry JSON parsing failed: %s", retry_parse_err)
                     return {
                         "answer": f"Error: Unable to process response. ({retry_parse_err})",
+                        "sources": [],
                         "source": "CDLP System",
+                        "confidence": "low",
+                        "has_answer": False,
                         "error": str(retry_parse_err)
                     }
 

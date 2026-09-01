@@ -11,6 +11,7 @@ if project_root not in sys.path:
 
 from dotenv import load_dotenv
 import chromadb
+from src.document_loader import load_directory, chunk_documents
 from src.llm_completion import run_chat_completion
 from src.context_manager import ContextManager, total_tokens
 from src.scope_guard import is_in_scope, OUT_OF_SCOPE_RESPONSE
@@ -21,6 +22,9 @@ from src.chunk_metadata import (
     trace_chunk_source,
     create_metadata_dict,
 )
+
+# Maximum distance threshold for ChromaDB retrieval relevance (L2 distance)
+MAX_DISTANCE_THRESHOLD = 1.35
 
 
 def main():
@@ -68,7 +72,7 @@ def main():
     print(f"[Config] History Strategy: {strategy} (Preserve Recent: {preserve_recent} turns)")
 
     # -----------------------------------------
-    # 2. Initialize ChromaDB
+    # 2. Initialize ChromaDB & Ingest Corpus
     # -----------------------------------------
     print("\n[Vector DB] Initializing ChromaDB client...")
 
@@ -288,6 +292,14 @@ def main():
 
     print("\n[Status] RAG foundation with CDLP PRD is ready!")
 
+    # Load system prompt v2 constrained for CDLP / ShipRule
+    prompt_file = os.path.join(project_root, "prompts", "system_prompt_v2_constrained.txt")
+    if os.path.exists(prompt_file):
+        with open(prompt_file, "r", encoding="utf-8") as f:
+            sys_prompt = f.read().strip()
+    else:
+        sys_prompt = None
+
     # -----------------------------------------
     # 3. Initialize Context Manager
     # -----------------------------------------
@@ -296,7 +308,8 @@ def main():
         response_reserve_tokens=response_reserve_tokens,
         strategy=strategy,
         num_recent_turns_preserve=preserve_recent,
-        model_name=chat_model
+        model_name=chat_model,
+        system_prompt=sys_prompt
     )
 
     # -----------------------------------------
@@ -307,15 +320,21 @@ def main():
     print("========================================")
     print("Type your question below.")
     print("Type 'reset' to clear conversation history.")
-    print("Type 'exit' to stop the application.")
+    print("Type 'exit' or 'quit' to stop the application.")
     print("========================================")
 
     while True:
-
-        question = input("\nAsk your question: ").strip()
+        try:
+            question = input("\nAsk your question: ").strip()
+        except EOFError:
+            print("\n[Input Stream Closed / EOF detected. Exiting RAG Application...]")
+            break
+        except KeyboardInterrupt:
+            print("\n[Operation cancelled by user. Exiting RAG Application...]")
+            break
 
         # Exit
-        if question.lower() == "exit":
+        if question.lower() in ("exit", "quit", "q"):
             print("\nExiting RAG Application...")
             break
 
@@ -330,6 +349,7 @@ def main():
             print("Please enter a question.")
             continue
 
+
         # -----------------------------------------
         # Strict Scope Guard Check
         # -----------------------------------------
@@ -340,7 +360,8 @@ def main():
         print("\n[Vector DB] Querying ChromaDB for relevant context...")
         query_res = collection.query(
             query_texts=[question],
-            n_results=2
+            n_results=3,
+            include=["documents", "metadatas", "distances"]
         )
 
         retrieved_docs = query_res.get("documents", [[]])[0]
@@ -371,13 +392,16 @@ def main():
             )
 
             if response:
-                # Handle structured JSON response dict
                 if isinstance(response, dict):
                     answer_text = response.get("answer", "")
-                    source_info = response.get("source", "CDLP System")
+                    sources_list = response.get("sources", [])
+                    confidence = response.get("confidence", "low")
+                    has_answer = response.get("has_answer", False)
                 else:
                     answer_text = str(response)
-                    source_info = "CDLP System"
+                    sources_list = []
+                    confidence = "low"
+                    has_answer = False
 
                 # Add to persistent context manager history
                 ctx_manager.history = list(prep["messages"])
@@ -385,8 +409,18 @@ def main():
 
                 print("\n--- Model Response ---")
                 print(answer_text)
-                if source_info:
-                    print(f"\n[Source Citation: {source_info}]")
+                print(f"\n[Confidence: {confidence.upper()} | Has Answer: {has_answer}]")
+                if sources_list:
+                    print("Sources:")
+                    formatted_sources = set()
+                    for src in sources_list:
+                        s_name = src.get("source", "Unknown")
+                        s_page = src.get("page", "1")
+                        formatted_sources.add(f"  - {s_name}, page {s_page}")
+                    for f_src in sorted(formatted_sources):
+                        print(f_src)
+                else:
+                    print("Sources: None (No matching knowledge base documents cited)")
                 print("----------------------")
                 print(f"[History Stats] Current History Turns: {(len(ctx_manager.history) - 1) // 2} turn(s)")
 

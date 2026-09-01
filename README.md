@@ -14,6 +14,9 @@ A production-ready foundation for building Retrieval-Augmented Generation (RAG) 
   - [3. Install Dependencies](#3-install-dependencies)
   - [4. Environment Variables Setup](#4-environment-variables-setup)
 - [Running the Project](#running-the-project)
+  - [LLM Chat Completion & Error Handling Script](#llm-chat-completion--error-handling-script)
+  - [Multi-Format Document Loader & Intake Engine](#multi-format-document-loader--intake-engine)
+  - [Document Chunking Strategies](#document-chunking-strategies)
 - [Security Guidelines](#security-guidelines)
 - [Reproducibility & Best Practices](#reproducibility--best-practices)
 
@@ -138,6 +141,98 @@ This script:
 
 Sample run logs are captured and saved in [`outputs/sample_output.txt`](file:///c:/Users/dhars/OneDrive/Desktop/ShipRule/outputs/sample_output.txt).
 
+### Multi-Format Document Loader & Intake Engine
+
+ShipRule includes a document loader supporting multiple document formats:
+- **Supported Formats**: `.txt` (Plain text), `.pdf` (PDF documents via `pypdf`), and `.md` (Markdown).
+- **Sample Corpus**: Located in `data/sample_corpus/` (`shipping_rules.txt`, `customs_requirements.txt`, `international_shipping_guide.pdf`).
+- **Execution Command**:
+  ```bash
+  python document_loader.py
+  ```
+  or
+  ```bash
+  python -m src.document_loader
+  ```
+- **Intake Demonstration**: Extracts plain text, preserves source identity (`filename`), reports character lengths, displays formatted text snippet samples, and gracefully handles missing, corrupt, or unsupported files with warnings without interrupting batch processing.
+
+### Document Chunking Strategies
+
+Chunking partitions raw extracted document text into structured semantic units suitable for dense vector embeddings and semantic retrieval in ChromaDB.
+
+#### Why Chunking is Required
+- **Embedding Model Limits**: Embedding models operate within strict token input limits (e.g. 512–8192 tokens).
+- **Retrieval Precision vs. Context Balance**: Granular chunks ensure that vector queries retrieve specific, highly relevant facts without diluting cosine similarity across multiple unrelated topics.
+- **LLM Context Budget & API Cost**: Injecting tightly scoped chunks into the prompt context window optimizes LLM comprehension and minimizes per-query billing costs.
+
+#### Implemented Strategies
+
+1. **Fixed-Size Chunking (`fixed_size`)**:
+   - Divides text into fixed-length character slices (default: `size=500`, `overlap=50`).
+   - Slices sequentially using a sliding window step (`size - overlap`).
+   - Overlap carries context across boundary cuts, but may slice sentences or words in half.
+
+2. **Paragraph-Based Chunking (`paragraph`)**:
+   - Splits extracted text along natural paragraph breaks (`\n\n+`).
+   - Removes empty lines and preserves complete thematic clauses.
+   - Ideal for structured policies, compliance guides, and legal rules.
+
+3. **Sentence-Based Chunking (`sentence`)**:
+   - Parses grammatical sentence boundaries using abbreviation-aware NLP rules.
+   - Avoids cutting clauses mid-sentence, preserving exact factual assertions.
+
+#### Execution Command
+
+Run the chunking pipeline over the sample corpus:
+```bash
+python chunker.py
+```
+or
+```bash
+python -m src.chunker
+```
+
+#### Output Files
+
+Generated chunks and analytical reports are saved inside `outputs/`:
+- [`outputs/chunks_fixed.json`](file:///outputs/chunks_fixed.json): Standardized chunk objects generated via fixed-size strategy.
+- [`outputs/chunks_paragraph.json`](file:///outputs/chunks_paragraph.json): Standardized chunk objects generated via paragraph strategy.
+- [`outputs/chunks_sentence.json`](file:///outputs/chunks_sentence.json): Standardized chunk objects generated via sentence strategy.
+- [`outputs/chunking_report.json`](file:///outputs/chunking_report.json): Consolidated per-document and corpus-wide statistical report with boundary inspections and recommendation.
+
+#### Corpus Comparison Results
+
+| Strategy | Total Chunks | Avg Chunk Size | Context Preservation | Main Advantage | Main Limitation |
+| :--- | :---: | :---: | :---: | :--- | :--- |
+| **Fixed-Size** | 8 | 411.8 chars | Low - Moderate | Predictable & uniform chunk bounds | May split sentences/ideas mid-clause |
+| **Paragraph-Based** | 8 | 379.2 chars | High | Preserves complete semantic sections | Uneven chunk sizes across sections |
+| **Sentence-Based** | 21 | 143.9 chars | Moderate - High | Preserves grammatical sentence syntax | Produces many small, fragmented chunks |
+
+#### Recommended Strategy for ShipRule
+
+> **Recommendation**: **Paragraph-Based Chunking**
+> 
+> *Rationale*: Paragraph-based chunking is recommended for the current ShipRule corpus because shipping and customs documents contain structured policy sections where preserving complete paragraphs helps maintain the context required for retrieval.
+
+#### Connection to the Next Learning Unit (Embeddings & ChromaDB)
+
+The output of the chunking module directly feeds into the upcoming Embeddings API stage:
+```
+Document Loader
+      ↓
+Extracted Documents (Plain Text + Metadata)
+      ↓
+Chunking Strategy (Unified Chunks: chunk_id, source, document_type, chunk_text)
+      ↓
+Validated Chunks + Metadata
+      ↓
+Embeddings API (text-embedding-3-small)  ← NEXT LU
+      ↓
+ChromaDB Vector Store
+      ↓
+Semantic Retrieval & Top-K RAG Generation
+```
+
 ---
 
 ## Security Guidelines
@@ -152,4 +247,5 @@ Sample run logs are captured and saved in [`outputs/sample_output.txt`](file:///
 
 - **Pinned Requirements**: `requirements.txt` contains strict version pins generated via `pip freeze` to ensure deterministic builds across all platforms.
 - **Fresh Install Verification**: Teammates can clone the repo, run `python -m venv .venv`, run `pip install -r requirements.txt`, and immediately start development without dependency conflicts.
+
 
