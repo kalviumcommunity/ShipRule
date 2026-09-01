@@ -20,6 +20,7 @@ A production-ready Retrieval-Augmented Generation (RAG) system engineered for sh
   - [4. Document Chunking Strategies](#4-document-chunking-strategies)
   - [5. Corpus Preparation & Ingestion Validation](#5-corpus-preparation--ingestion-validation)
   - [6. Generating Embeddings via API](#6-generating-embeddings-via-api)
+  - [7. Embedding Similarity & Distance Metrics](#7-embedding-similarity--distance-metrics)
 - [End-to-End RAG Execution](#end-to-end-rag-execution)
 - [Testing & Quality Assurance](#testing--quality-assurance)
 - [Security Guidelines](#security-guidelines)
@@ -516,6 +517,50 @@ Saved in [`outputs/`](file:///outputs):
 - [`outputs/embedded_chunks.json`](file:///outputs/embedded_chunks.json): Full embedded chunk collection containing complete vectors, original text, and complete metadata.
 - [`outputs/embedding_report.json`](file:///outputs/embedding_report.json): Execution timestamp, model identifier, chunk counts, vector dimension, and validation audit.
 - [`outputs/sample_embedding_output.json`](file:///outputs/sample_embedding_output.json): Lightweight sample containing metadata and trimmed vector previews (`[v0, v1, v2, ...]`) suitable for version control.
+
+
+---
+
+### 7. Embedding Similarity & Distance Metrics
+
+Calculates cosine similarity between user query vectors and stored candidate chunk embeddings, ranks candidates in descending order of similarity, and returns configurable `top_k` structured results.
+
+- **Module**: [`src/embeddings.py`](file:///c:/Users/hp/Desktop/ShipRule/src/embeddings.py) and [`src/similarity.py`](file:///c:/Users/hp/Desktop/ShipRule/src/similarity.py)
+- **Demonstration**: [`src/similarity_demo.py`](file:///c:/Users/hp/Desktop/ShipRule/src/similarity_demo.py)
+
+#### How Similarity Search Works
+1. **Query Embedding**: The user's query is converted into an embedding vector using `generate_query_embedding()`, which utilizes the exact same model (`text-embedding-3-small` or `create_embedding_client()`) as the document chunks.
+2. **Cosine Similarity Formula**:
+   $$\text{similarity}(a, b) = \frac{\sum_{i=1}^n a_i b_i}{\sqrt{\sum_{i=1}^n a_i^2} \sqrt{\sum_{i=1}^n b_i^2}}$$
+   The isolated function `cosine_similarity(a, b)` checks vector norms and handles zero-norm vectors safely by returning `0.0`, avoiding division-by-zero errors.
+3. **Scoring & Ranking**: `rank_chunks_by_similarity()` scores candidate chunks, attaches similarity scores, preserves metadata, and sorts results in descending order (`highest -> lowest`).
+4. **Configurable Top-K**: Returns the top $K$ results (`top_k=3` by default).
+
+#### Structured Result Schema
+Results are returned in a clean, structured JSON format:
+```json
+{
+  "text": "Import duty rates for electronic components...",
+  "score": 0.9999,
+  "metadata": {
+    "source": "customs_requirements.txt",
+    "chunk_index": 1,
+    "page": "1",
+    "document_id": "customs_requirements_chunk_1"
+  }
+}
+```
+
+#### Execution Commands & Testing
+- **Run Similarity Demonstration**:
+  ```bash
+  python src/similarity_demo.py
+  ```
+  Saves results to [`outputs/similarity_demo_output.json`](file:///c:/Users/hp/Desktop/ShipRule/outputs/similarity_demo_output.json).
+- **Run Unit Tests**:
+  ```bash
+  pytest tests/test_similarity.py
+  ```
 
 
 ---
