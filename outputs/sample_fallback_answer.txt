@@ -1,0 +1,21 @@
+========================================
+SHIPRULE FALLBACK TEST
+========================================
+QUESTION:
+What is the customs duty for a product called XYZ-9000 in India?
+
+Retrieved Chunks:
+0
+
+Context:
+NONE
+
+ANSWER:
+I could not find enough relevant information in the available knowledge base to answer this question. The provided context is insufficient to answer this question.
+
+Fallback Status:
+PASS
+
+Hallucination:
+NOT DETECTED
+========================================
