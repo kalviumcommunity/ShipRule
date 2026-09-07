@@ -39,7 +39,8 @@ from src.indexing import VectorCollection
 from src.embeddings import generate_query_embedding
 from src.retrieval import retrieve, hybrid_retrieve, load_indexed_vector_collection
 from src.reranker import rerank, retrieve_and_rerank
-from src.prompt_templates import ANSWER_TEMPLATE, PromptTemplate
+from src.prompt_templates import ANSWER_TEMPLATE, PromptTemplate, DEFAULT_GROUNDING_INSTRUCTIONS, GROUNDED_AUGMENTED_PROMPT_TEMPLATE
+from src.context_assembler import assemble_context as assemble_grounded_context, format_budget_report, build_augmented_prompt
 
 # Configure logging
 logging.basicConfig(level=logging.WARNING, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -255,7 +256,7 @@ def generate_answer(
 
     if not context or not isinstance(context, str) or not context.strip():
         return {
-            "answer": "I could not find enough relevant information in the available knowledge base to answer this question.",
+            "answer": "I could not find enough relevant information in the available knowledge base to answer this question. The provided context is insufficient to answer this question.",
             "sources": []
         }
 
@@ -270,14 +271,14 @@ def generate_answer(
             llm_model = model or os.getenv("CHAT_MODEL", "groq/compound-mini")
 
             system_instruction = (
-                "You are an official AI Support Assistant for the Customs Duty & Documentation Lookup Platform (ShipRule CDLP).\n"
-                "Answer the user's question using ONLY the provided context.\n"
-                "Rules:\n"
-                "1. Do not invent information or use outside knowledge.\n"
-                "2. If the supplied context does not contain enough information, state explicitly:\n"
-                "   'The available context does not contain enough information to answer this question.'\n"
-                "3. Cite the source citation tag (e.g. [1], [2]) when making claims.\n"
-                "4. Keep the answer concise and grounded."
+                "You are a grounded customs-information assistant.\n"
+                "Answer the user's question using ONLY the information contained in the provided context.\n"
+                "Do not use outside knowledge or make unsupported assumptions.\n"
+                "Do not invent customs rules, rates, documents, agencies, dates, URLs, or other facts.\n"
+                "When the provided context does not contain enough information to answer, state clearly:\n"
+                "'The provided context is insufficient to answer this question.'\n"
+                "When making factual claims, cite the relevant source marker such as [1] or [2].\n"
+                "Never invent or fabricate source markers."
             )
 
             prompt_user = f"Context:\n{context}\n\nQuestion:\n{query}"
@@ -454,6 +455,10 @@ def answer_query(
     }
 
     if debug:
+        grounded_assembly = assemble_grounded_context(
+            retrieved_chunks=chunks,
+            user_question=query
+        )
         pipeline_result["debug_info"] = {
             "query": query,
             "candidate_k": candidate_k,
@@ -464,7 +469,11 @@ def answer_query(
             "query_vector_dim": len(query_vector),
             "retrieved_chunks_count": len(chunks),
             "sources_citation_info": sources_info,
-            "assembled_context_prompt": assembled_context
+            "assembled_context_prompt": assembled_context,
+            "budget_info": grounded_assembly.budget_info,
+            "budget_report": grounded_assembly.budget_report,
+            "augmented_prompt": grounded_assembly.augmented_prompt
         }
 
     return pipeline_result
+
