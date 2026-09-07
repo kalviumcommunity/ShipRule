@@ -91,6 +91,27 @@ def run_rag_pipeline_demonstration() -> Dict[str, Any]:
             collection=collection
         )
 
+        if res.get("debug_info") and "budget_info" in res["debug_info"]:
+            binfo = res["debug_info"]["budget_info"]
+            markers_str = " ".join(f"[{i}]" for i in range(1, binfo.get("included_chunks_count", 0) + 1))
+            print(f"[Vector DB] Retrieved {len(res.get('retrieved_chunks', []))} relevant chunks.")
+            print(f"[Context Assembly]")
+            print(f"Retrieved Chunks : {binfo.get('retrieved_chunks_count', 0)}")
+            print(f"Included Chunks  : {binfo.get('included_chunks_count', 0)}")
+            print(f"Source Markers   : {markers_str if markers_str else 'None'}")
+            print(f"[Context Budget]")
+            print(f"Configured Budget : {binfo.get('max_context_tokens', 4096)}")
+            print(f"Response Reserve  : {binfo.get('response_reserve_tokens', 500)}")
+            print(f"Instruction Tokens: {binfo.get('instruction_tokens', 0)}")
+            print(f"Question Tokens   : {binfo.get('question_tokens', 0)}")
+            print(f"Context Tokens    : {binfo.get('context_tokens', 0)}")
+            print(f"Total Estimated   : {binfo.get('total_estimated_tokens', 0)}")
+            print(f"Budget Check      : {binfo.get('budget_check', 'PASS')}")
+            print(f"[Prompt] Grounding instructions injected.")
+            print(f"[Prompt] Source markers attached.")
+            print(f"[Prompt] Augmented context ready.")
+            print(f"[LLM Completion] Sending grounded prompt...\n")
+
         lines = []
         lines.append("========================================")
         lines.append(f"RAG PIPELINE DEMONSTRATION #{idx}")
@@ -99,6 +120,13 @@ def run_rag_pipeline_demonstration() -> Dict[str, Any]:
         if flt:
             lines.append(f"Metadata Filter: {flt}")
         lines.append("")
+
+        if res.get("debug_info") and "budget_report" in res["debug_info"]:
+            lines.append("----------------------------------------")
+            lines.append("CONTEXT BUDGET & GROUNDING")
+            lines.append("----------------------------------------")
+            lines.append(res["debug_info"]["budget_report"])
+            lines.append("")
 
         lines.append("----------------------------------------")
         lines.append("RETRIEVED CONTEXT")

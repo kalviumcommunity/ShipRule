@@ -92,3 +92,24 @@ STRUCTURED_JSON_TEMPLATE = PromptTemplate(
     "Context:\n{context}\n\n"
     "Question: {question}"
 )
+
+DEFAULT_GROUNDING_INSTRUCTIONS = (
+    "You are a grounded customs-information assistant.\n"
+    "Answer the user's question using ONLY the information contained in the provided context.\n"
+    "Do not use outside knowledge or make unsupported assumptions.\n"
+    "Do not invent customs rules, rates, documents, agencies, dates, URLs, or other facts.\n"
+    "When the provided context does not contain enough information to answer, state clearly:\n"
+    "'The provided context is insufficient to answer this question.'\n"
+    "When making factual claims, cite the relevant source marker such as [1] or [2].\n"
+    "Never invent or fabricate source markers."
+)
+
+GROUNDED_AUGMENTED_PROMPT_TEMPLATE = PromptTemplate(
+    "SYSTEM / INSTRUCTIONS\n"
+    "{instructions}\n\n"
+    "CONTEXT\n"
+    "{context}\n\n"
+    "USER QUESTION\n"
+    "{question}"
+)
+

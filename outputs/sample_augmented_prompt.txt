@@ -1,0 +1,81 @@
+========================================
+SHIPRULE SAMPLE AUGMENTED PROMPT
+========================================
+Question:
+shipment rules in india
+
+Retrieved Chunks:
+3
+
+Included Chunks:
+3
+
+Configured Context Budget:
+4096
+
+Response Reserve:
+500
+
+Instruction Tokens:
+106
+
+Question Tokens:
+4
+
+Context Tokens:
+415
+
+Estimated Total:
+1025
+
+Budget Check:
+PASS
+
+AUGMENTED PROMPT
+----------------------------------------
+[GROUNDING INSTRUCTIONS]
+You are a grounded customs-information assistant.
+Answer the user's question using ONLY the information contained in the provided context.
+Do not use outside knowledge or make unsupported assumptions.
+Do not invent customs rules, rates, documents, agencies, dates, URLs, or other facts.
+When the provided context does not contain enough information to answer, state clearly:
+'The provided context is insufficient to answer this question.'
+When making factual claims, cite the relevant source marker such as [1] or [2].
+Never invent or fabricate source markers.
+
+[CONTEXT]
+[1] Source: international_shipping_guide.pdf
+Section: General Customs
+Chunk: 1
+Page: 1
+[Page 1]
+Import and export shipments must comply with applicable customs procedures and destination-specific requirements.
+Cross-border trade operations require accurate origin declaration, manifest validation, and statutory duty assessment
+timelines.
+Standard Incoterms 2020 define the division of costs and risks between buyer and seller:
+- FOB (Free On Board): The seller delivers goods on board the vessel nominated by the buyer at the port of shipment.
+The buyer bears all costs and risks from that point forward.
+- CIF (Cost, Insurance, and Freight): The seller delivers goods on board the vessel and pays freight and minimum
+insurance coverage to the destination port.
+- DDP (Delivered Duty Paid): The seller fulfills the obligation to deliver when goods are placed at the disposal of the
+buyer, cleared for import on arriving transport means.
+Upon arrival at the destination port of entry, shipments are presented for formal customs examination. The electronic Bill
+of Entry is assessed against the official customs tariff schedule. Duty payments (including Basic Customs Duty, Social
+Welfare Surcharge, and Integrated GST) must be settled before out-of-charge clearance is granted by customs
+authorities.
+
+[2] Source: customs_requirements.txt
+Section: General Customs
+Chunk: 2
+Page: 1
+Preferential tariff rates may be granted if the shipment is accompanied by a valid Certificate of Origin under a Bilateral or Multilateral Free Trade Agreement (FTA). Importers must ensure that the country of origin criteria and value addition thresholds are strictly satisfied.
+
+[3] Source: customs_requirements.txt
+Section: General Customs
+Chunk: 1
+Page: 1
+Customs duties may vary according to the product type, declared value, country of origin, and destination country. Every imported commodity is classified under a specific Harmonized System (HS) code that dictates the applicable Basic Customs Duty (BCD), national goods and services taxes, and auxiliary cess charges.
+
+[USER QUESTION]
+shipment rules in india
+========================================

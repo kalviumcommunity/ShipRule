@@ -32,6 +32,9 @@ outputs/*
 !outputs/token_analysis_output.txt
 !outputs/prompt_template_renders.txt
 !outputs/document_intake_results.txt
+!outputs/sample_augmented_prompt.txt
+!outputs/sample_augmented_prompt.json
+
 
 # Python Bytecode & Cache
 __pycache__/

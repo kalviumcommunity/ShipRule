@@ -1,0 +1,121 @@
+{
+  "user_question": "shipment rules in india",
+  "retrieved_chunks_count": 3,
+  "included_chunks_count": 3,
+  "source_markers": [
+    "[1]",
+    "[2]",
+    "[3]"
+  ],
+  "source_mapping": [
+    {
+      "marker": "[1]",
+      "citation_id": "[1]",
+      "source": "international_shipping_guide.pdf",
+      "section": "General Customs",
+      "chunk_index": 1,
+      "page": "1",
+      "rank": 1,
+      "score": 0.5185,
+      "token_count": 258
+    },
+    {
+      "marker": "[2]",
+      "citation_id": "[2]",
+      "source": "customs_requirements.txt",
+      "section": "General Customs",
+      "chunk_index": 2,
+      "page": "1",
+      "rank": 2,
+      "score": 0.492,
+      "token_count": 74
+    },
+    {
+      "marker": "[3]",
+      "citation_id": "[3]",
+      "source": "customs_requirements.txt",
+      "section": "General Customs",
+      "chunk_index": 1,
+      "page": "1",
+      "rank": 3,
+      "score": 0.4319,
+      "token_count": 83
+    }
+  ],
+  "token_budget": {
+    "max_context_tokens": 4096,
+    "response_reserve_tokens": 500,
+    "instruction_tokens": 106,
+    "question_tokens": 4,
+    "available_context": 3486,
+    "retrieved_chunks_count": 3,
+    "included_chunks_count": 3,
+    "context_tokens": 415,
+    "total_estimated_tokens": 1025,
+    "budget_check": "PASS"
+  },
+  "assembled_context": "[1] Source: international_shipping_guide.pdf\nSection: General Customs\nChunk: 1\nPage: 1\n[Page 1]\nImport and export shipments must comply with applicable customs procedures and destination-specific requirements.\nCross-border trade operations require accurate origin declaration, manifest validation, and statutory duty assessment\ntimelines.\nStandard Incoterms 2020 define the division of costs and risks between buyer and seller:\n- FOB (Free On Board): The seller delivers goods on board the vessel nominated by the buyer at the port of shipment.\nThe buyer bears all costs and risks from that point forward.\n- CIF (Cost, Insurance, and Freight): The seller delivers goods on board the vessel and pays freight and minimum\ninsurance coverage to the destination port.\n- DDP (Delivered Duty Paid): The seller fulfills the obligation to deliver when goods are placed at the disposal of the\nbuyer, cleared for import on arriving transport means.\nUpon arrival at the destination port of entry, shipments are presented for formal customs examination. The electronic Bill\nof Entry is assessed against the official customs tariff schedule. Duty payments (including Basic Customs Duty, Social\nWelfare Surcharge, and Integrated GST) must be settled before out-of-charge clearance is granted by customs\nauthorities.\n\n[2] Source: customs_requirements.txt\nSection: General Customs\nChunk: 2\nPage: 1\nPreferential tariff rates may be granted if the shipment is accompanied by a valid Certificate of Origin under a Bilateral or Multilateral Free Trade Agreement (FTA). Importers must ensure that the country of origin criteria and value addition thresholds are strictly satisfied.\n\n[3] Source: customs_requirements.txt\nSection: General Customs\nChunk: 1\nPage: 1\nCustoms duties may vary according to the product type, declared value, country of origin, and destination country. Every imported commodity is classified under a specific Harmonized System (HS) code that dictates the applicable Basic Customs Duty (BCD), national goods and services taxes, and auxiliary cess charges.",
+  "final_augmented_prompt": "========================================\nSHIPRULE SAMPLE AUGMENTED PROMPT\n========================================\nQuestion:\nshipment rules in india\n\nRetrieved Chunks:\n3\n\nIncluded Chunks:\n3\n\nConfigured Context Budget:\n4096\n\nResponse Reserve:\n500\n\nInstruction Tokens:\n106\n\nQuestion Tokens:\n4\n\nContext Tokens:\n415\n\nEstimated Total:\n1025\n\nBudget Check:\nPASS\n\nAUGMENTED PROMPT\n----------------------------------------\n[GROUNDING INSTRUCTIONS]\nYou are a grounded customs-information assistant.\nAnswer the user's question using ONLY the information contained in the provided context.\nDo not use outside knowledge or make unsupported assumptions.\nDo not invent customs rules, rates, documents, agencies, dates, URLs, or other facts.\nWhen the provided context does not contain enough information to answer, state clearly:\n'The provided context is insufficient to answer this question.'\nWhen making factual claims, cite the relevant source marker such as [1] or [2].\nNever invent or fabricate source markers.\n\n[CONTEXT]\n[1] Source: international_shipping_guide.pdf\nSection: General Customs\nChunk: 1\nPage: 1\n[Page 1]\nImport and export shipments must comply with applicable customs procedures and destination-specific requirements.\nCross-border trade operations require accurate origin declaration, manifest validation, and statutory duty assessment\ntimelines.\nStandard Incoterms 2020 define the division of costs and risks between buyer and seller:\n- FOB (Free On Board): The seller delivers goods on board the vessel nominated by the buyer at the port of shipment.\nThe buyer bears all costs and risks from that point forward.\n- CIF (Cost, Insurance, and Freight): The seller delivers goods on board the vessel and pays freight and minimum\ninsurance coverage to the destination port.\n- DDP (Delivered Duty Paid): The seller fulfills the obligation to deliver when goods are placed at the disposal of the\nbuyer, cleared for import on arriving transport means.\nUpon arrival at the destination port of entry, shipments are presented for formal customs examination. The electronic Bill\nof Entry is assessed against the official customs tariff schedule. Duty payments (including Basic Customs Duty, Social\nWelfare Surcharge, and Integrated GST) must be settled before out-of-charge clearance is granted by customs\nauthorities.\n\n[2] Source: customs_requirements.txt\nSection: General Customs\nChunk: 2\nPage: 1\nPreferential tariff rates may be granted if the shipment is accompanied by a valid Certificate of Origin under a Bilateral or Multilateral Free Trade Agreement (FTA). Importers must ensure that the country of origin criteria and value addition thresholds are strictly satisfied.\n\n[3] Source: customs_requirements.txt\nSection: General Customs\nChunk: 1\nPage: 1\nCustoms duties may vary according to the product type, declared value, country of origin, and destination country. Every imported commodity is classified under a specific Harmonized System (HS) code that dictates the applicable Basic Customs Duty (BCD), national goods and services taxes, and auxiliary cess charges.\n\n[USER QUESTION]\nshipment rules in india\n========================================",
+  "retrieved_chunks": [
+    {
+      "rank": 1,
+      "similarity_score": 0.5185,
+      "vector_score": 0.5185,
+      "chunk_text": "[Page 1]\nImport and export shipments must comply with applicable customs procedures and destination-specific requirements.\nCross-border trade operations require accurate origin declaration, manifest validation, and statutory duty assessment\ntimelines.\nStandard Incoterms 2020 define the division of costs and risks between buyer and seller:\n- FOB (Free On Board): The seller delivers goods on board the vessel nominated by the buyer at the port of shipment.\nThe buyer bears all costs and risks from that point forward.\n- CIF (Cost, Insurance, and Freight): The seller delivers goods on board the vessel and pays freight and minimum\ninsurance coverage to the destination port.\n- DDP (Delivered Duty Paid): The seller fulfills the obligation to deliver when goods are placed at the disposal of the\nbuyer, cleared for import on arriving transport means.\nUpon arrival at the destination port of entry, shipments are presented for formal customs examination. The electronic Bill\nof Entry is assessed against the official customs tariff schedule. Duty payments (including Basic Customs Duty, Social\nWelfare Surcharge, and Integrated GST) must be settled before out-of-charge clearance is granted by customs\nauthorities.",
+      "source": "international_shipping_guide.pdf",
+      "chunk_index": 1,
+      "section": "General Customs",
+      "metadata": {
+        "source": "international_shipping_guide.pdf",
+        "chunk_index": 1,
+        "section": "General Customs",
+        "document_type": "pdf",
+        "strategy": "paragraph",
+        "page": "1",
+        "embedding_id": "embedding_004"
+      },
+      "embedding_model": "text-embedding-3-small",
+      "document_id": "international_shipping_guide_paragraph_001"
+    },
+    {
+      "rank": 2,
+      "similarity_score": 0.492,
+      "vector_score": 0.492,
+      "chunk_text": "Preferential tariff rates may be granted if the shipment is accompanied by a valid Certificate of Origin under a Bilateral or Multilateral Free Trade Agreement (FTA). Importers must ensure that the country of origin criteria and value addition thresholds are strictly satisfied.",
+      "source": "customs_requirements.txt",
+      "chunk_index": 2,
+      "section": "General Customs",
+      "metadata": {
+        "source": "customs_requirements.txt",
+        "chunk_index": 2,
+        "section": "General Customs",
+        "document_type": "txt",
+        "strategy": "paragraph",
+        "page": "1",
+        "embedding_id": "embedding_002"
+      },
+      "embedding_model": "text-embedding-3-small",
+      "document_id": "customs_requirements_paragraph_002"
+    },
+    {
+      "rank": 3,
+      "similarity_score": 0.4319,
+      "vector_score": 0.4319,
+      "chunk_text": "Customs duties may vary according to the product type, declared value, country of origin, and destination country. Every imported commodity is classified under a specific Harmonized System (HS) code that dictates the applicable Basic Customs Duty (BCD), national goods and services taxes, and auxiliary cess charges.",
+      "source": "customs_requirements.txt",
+      "chunk_index": 1,
+      "section": "General Customs",
+      "metadata": {
+        "source": "customs_requirements.txt",
+        "chunk_index": 1,
+        "section": "General Customs",
+        "document_type": "txt",
+        "strategy": "paragraph",
+        "page": "1",
+        "embedding_id": "embedding_001"
+      },
+      "embedding_model": "text-embedding-3-small",
+      "document_id": "customs_requirements_paragraph_001"
+    }
+  ]
+}
