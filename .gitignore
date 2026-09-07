@@ -34,6 +34,10 @@ outputs/*
 !outputs/document_intake_results.txt
 !outputs/sample_augmented_prompt.txt
 !outputs/sample_augmented_prompt.json
+!outputs/sample_grounded_answer.txt
+!outputs/sample_grounded_answer.json
+!outputs/sample_fallback_answer.txt
+!outputs/retrieval_comparison.txt
 
 
 # Python Bytecode & Cache

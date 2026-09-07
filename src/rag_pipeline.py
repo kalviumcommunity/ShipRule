@@ -41,6 +41,8 @@ from src.retrieval import retrieve, hybrid_retrieve, load_indexed_vector_collect
 from src.reranker import rerank, retrieve_and_rerank
 from src.prompt_templates import ANSWER_TEMPLATE, PromptTemplate, DEFAULT_GROUNDING_INSTRUCTIONS, GROUNDED_AUGMENTED_PROMPT_TEMPLATE
 from src.context_assembler import assemble_context as assemble_grounded_context, format_budget_report, build_augmented_prompt
+from src.answer_validator import validate_answer_sources, format_validation_report
+from src.token_counter import count_tokens
 
 # Configure logging
 logging.basicConfig(level=logging.WARNING, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -307,20 +309,25 @@ def generate_answer(
     sources_out = [s["source"] for s in (sources_info or [])]
     unique_sources = list(dict.fromkeys(sources_out))
 
-    # Clean context preview for grounded response
+    # Clean context preview for grounded response and attach citation tags
     cleaned_paragraphs = []
-    for block in context.split("\n\n"):
+    for idx, block in enumerate(context.split("\n\n"), start=1):
         lines = block.split("\n")
-        if len(lines) > 1:
+        text_lines = [l for l in lines if not any(l.startswith(p) for p in ("Section:", "Chunk:", "Page:", "Country:", "HS Code:", "Agency:", "URL:", "Date:")) and not l.startswith(f"[{idx}]") and l.strip()]
+        if text_lines:
+            body = " ".join(text_lines)
+        elif len(lines) > 1:
             body = " ".join(lines[1:])
-            cleaned_paragraphs.append(body)
         else:
-            cleaned_paragraphs.append(block)
+            body = block
+
+        # Extract clean concise sentence/snippet and attach citation tag
+        snippet = body.strip()
+        if len(snippet) > 120:
+            snippet = snippet[:117].rstrip() + "..."
+        cleaned_paragraphs.append(f"{snippet} [{idx}]")
 
     synthesized_answer = " ".join(cleaned_paragraphs)
-    if len(synthesized_answer) > 400:
-        synthesized_answer = synthesized_answer[:397] + "..."
-
     formatted_answer = f"Based on retrieved documentation:\n{synthesized_answer}"
 
     return {
@@ -350,7 +357,7 @@ def answer_query(
       User Query -> embed_query() -> retrieve_context() -> assemble_context() -> generate_answer() -> Answer + Sources.
 
     Handles empty retrieval safely without calling the LLM or hallucinating facts.
-    Measures timing metrics and supports optional debug tracing mode.
+    Measures timing metrics, validates source markers, and supports optional debug tracing mode.
 
     Args:
         query: User question string.
@@ -365,7 +372,7 @@ def answer_query(
         model: Optional model name string.
 
     Returns:
-        Structured RAG answer dict containing 'answer', 'sources', 'retrieved_chunks', 'timing', and optional 'debug_info'.
+        Structured RAG answer dict containing 'answer', 'sources', 'retrieved_chunks', 'source_validation', 'timing', and optional 'debug_info'.
     """
     t_start = time.perf_counter()
 
@@ -396,10 +403,20 @@ def answer_query(
         t_total_end = time.perf_counter()
         total_ms = round((t_total_end - t_start) * 1000, 2)
 
+        fallback_answer = "I could not find enough relevant information in the available knowledge base to answer this question. The provided context is insufficient to answer this question."
+        source_val = validate_answer_sources(fallback_answer, available_sources=[], is_retrieval_mode=True)
+
         safe_response = {
-            "answer": "I could not find enough relevant information in the available knowledge base to answer this question.",
+            "answer": fallback_answer,
             "sources": [],
             "retrieved_chunks": [],
+            "source_validation": source_val,
+            "token_usage": {
+                "input_tokens": count_tokens(query),
+                "context_tokens": 0,
+                "output_tokens": count_tokens(fallback_answer),
+                "total_tokens": count_tokens(query) + count_tokens(fallback_answer)
+            },
             "timing": {
                 "embedding_ms": embed_ms,
                 "retrieval_ms": ret_timing["retrieval_ms"],
@@ -415,12 +432,17 @@ def answer_query(
                 "candidate_k": candidate_k,
                 "final_k": final_k,
                 "metadata_filter": metadata_filter,
-                "status": "empty_retrieval_fallback"
+                "status": "empty_retrieval_fallback",
+                "source_validation": source_val
             }
         return safe_response
 
     # 4. Stage 3: Context Assembly
     t_asm_start = time.perf_counter()
+    grounded_assembly = assemble_grounded_context(
+        retrieved_chunks=chunks,
+        user_question=query
+    )
     assembled_context, sources_info = assemble_context(chunks)
     t_asm_end = time.perf_counter()
     asm_ms = round((t_asm_end - t_asm_start) * 1000, 2)
@@ -429,7 +451,7 @@ def answer_query(
     t_gen_start = time.perf_counter()
     gen_result = generate_answer(
         query=query,
-        context=assembled_context,
+        context=grounded_assembly.context or assembled_context,
         sources_info=sources_info,
         client=client,
         model=model
@@ -440,10 +462,27 @@ def answer_query(
     t_total_end = time.perf_counter()
     total_ms = round((t_total_end - t_start) * 1000, 2)
 
+    # 6. Stage 5: Source Accuracy Validation
+    source_val = validate_answer_sources(
+        answer=gen_result["answer"],
+        available_sources=grounded_assembly.source_mapping or sources_info,
+        is_retrieval_mode=True
+    )
+
+    input_tokens = count_tokens(grounded_assembly.augmented_prompt)
+    output_tokens = count_tokens(gen_result["answer"])
+
     pipeline_result = {
         "answer": gen_result["answer"],
         "sources": gen_result["sources"],
         "retrieved_chunks": chunks,
+        "source_validation": source_val,
+        "token_usage": {
+            "input_tokens": input_tokens,
+            "context_tokens": grounded_assembly.token_count,
+            "output_tokens": output_tokens,
+            "total_tokens": input_tokens + output_tokens
+        },
         "timing": {
             "embedding_ms": embed_ms,
             "retrieval_ms": ret_timing["retrieval_ms"],
@@ -455,10 +494,6 @@ def answer_query(
     }
 
     if debug:
-        grounded_assembly = assemble_grounded_context(
-            retrieved_chunks=chunks,
-            user_question=query
-        )
         pipeline_result["debug_info"] = {
             "query": query,
             "candidate_k": candidate_k,
@@ -469,11 +504,84 @@ def answer_query(
             "query_vector_dim": len(query_vector),
             "retrieved_chunks_count": len(chunks),
             "sources_citation_info": sources_info,
-            "assembled_context_prompt": assembled_context,
+            "assembled_context_prompt": grounded_assembly.context or assembled_context,
             "budget_info": grounded_assembly.budget_info,
             "budget_report": grounded_assembly.budget_report,
-            "augmented_prompt": grounded_assembly.augmented_prompt
+            "augmented_prompt": grounded_assembly.augmented_prompt,
+            "source_validation": source_val,
+            "source_validation_report": source_val["report"]
         }
 
     return pipeline_result
+
+
+# ==============================================================================
+# 6. NON-RETRIEVAL BASELINE RUNNER
+# ==============================================================================
+
+def answer_query_without_retrieval(
+    query: str,
+    client: Optional[Any] = None,
+    model: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Executes a baseline query run WITHOUT retrieving any context from ChromaDB.
+    Demonstrates that without injected knowledge chunks, the model under strict grounding constraints
+    returns an insufficient-context fallback and cannot provide supported customs facts.
+
+    Args:
+        query: User question string.
+        client: Optional LLM client.
+        model: Optional model name.
+
+    Returns:
+        Structured result dict containing 'answer', 'sources', 'token_usage', and 'source_validation'.
+    """
+    t_start = time.perf_counter()
+    if query is None or not isinstance(query, str) or not query.strip():
+        raise ValueError("Query must be a non-empty string.")
+
+    non_retrieval_prompt = (
+        f"SYSTEM / INSTRUCTIONS\n{DEFAULT_GROUNDING_INSTRUCTIONS}\n\n"
+        f"CONTEXT\n[No relevant context available]\n\n"
+        f"USER QUESTION\n{query.strip()}"
+    )
+
+    input_tokens = count_tokens(non_retrieval_prompt)
+
+    gen_result = generate_answer(
+        query=query.strip(),
+        context="",
+        sources_info=[],
+        client=client,
+        model=model
+    )
+    t_end = time.perf_counter()
+
+    answer_text = gen_result["answer"]
+    output_tokens = count_tokens(answer_text)
+
+    source_val = validate_answer_sources(
+        answer=answer_text,
+        available_sources=[],
+        is_retrieval_mode=False
+    )
+
+    return {
+        "query": query,
+        "answer": answer_text,
+        "sources": [],
+        "retrieved_chunks": [],
+        "retrieved_chunks_count": 0,
+        "context": "NONE",
+        "source_validation": source_val,
+        "token_usage": {
+            "input_tokens": input_tokens,
+            "context_tokens": 0,
+            "output_tokens": output_tokens,
+            "total_tokens": input_tokens + output_tokens
+        },
+        "timing_ms": round((t_end - t_start) * 1000, 2)
+    }
+
 
