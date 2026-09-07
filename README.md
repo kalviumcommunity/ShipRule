@@ -20,6 +20,7 @@ A production-ready Retrieval-Augmented Generation (RAG) system engineered for sh
   - [4. Document Chunking Strategies](#4-document-chunking-strategies)
   - [5. Corpus Preparation & Ingestion Validation](#5-corpus-preparation--ingestion-validation)
   - [6. Generating Embeddings via API](#6-generating-embeddings-via-api)
+  - [7. Vector Database Setup (ChromaDB)](#7-vector-database-setup-chromadb)
   - [7. Embedding Similarity & Distance Metrics](#7-embedding-similarity--distance-metrics)
 - [End-to-End RAG Execution](#end-to-end-rag-execution)
 - [Testing & Quality Assurance](#testing--quality-assurance)
@@ -59,6 +60,7 @@ ShipRule/
 ├── src/                        # Core modular engine components
 │   ├── __init__.py
 │   ├── main.py                 # Interactive RAG CLI loop with scope guard & ChromaDB
+│   ├── vector_store.py         # Persistent ChromaDB storage, collection & dimension validation
 │   ├── chunker.py              # Chunking strategies, stats & boundary inspection
 │   ├── ingestion.py            # Corpus ingestion, manifest & reconciliation validation
 │   ├── embeddings.py           # Embeddings API client, vector generation & validation
@@ -69,6 +71,8 @@ ShipRule/
 │   ├── llm_completion.py       # OpenAI/Groq API client wrapper & error diagnostics
 │   ├── prompt_templates.py     # System & user prompt templates
 │   └── scope_guard.py          # Query guardrails for out-of-scope filtering
+├── scripts/                    # Verification & utility scripts
+│   └── vector_db_test.py       # End-to-end vector database readback verification test
 ├── prompts/                    # System prompt specifications & constraints
 │   ├── system_prompt_v1.txt
 │   └── system_prompt_v2_constrained.txt
@@ -85,7 +89,8 @@ ShipRule/
 │   ├── chunks_paragraph.json
 │   ├── chunks_sentence.json
 │   └── chunking_report.json
-├── tests/                      # Comprehensive unit test suite (115 passing tests)
+├── tests/                      # Comprehensive unit test suite (144 passing tests)
+│   ├── test_vector_store.py
 │   ├── test_embeddings.py
 │   ├── test_ingestion.py
 │   ├── test_chunking.py
@@ -521,6 +526,87 @@ Saved in [`outputs/`](file:///outputs):
 
 ---
 
+### 7. Vector Database Setup (ChromaDB)
+
+ShipRule integrates a persistent local **ChromaDB** vector database storage layer to store dense document embeddings, source text, and structured metadata for fast semantic lookup and similarity retrieval.
+
+#### Why ChromaDB?
+- **Python-Native**: Zero external server processes or Docker requirements; runs directly embedded in Python.
+- **Local Persistence**: Stores collections locally on disk (`data/vector_db/`) across application restarts.
+- **HNSW Indexing**: Native support for configurable distance metrics (`cosine`, `l2`, `ip`).
+- **Flexible Metadata Filtering**: Allows filtering query retrieval by document type, source, or section.
+
+#### Configuration & Persistence
+Vector storage parameters are loaded from `.env` via `python-dotenv`:
+- **Database Engine**: `ChromaDB` (Persistent local client)
+- **Local Persistence Path**: `VECTOR_DB_PATH=./data/vector_db`
+- **Collection Name**: `VECTOR_COLLECTION_NAME=shiprule_documents`
+- **Distance Metric**: `VECTOR_DISTANCE_METRIC=cosine`
+- **Embedding Model**: `EMBED_MODEL=text-embedding-3-small`
+- **Detected Vector Dimension**: Dynamically detected from active embedding client (`384` for local ONNX compatibility mode, `1536` for standard OpenAI API).
+
+#### Stored Record Schema
+
+Every record in ChromaDB is indexed with vectors, source text, and strict metadata:
+```json
+{
+  "ids": ["vector_test_record_001"],
+  "documents": ["Customs declaration documents must include commercial invoices..."],
+  "embeddings": [[-0.0526, -0.0009, -0.0120, ...]],
+  "metadatas": [
+    {
+      "source": "shipping_rules.txt",
+      "chunk_index": 1,
+      "section": "Documentation Requirements",
+      "page": 1,
+      "chunk_id": "shipping_rules_p01_test",
+      "document_type": "txt",
+      "embedding_model": "text-embedding-3-small",
+      "vector_dimension": 384
+    }
+  ]
+}
+```
+
+#### Running Vector Database Verification Test
+
+Run the end-to-end verification script:
+```bash
+pip install -r requirements.txt
+python scripts/vector_db_test.py
+```
+
+#### Verification Capabilities
+Running `scripts/vector_db_test.py` proves:
+1. **Database Reachability**: Connects to the local persistent ChromaDB storage engine.
+2. **Collection Creation**: Initializes or retrieves the `shiprule_documents` collection.
+3. **Correct Vector Dimension**: Generates a probe embedding and validates vector length against collection metadata.
+4. **Vector Insertion**: Inserts dense float vectors with idempotency.
+5. **Source Text Storage**: Preserves complete chunk text alongside vectors.
+6. **Metadata Storage**: Preserves structured traceability fields with scalar type compliance.
+7. **Successful Readback**: Fetches stored records by ID and asserts 100% data round-trip fidelity.
+
+#### Example Successful Output
+
+```
+VECTOR DATABASE TEST
+Database status : CONNECTED
+Collection      : shiprule_documents
+Inserted record:
+  ID            : vector_test_record_001
+  Vector length : 384
+  Text          : Customs declaration documents must include commercial invoices, packing lists, and certificates of origin for cross-border freight compliance.
+  Metadata      : {"source": "shipping_rules.txt", "chunk_index": 1, "section": "Documentation Requirements", "page": 1, "chunk_id": "shipping_rules_p01_test", "document_type": "txt", "embedding_model": "text-embedding-3-small", "vector_dimension": 384}
+Readback:
+  Status        : SUCCESS
+  ID            : vector_test_record_001
+  Vector length : 384
+  Text          : Customs declaration documents must include commercial invoices, packing lists, and certificates of origin for cross-border freight compliance.
+  Metadata      : {"embedding_model": "text-embedding-3-small", "strategy": "paragraph", "vector_dimension": 384, "character_count": 142, "chunk_index": 1, "chunk_id": "shipping_rules_p01_test", "document_type": "txt", "page": 1, "section": "Documentation Requirements", "source": "shipping_rules.txt"}
+Dimension check : PASS
+Insert check    : PASS
+Readback check  : PASS
+```
 ### 7. Embedding Similarity & Distance Metrics
 
 Calculates cosine similarity between user query vectors and stored candidate chunk embeddings, ranks candidates in descending order of similarity, and returns configurable `top_k` structured results.
@@ -591,8 +677,9 @@ Run the test suite:
 python -m unittest discover tests
 ```
 
-**Test Suite Coverage (115 passing tests)**:
-- `test_embeddings.py` (14 tests): Loading prepared chunks, mocked vector generation, numerical validation, vector dimension detection, consistent dimension validation, metadata preservation, error handling, report generation.
+**Test Suite Coverage (144 passing tests)**:
+- `test_vector_store.py` (12 tests): Persistent client connection, collection creation, dimension validation, metadata normalization, single/batch insertion, upsert idempotency, deterministic readback, and health checks.
+- `test_embeddings.py` (18 tests): Loading prepared chunks, mocked vector generation, numerical validation, vector dimension detection, consistent dimension validation, metadata preservation, error handling, report generation.
 - `test_ingestion.py` (13 tests): Recursive discovery, reconciliation checks, metadata validation, failure isolation, resumability.
 - `test_chunking.py` (13 tests): Fixed-size, paragraph, sentence chunking, overlap mechanics, boundary inspection, sample corpus execution.
 - `test_document_loader.py` (10 tests): Multi-format intake (TXT, PDF), corrupted file handling, unsupported file skipping.
