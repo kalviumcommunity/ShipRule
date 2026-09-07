@@ -18,6 +18,7 @@ data/*
 !data/sample_corpus/
 
 # Vector DB & Storage
+data/vector_db/
 chroma_db/
 .chroma/
 *.sqlite3
