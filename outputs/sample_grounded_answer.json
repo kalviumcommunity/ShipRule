@@ -100,11 +100,11 @@
     "total_tokens": 662
   },
   "timing": {
-    "embedding_ms": 797.23,
-    "retrieval_ms": 191.24,
+    "embedding_ms": 739.27,
+    "retrieval_ms": 174.34,
     "reranking_ms": 0.08,
-    "context_assembly_ms": 174.45,
-    "generation_ms": 672.23,
-    "total_pipeline_time_ms": 1835.27
+    "context_assembly_ms": 183.77,
+    "generation_ms": 734.05,
+    "total_pipeline_time_ms": 1831.54
   }
 }
