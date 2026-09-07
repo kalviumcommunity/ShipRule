@@ -154,7 +154,7 @@ def create_embedding_client(
     """
     load_dotenv()
 
-    raw_api_key = api_key or os.getenv("EMBEDDING_API_KEY") or os.getenv("OPENAI_API_KEY")
+    raw_api_key = api_key or os.getenv("EMBEDDING_API_KEY") or os.getenv("OPENAI_API_KEY") or os.getenv("GROQ_API_KEY")
     raw_base_url = base_url or os.getenv("EMBEDDING_BASE_URL") or os.getenv("OPENAI_BASE_URL") or "https://api.openai.com/v1"
 
     resolved_api_key = raw_api_key.strip().strip("\"'") if raw_api_key else ""
