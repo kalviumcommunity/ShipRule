@@ -23,6 +23,13 @@ from src.retrieval import (
     load_indexed_vector_collection,
     run_retrieval_demonstration,
 )
+from src.evaluation import (
+    evaluate_retrieval,
+    compare_configurations,
+    format_manual_inspection_view,
+    EVALUATION_DATASET,
+    EVALUATION_CONFIGURATIONS,
+)
 
 __all__ = [
     "cosine_similarity",
@@ -38,11 +45,14 @@ __all__ = [
     "format_hybrid_output",
     "load_indexed_vector_collection",
     "run_retrieval_demonstration",
+    "evaluate_retrieval",
+    "compare_configurations",
+    "format_manual_inspection_view",
+    "EVALUATION_DATASET",
+    "EVALUATION_CONFIGURATIONS",
 ]
 
 
 
 if __name__ == "__main__":
     run_retrieval_demonstration()
-
-
