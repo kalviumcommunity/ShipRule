@@ -20,6 +20,8 @@ if project_root not in sys.path:
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
+from src.embeddings import cosine_similarity
+
 
 # ==============================================================================
 # 1. RECORD FORMATTING & BATCHING UTILITIES
@@ -185,6 +187,56 @@ class VectorCollection:
                 self.chroma_collection.delete(ids=record_ids)
             except Exception:
                 pass
+
+    def query(self, query_vector: List[float], top_k: int = 3) -> List[Dict[str, Any]]:
+        """
+        Performs vector similarity search against indexed records using cosine similarity.
+
+        Args:
+            query_vector: Dense numerical query embedding vector.
+            top_k: Maximum number of top similar records to return.
+
+        Returns:
+            List of result dicts sorted by similarity score descending.
+        """
+        if not query_vector or top_k <= 0:
+            return []
+
+        all_records = list(self._records_store.values())
+
+        # If local store empty but chroma collection exists, retrieve from chroma
+        if not all_records and self.chroma_collection is not None:
+            try:
+                raw_get = self.chroma_collection.get(include=["embeddings", "documents", "metadatas"])
+                if raw_get and raw_get.get("ids"):
+                    for i, rec_id in enumerate(raw_get["ids"]):
+                        vec = raw_get["embeddings"][i] if raw_get.get("embeddings") is not None and i < len(raw_get["embeddings"]) else []
+                        doc = raw_get["documents"][i] if raw_get.get("documents") is not None and i < len(raw_get["documents"]) else ""
+                        meta = raw_get["metadatas"][i] if raw_get.get("metadatas") is not None and i < len(raw_get["metadatas"]) else {}
+                        all_records.append({
+                            "id": rec_id,
+                            "vector": list(vec),
+                            "text": doc,
+                            "metadata": meta
+                        })
+            except Exception:
+                pass
+
+        results = []
+        for rec in all_records:
+            vec = rec.get("vector", [])
+            score = cosine_similarity(query_vector, vec)
+            results.append({
+                "id": rec.get("id"),
+                "text": rec.get("text", ""),
+                "score": round(float(score), 4),
+                "vector": vec,
+                "metadata": rec.get("metadata", {})
+            })
+
+        results.sort(key=lambda x: x["score"], reverse=True)
+        return results[:top_k]
+
 
 
 # ==============================================================================

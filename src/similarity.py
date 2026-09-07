@@ -12,16 +12,26 @@ from src.embeddings import (
     rank_chunks_by_similarity,
     search_similar_chunks,
 )
+from src.retrieval import (
+    retrieve,
+    format_retrieval_output,
+    load_indexed_vector_collection,
+    run_retrieval_demonstration,
+)
 
 __all__ = [
     "cosine_similarity",
     "generate_query_embedding",
     "rank_chunks_by_similarity",
     "search_similar_chunks",
+    "retrieve",
+    "format_retrieval_output",
+    "load_indexed_vector_collection",
+    "run_retrieval_demonstration",
 ]
 
 
 if __name__ == "__main__":
-    from src.similarity_demo import run_similarity_demonstration
-    run_similarity_demonstration()
+    run_retrieval_demonstration()
+
 
