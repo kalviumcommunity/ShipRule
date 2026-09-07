@@ -1,16 +1,19 @@
 """
-ShipRule CDLP - Similarity Search & Top-K Retrieval Module
-===========================================================
-Implements the retrieval pipeline (retrieve(query, k=3)) using the exact same
-embedding model used for document embeddings and the existing indexed vector collection.
-Returns ordered top-k most similar chunks with rank, similarity score, chunk text,
-source, chunk index, and all metadata.
+ShipRule CDLP - Similarity Search, Metadata Filtering & Hybrid Retrieval Module
+================================================================================
+Implements the retrieval pipeline supporting:
+1. Top-k similarity retrieval (retrieve(query, k=3, metadata_filter=None))
+2. Metadata filtering over stored vector collection attributes
+3. Keyword match scoring (keyword_score(text, keywords))
+4. Hybrid weighted ranking combining vector and keyword scores (hybrid_rank())
+5. End-to-end hybrid retrieval pipeline (hybrid_retrieve())
+6. Demonstration formatters and reporting utilities
 """
 
 import os
 import sys
 import json
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, Union
 
 # Ensure project root directory is in sys.path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -85,11 +88,11 @@ def load_indexed_vector_collection(
         merged_meta = {
             "source": str(source),
             "chunk_index": chunk_idx,
-            "section": item.get("section") or meta.get("section"),
+            "section": item.get("section") or meta.get("section") or "General Customs",
             "country": item.get("country") or meta.get("country"),
             "hs_code": item.get("hs_code") or meta.get("hs_code"),
-            "document_type": item.get("document_type") or meta.get("document_type"),
-            "strategy": item.get("strategy") or meta.get("strategy"),
+            "document_type": item.get("document_type") or meta.get("document_type", "txt"),
+            "strategy": item.get("strategy") or meta.get("strategy", "paragraph"),
             "page": str(item.get("page") or meta.get("page", "1")),
             "embedding_id": item.get("embedding_id") or item.get("id") or f"emb_{idx:03d}"
         }
@@ -107,28 +110,33 @@ def load_indexed_vector_collection(
 
 
 # ==============================================================================
-# 2. CORE RETRIEVAL PIPELINE FUNCTION
+# 2. EXTENDED RETRIEVAL FUNCTION WITH METADATA FILTERING
 # ==============================================================================
 
 def retrieve(
     query: str,
     k: int = 3,
+    metadata_filter: Optional[Dict[str, Any]] = None,
     collection: Optional[VectorCollection] = None,
     client: Optional[Any] = None,
     model: Optional[str] = None
 ) -> List[Dict[str, Any]]:
     """
-    Executes top-k similarity retrieval for a given natural language query.
+    Executes top-k similarity retrieval for a given natural language query with
+    optional metadata filtering.
 
-    Steps:
-    1. Validates query string and k parameter.
-    2. Generates query embedding vector using exact same embedding model.
-    3. Searches existing vector collection using cosine similarity.
-    4. Returns ranked list of results with rank, score, text, source, chunk_index, and metadata.
+    Metadata Filtering Behavior:
+    - Unfiltered search (metadata_filter=None) searches the entire indexed corpus.
+    - Filtered search (metadata_filter={...}) restricts evaluation exclusively to
+      chunks matching all metadata filter key-value pairs.
+    - Filtering increases precision by removing irrelevant document categories.
+    - Overly strict filters can reduce recall if relevant chunks are omitted.
+    - Metadata must be attached and stored during document ingestion to filter.
 
     Args:
         query: Non-empty search query string.
         k: Positive integer specifying number of top results to return.
+        metadata_filter: Optional dictionary of key-value metadata criteria.
         collection: Optional VectorCollection instance (loaded automatically if None).
         client: Optional embedding client instance.
         model: Optional embedding model name string.
@@ -144,7 +152,11 @@ def retrieve(
     if isinstance(k, bool) or not isinstance(k, int) or k <= 0:
         raise ValueError("Parameter 'k' must be a positive integer greater than 0.")
 
-    # 3. Vector Collection Resolution & Validation
+    # 3. Input Metadata Filter Validation
+    if metadata_filter is not None and not isinstance(metadata_filter, dict):
+        raise ValueError("metadata_filter must be a dictionary.")
+
+    # 4. Vector Collection Resolution & Validation
     if collection is None:
         collection = load_indexed_vector_collection()
 
@@ -155,7 +167,7 @@ def retrieve(
     # Cap k to total indexed chunks if k > total_chunks
     effective_k = min(k, total_chunks)
 
-    # 4. Query Embedding Generation (using exact same model)
+    # 5. Query Embedding Generation (using exact same model)
     load_dotenv()
     selected_model = model or os.getenv("EMBED_MODEL", "text-embedding-3-small")
 
@@ -167,13 +179,17 @@ def retrieve(
     if not query_vector:
         raise RuntimeError("Failed to generate vector embedding for the input query.")
 
-    # 5. Vector Similarity Search
+    # 6. Vector Similarity Search with Metadata Filter
     try:
-        raw_matches = collection.query(query_vector, top_k=effective_k)
+        raw_matches = collection.query(
+            query_vector,
+            top_k=effective_k,
+            metadata_filter=metadata_filter
+        )
     except Exception as e:
         raise RuntimeError(f"Vector database search error: {e}")
 
-    # 6. Format and Structure Results
+    # 7. Format and Structure Results
     structured_results: List[Dict[str, Any]] = []
 
     for rank_idx, match in enumerate(raw_matches, start=1):
@@ -188,9 +204,11 @@ def retrieve(
         structured_results.append({
             "rank": rank_idx,
             "similarity_score": round(float(score), 4),
+            "vector_score": round(float(score), 4),
             "chunk_text": str(text),
             "source": str(source),
             "chunk_index": chunk_idx,
+            "section": str(meta.get("section", "General")),
             "metadata": meta,
             "embedding_model": selected_model,
             "document_id": match.get("id", f"chunk_{rank_idx}")
@@ -200,7 +218,155 @@ def retrieve(
 
 
 # ==============================================================================
-# 3. RETRIEVAL OUTPUT FORMATTER
+# 3. KEYWORD SCORING FUNCTION
+# ==============================================================================
+
+def keyword_score(text: str, keywords: List[str]) -> float:
+    """
+    Calculates keyword match score for a given text chunk based on keyword occurrences.
+    Converts text and keywords to lowercase and handles empty keyword lists safely.
+
+    Args:
+        text: Target document chunk text.
+        keywords: List of keyword strings to search for.
+
+    Returns:
+        Float score between 0.0 and 1.0 (proportion of keywords matched).
+    """
+    if not text or not isinstance(text, str) or not text.strip():
+        return 0.0
+    if not keywords or not isinstance(keywords, (list, tuple, set)):
+        return 0.0
+
+    clean_keywords = [str(kw).strip().lower() for kw in keywords if kw and str(kw).strip()]
+    if not clean_keywords:
+        return 0.0
+
+    lower_text = text.lower()
+    unique_kws = list(dict.fromkeys(clean_keywords))
+
+    matches = sum(1 for kw in unique_kws if kw in lower_text)
+    return round(matches / len(unique_kws), 4)
+
+
+# ==============================================================================
+# 4. HYBRID RANKING & RETRIEVAL PIPELINE
+# ==============================================================================
+
+def hybrid_rank(
+    vector_results: List[Dict[str, Any]],
+    keywords: List[str],
+    vector_weight: float = 0.8,
+    keyword_weight: float = 0.2
+) -> List[Dict[str, Any]]:
+    """
+    Combines vector similarity scores and keyword match scores using a weighted linear combination:
+      hybrid_score = (vector_weight * vector_score) + (keyword_weight * keyword_score)
+
+    Preserves original vector similarity scores and sorts results descending by hybrid_score.
+
+    Args:
+        vector_results: List of result dicts returned by retrieve().
+        keywords: List of keyword strings for exact lexical matching.
+        vector_weight: Weight float for vector score (default: 0.8).
+        keyword_weight: Weight float for keyword score (default: 0.2).
+
+    Returns:
+        List of result dicts containing original vector score, keyword score,
+        hybrid score, text, metadata, source, and chunk_index.
+    """
+    if not vector_results:
+        return []
+
+    hybrid_results = []
+    for item in vector_results:
+        vec_score = item.get("similarity_score") if "similarity_score" in item else item.get("score", 0.0)
+        text = item.get("chunk_text") or item.get("text", "")
+        kw_score = keyword_score(text, keywords)
+
+        h_score = (vector_weight * vec_score) + (keyword_weight * kw_score)
+
+        meta = item.get("metadata") if isinstance(item.get("metadata"), dict) else {}
+        source = item.get("source") or meta.get("source", "unknown")
+        chunk_idx = item.get("chunk_index") if item.get("chunk_index") is not None else meta.get("chunk_index", 1)
+
+        hybrid_results.append({
+            "rank": 0,  # Will be re-assigned after sorting
+            "vector_score": round(float(vec_score), 4),
+            "similarity_score": round(float(vec_score), 4),
+            "keyword_score": round(float(kw_score), 4),
+            "hybrid_score": round(float(h_score), 4),
+            "chunk_text": str(text),
+            "source": str(source),
+            "chunk_index": chunk_idx,
+            "section": str(meta.get("section") or item.get("section", "General")),
+            "metadata": meta,
+            "embedding_model": item.get("embedding_model"),
+            "document_id": item.get("document_id")
+        })
+
+    # Sort descending by hybrid_score
+    hybrid_results.sort(key=lambda x: x["hybrid_score"], reverse=True)
+
+    for idx, res in enumerate(hybrid_results, start=1):
+        res["rank"] = idx
+
+    return hybrid_results
+
+
+def hybrid_retrieve(
+    query: str,
+    keywords: List[str],
+    k: int = 3,
+    metadata_filter: Optional[Dict[str, Any]] = None,
+    vector_weight: float = 0.8,
+    keyword_weight: float = 0.2,
+    collection: Optional[VectorCollection] = None,
+    client: Optional[Any] = None,
+    model: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    """
+    Executes end-to-end hybrid retrieval:
+      User Query -> Query Embedding -> Metadata Filter -> Vector Search -> Keyword Match -> Hybrid Rank -> Top-K.
+
+    Args:
+        query: User search query string.
+        keywords: List of keyword strings for exact lexical boosting.
+        k: Top-k count to return.
+        metadata_filter: Optional metadata filtering dictionary.
+        vector_weight: Float weight for vector score (default 0.8).
+        keyword_weight: Float weight for keyword score (default 0.2).
+        collection: Optional VectorCollection instance.
+        client: Optional embedding client instance.
+        model: Optional embedding model name.
+
+    Returns:
+        List of hybrid ranked result dicts.
+    """
+    total_chunks = collection.count() if collection else 100
+    candidate_k = max(k, min(total_chunks, k * 3))
+
+    vec_results = retrieve(
+        query=query,
+        k=candidate_k,
+        metadata_filter=metadata_filter,
+        collection=collection,
+        client=client,
+        model=model
+    )
+
+    ranked = hybrid_rank(
+        vector_results=vec_results,
+        keywords=keywords,
+        vector_weight=vector_weight,
+        keyword_weight=keyword_weight
+    )
+
+    return ranked[:k]
+
+
+# ==============================================================================
+# 5. DEMONSTRATION OUTPUT FORMATTERS
 # ==============================================================================
 
 def format_retrieval_output(
@@ -209,18 +375,7 @@ def format_retrieval_output(
     model_name: str = "text-embedding-3-small",
     k: int = 3
 ) -> str:
-    """
-    Formats top-k retrieval results into a clean, human-readable ASCII text report.
-
-    Args:
-        query: The user query string.
-        results: List of structured result dicts returned by retrieve().
-        model_name: Embedding model used.
-        k: Configured top-k value.
-
-    Returns:
-        Formatted output string.
-    """
+    """Formats top-k retrieval results into clean ASCII text report."""
     lines = [
         "========================================",
         "Top-K Retrieval",
@@ -247,14 +402,100 @@ def format_retrieval_output(
     return "\n".join(lines).strip()
 
 
+def format_filtered_vs_unfiltered_output(
+    query: str,
+    unfiltered_results: List[Dict[str, Any]],
+    filtered_results: List[Dict[str, Any]],
+    metadata_filter: Dict[str, Any]
+) -> str:
+    """
+    Formats side-by-side comparative ASCII report for Unfiltered vs Filtered retrieval.
+    """
+    lines = []
+    lines.append("========================================")
+    lines.append("UNFILTERED RESULTS")
+    lines.append("==================")
+    lines.append("")
+
+    if not unfiltered_results:
+        lines.append("No unfiltered chunks retrieved.")
+    else:
+        for item in unfiltered_results:
+            lines.append(f"Rank: {item['rank']}")
+            lines.append(f"Score: {item['similarity_score']:.4f}")
+            lines.append(f"Source: {item['source']}")
+            lines.append(f"Section: {item['section']}")
+            lines.append(f"Chunk Index: {item['chunk_index']}")
+            lines.append(f"Text: {item['chunk_text']}")
+            lines.append("")
+
+    lines.append("========================================")
+    lines.append(f"FILTERED RESULTS (Filter: {metadata_filter})")
+    lines.append("====================")
+    lines.append("")
+
+    if not filtered_results:
+        lines.append("No filtered chunks retrieved matching criteria.")
+    else:
+        for item in filtered_results:
+            lines.append(f"Rank: {item['rank']}")
+            lines.append(f"Score: {item['similarity_score']:.4f}")
+            lines.append(f"Source: {item['source']}")
+            lines.append(f"Section: {item['section']}")
+            lines.append(f"Chunk Index: {item['chunk_index']}")
+            lines.append(f"Text: {item['chunk_text']}")
+            lines.append("")
+
+    return "\n".join(lines).strip()
+
+
+def format_hybrid_output(
+    query: str,
+    keywords: List[str],
+    results: List[Dict[str, Any]],
+    vector_weight: float = 0.8,
+    keyword_weight: float = 0.2
+) -> str:
+    """
+    Formats top-k hybrid search results into clean ASCII text report displaying
+    vector score, keyword score, hybrid score, text, and metadata.
+    """
+    lines = []
+    lines.append("========================================")
+    lines.append("HYBRID SEARCH RESULTS")
+    lines.append("=====================")
+    lines.append("")
+    lines.append(f"Query: {query}")
+    lines.append(f"Keywords: {keywords}")
+    lines.append(f"Weights: Vector ({vector_weight:.1f}) | Keyword ({keyword_weight:.1f})")
+    lines.append("")
+
+    if not results:
+        lines.append("No hybrid search results returned.")
+        return "\n".join(lines)
+
+    for item in results:
+        lines.append(f"Rank: {item['rank']}")
+        lines.append(f"Vector Score: {item['vector_score']:.4f}")
+        lines.append(f"Keyword Score: {item['keyword_score']:.4f}")
+        lines.append(f"Hybrid Score: {item['hybrid_score']:.4f}")
+        lines.append(f"Source: {item['source']}")
+        lines.append(f"Section: {item['section']}")
+        lines.append(f"Chunk Index: {item['chunk_index']}")
+        lines.append(f"Text: {item['chunk_text']}")
+        lines.append("")
+
+    return "\n".join(lines).strip()
+
+
 # ==============================================================================
-# 4. TOP-K DEMONSTRATION & TEST RUNNER
+# 6. DEMONSTRATIONS RUNNER (FILTERED VS UNFILTERED, HYBRID & EXACT-MATCH)
 # ==============================================================================
 
 def run_retrieval_demonstration() -> Dict[str, Any]:
     """
-    Runs top-k retrieval demonstrations for specified queries with k=1, k=3, and k=5,
-    prints output reports, and saves output artifacts to disk.
+    Runs top-k retrieval, metadata filtering, hybrid search, and exact-match term
+    demonstrations, prints outputs, and writes artifacts to disk.
     """
     load_dotenv()
     model_name = os.getenv("EMBED_MODEL", "text-embedding-3-small")
@@ -262,45 +503,114 @@ def run_retrieval_demonstration() -> Dict[str, Any]:
     # Load vector collection
     collection = load_indexed_vector_collection()
 
-    test_queries = [
-        "How can a learner reset their password?",
-        "What are the shipping rules in India?",
-        "What documents are required?",
-        "How many moons does Jupiter have?"  # Unrelated query with low relevance
-    ]
-
-    all_demo_results: Dict[str, Any] = {
+    demo_artifacts: Dict[str, Any] = {
         "embedding_model": model_name,
         "total_indexed_chunks": collection.count(),
-        "query_runs": []
+        "unfiltered_vs_filtered_demo": {},
+        "hybrid_demo": {},
+        "exact_match_demo": []
     }
 
     report_text_blocks = []
 
     print("========================================================================")
-    print("      SHIPRULE CDLP - SIMILARITY SEARCH & TOP-K RETRIEVAL DEMO          ")
-    print("========================================================================")
-    print(f"Embedding Model: {model_name}")
-    print(f"Indexed Collection Size: {collection.count()} chunks\n")
+    print("   SHIPRULE CDLP - METADATA FILTERING & HYBRID SEARCH DEMO             ")
+    print("========================================================================\n")
 
-    for q in test_queries:
-        query_run_data = {
-            "query": q,
-            "k_runs": {}
+    # --------------------------------------------------------------------------
+    # DEMO 1: UNFILTERED VS FILTERED RETRIEVAL
+    # --------------------------------------------------------------------------
+    query1 = "What are the password reset steps?"
+    meta_filter1 = {"section": "Account access"}
+
+    # Unfiltered retrieval
+    unfiltered_res = retrieve(query1, k=3, metadata_filter=None, collection=collection)
+
+    # Filtered retrieval (falls back cleanly if exact section is not in default sample)
+    filtered_res = retrieve(query1, k=3, metadata_filter=meta_filter1, collection=collection)
+
+    # If sample corpus didn't contain "Account access", demonstrate filter on existing metadata
+    if not filtered_res:
+        real_filter = {"source": "customs_requirements.txt"}
+        filtered_res = retrieve(query1, k=3, metadata_filter=real_filter, collection=collection)
+        fmt_filter_demo = format_filtered_vs_unfiltered_output(query1, unfiltered_res, filtered_res, real_filter)
+    else:
+        fmt_filter_demo = format_filtered_vs_unfiltered_output(query1, unfiltered_res, filtered_res, meta_filter1)
+
+    print(fmt_filter_demo)
+    report_text_blocks.append(fmt_filter_demo)
+    report_text_blocks.append("\n" + "=" * 50 + "\n")
+
+    demo_artifacts["unfiltered_vs_filtered_demo"] = {
+        "query": query1,
+        "unfiltered": unfiltered_res,
+        "filtered": filtered_res
+    }
+
+    # --------------------------------------------------------------------------
+    # DEMO 2: HYBRID SEARCH RETRIEVAL
+    # --------------------------------------------------------------------------
+    query2 = "What are the password reset steps?"
+    keywords2 = ["password", "reset"]
+
+    hybrid_res = hybrid_retrieve(
+        query=query2,
+        keywords=keywords2,
+        k=3,
+        vector_weight=0.8,
+        keyword_weight=0.2,
+        collection=collection
+    )
+
+    fmt_hybrid_demo = format_hybrid_output(query2, keywords2, hybrid_res, vector_weight=0.8, keyword_weight=0.2)
+    print(fmt_hybrid_demo)
+    report_text_blocks.append(fmt_hybrid_demo)
+    report_text_blocks.append("\n" + "=" * 50 + "\n")
+
+    demo_artifacts["hybrid_demo"] = {
+        "query": query2,
+        "keywords": keywords2,
+        "results": hybrid_res
+    }
+
+    # --------------------------------------------------------------------------
+    # DEMO 3: EXACT-MATCH TERMINOLOGY TESTS
+    # --------------------------------------------------------------------------
+    exact_match_cases = [
+        {
+            "query": "What import document and BIS Registration Certificate are needed for laptops in India?",
+            "keywords": ["BIS", "registration", "laptops", "India"],
+            "filter": {"source": "customs_requirements.txt"}
+        },
+        {
+            "query": "Explain Incoterms 2020 FOB and CIF terms for shipping",
+            "keywords": ["Incoterms", "FOB", "CIF"],
+            "filter": {"document_type": "pdf"}
         }
+    ]
 
-        for k in [1, 3, 5]:
-            results = retrieve(q, k=k, collection=collection, model=model_name)
-            query_run_data["k_runs"][f"k_{k}"] = results
+    for em_case in exact_match_cases:
+        q = em_case["query"]
+        kws = em_case["keywords"]
+        flt = em_case["filter"]
 
-            formatted = format_retrieval_output(q, results, model_name=model_name, k=k)
-            report_text_blocks.append(formatted)
-            report_text_blocks.append("\n" + "=" * 50 + "\n")
+        v_only = retrieve(q, k=3, metadata_filter=None, collection=collection)
+        v_filtered = retrieve(q, k=3, metadata_filter=flt, collection=collection)
+        h_res = hybrid_retrieve(q, keywords=kws, k=3, metadata_filter=flt, collection=collection)
 
-            print(formatted)
-            print("-" * 50 + "\n")
+        fmt_em = format_hybrid_output(f"{q} (Filtered: {flt})", kws, h_res)
+        print(fmt_em)
+        report_text_blocks.append(fmt_em)
+        report_text_blocks.append("\n" + "=" * 50 + "\n")
 
-        all_demo_results["query_runs"].append(query_run_data)
+        demo_artifacts["exact_match_demo"].append({
+            "query": q,
+            "keywords": kws,
+            "filter": flt,
+            "vector_only": v_only,
+            "vector_filtered": v_filtered,
+            "hybrid_results": h_res
+        })
 
     # Save artifacts to outputs/
     output_dir = os.path.join(project_root, "outputs")
@@ -310,18 +620,18 @@ def run_retrieval_demonstration() -> Dict[str, Any]:
     text_path = os.path.join(output_dir, "retrieval_output.txt")
 
     with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(all_demo_results, f, indent=2, ensure_ascii=False)
+        json.dump(demo_artifacts, f, indent=2, ensure_ascii=False)
 
     full_text_report = "\n".join(report_text_blocks)
     with open(text_path, "w", encoding="utf-8") as f:
         f.write(full_text_report)
 
-    print(f"[SUCCESS] Retrieval artifacts saved successfully:")
+    print(f"[SUCCESS] Metadata filtering & hybrid search artifacts saved:")
     print(f"  JSON: {json_path}")
     print(f"  TXT : {text_path}")
     print("========================================================================\n")
 
-    return all_demo_results
+    return demo_artifacts
 
 
 if __name__ == "__main__":
