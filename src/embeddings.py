@@ -10,6 +10,7 @@ vector dimensions, and saves full and sample embedding artifacts to outputs/.
 import os
 import sys
 import json
+import math
 from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional, Tuple
 
@@ -210,6 +211,162 @@ def generate_embedding(
         raise ValueError("Embeddings endpoint returned an empty vector.")
 
     return vector
+
+
+# ==============================================================================
+# 3B. EMBEDDING SIMILARITY & DISTANCE RETRIEVAL METRICS
+# ==============================================================================
+
+def cosine_similarity(a: List[float], b: List[float]) -> float:
+    """
+    Calculates the cosine similarity between two float embedding vectors.
+
+    Cosine similarity = dot(a, b) / (norm(a) * norm(b))
+
+    Handles zero-length or zero-norm vectors safely by returning 0.0 to avoid division-by-zero errors.
+
+    Args:
+        a: First embedding vector list.
+        b: Second embedding vector list.
+
+    Returns:
+        Float score between -1.0 and 1.0 (where 1.0 indicates identical direction/meaning).
+    """
+    if not a or not b or len(a) != len(b):
+        return 0.0
+
+    try:
+        dot_product = sum(x * y for x, y in zip(a, b))
+        norm_a = math.sqrt(sum(x * x for x in a))
+        norm_b = math.sqrt(sum(y * y for y in b))
+
+        if norm_a == 0.0 or norm_b == 0.0:
+            return 0.0
+
+        similarity = dot_product / (norm_a * norm_b)
+        return max(-1.0, min(1.0, float(similarity)))
+    except Exception:
+        return 0.0
+
+
+def generate_query_embedding(
+    query: str,
+    client: Optional[Any] = None,
+    model: Optional[str] = None
+) -> List[float]:
+    """
+    Converts a natural language user query into an embedding vector using the exact same
+    embedding model as document chunks.
+
+    Args:
+        query: Query string.
+        client: Optional embedding client instance.
+        model: Optional embedding model name.
+
+    Returns:
+        List of floats representing the query embedding vector.
+    """
+    if not query or not query.strip():
+        return []
+
+    load_dotenv()
+    selected_model = model or os.getenv("EMBED_MODEL", "text-embedding-3-small")
+    if client is None:
+        client = create_embedding_client()
+
+    return generate_embedding(client, query.strip(), model=selected_model)
+
+
+def rank_chunks_by_similarity(
+    query_embedding: List[float],
+    candidate_chunks: List[Dict[str, Any]],
+    top_k: int = 3
+) -> List[Dict[str, Any]]:
+    """
+    Calculates cosine similarity scores between a query embedding and candidate chunks,
+    sorts them in descending order, and returns top_k structured results.
+
+    Args:
+        query_embedding: Float vector of the query.
+        candidate_chunks: List of chunk dicts containing 'embedding' or metadata fields.
+        top_k: Maximum number of top results to return.
+
+    Returns:
+        List of structured result dicts with keys: text, score, metadata.
+    """
+    if not query_embedding or not candidate_chunks or top_k <= 0:
+        return []
+
+    scored_results = []
+    for idx, chunk in enumerate(candidate_chunks, start=1):
+        if not isinstance(chunk, dict):
+            continue
+
+        # Retrieve embedding from candidate chunk object
+        chunk_vector = chunk.get("embedding")
+        if chunk_vector is None and "metadata" in chunk and isinstance(chunk["metadata"], dict):
+            chunk_vector = chunk["metadata"].get("embedding")
+
+        # Skip or score chunks with missing/invalid embeddings safely
+        if not chunk_vector or not isinstance(chunk_vector, (list, tuple)):
+            score = 0.0
+        else:
+            score = cosine_similarity(query_embedding, list(chunk_vector))
+
+        # Extract text and metadata safely
+        chunk_text = chunk.get("chunk_text") or chunk.get("text") or ""
+        meta_dict = chunk.get("metadata") if isinstance(chunk.get("metadata"), dict) else {}
+
+        source = chunk.get("source") or meta_dict.get("source", "unknown")
+        chunk_index = chunk.get("chunk_index") or chunk.get("chunk_id") or meta_dict.get("chunk_id", idx)
+        page = chunk.get("page") or meta_dict.get("page", "1")
+        doc_id = chunk.get("embedding_id") or chunk.get("id") or f"chunk_{idx}"
+
+        scored_results.append({
+            "text": chunk_text,
+            "score": round(float(score), 4),
+            "metadata": {
+                "source": str(source),
+                "chunk_index": chunk_index,
+                "page": str(page),
+                "document_id": str(doc_id)
+            }
+        })
+
+    # Sort descending by similarity score
+    scored_results.sort(key=lambda x: x["score"], reverse=True)
+
+    return scored_results[:top_k]
+
+
+def search_similar_chunks(
+    query: str,
+    chunks: List[Dict[str, Any]],
+    client: Optional[Any] = None,
+    model: Optional[str] = None,
+    top_k: int = 3
+) -> List[Dict[str, Any]]:
+    """
+    High-level API: converts query string to embedding and retrieves top_k similar chunks.
+
+    Args:
+        query: User search query string.
+        chunks: List of embedded document chunks.
+        client: Optional embedding client instance.
+        model: Optional embedding model name.
+        top_k: Number of top results to return.
+
+    Returns:
+        List of structured result dicts with keys: text, score, metadata.
+    """
+    if not query or not query.strip() or not chunks or top_k <= 0:
+        return []
+
+    query_vector = generate_query_embedding(query, client=client, model=model)
+    if not query_vector:
+        return []
+
+    return rank_chunks_by_similarity(query_vector, chunks, top_k=top_k)
 
 
 # ==============================================================================
