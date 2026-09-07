@@ -44,6 +44,13 @@ from src.evaluation import (
     diagnose_failure_causes,
     compare_retrieval_strategies,
 )
+from src.rag_pipeline import (
+    embed_query,
+    retrieve_context,
+    assemble_context,
+    generate_answer,
+    answer_query,
+)
 
 __all__ = [
     "cosine_similarity",
@@ -76,6 +83,11 @@ __all__ = [
     "inspect_retrieval_failures",
     "diagnose_failure_causes",
     "compare_retrieval_strategies",
+    "embed_query",
+    "retrieve_context",
+    "assemble_context",
+    "generate_answer",
+    "answer_query",
 ]
 
 
