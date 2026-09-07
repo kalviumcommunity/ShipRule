@@ -36,6 +36,13 @@ from src.evaluation import (
     format_manual_inspection_view,
     EVALUATION_DATASET,
     EVALUATION_CONFIGURATIONS,
+    LABELLED_QUERIES,
+    evaluate_query,
+    evaluate_dataset,
+    evaluate_multi_k,
+    inspect_retrieval_failures,
+    diagnose_failure_causes,
+    compare_retrieval_strategies,
 )
 
 __all__ = [
@@ -62,6 +69,13 @@ __all__ = [
     "format_manual_inspection_view",
     "EVALUATION_DATASET",
     "EVALUATION_CONFIGURATIONS",
+    "LABELLED_QUERIES",
+    "evaluate_query",
+    "evaluate_dataset",
+    "evaluate_multi_k",
+    "inspect_retrieval_failures",
+    "diagnose_failure_causes",
+    "compare_retrieval_strategies",
 ]
 
 
