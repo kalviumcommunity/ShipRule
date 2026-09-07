@@ -14,7 +14,12 @@ from src.embeddings import (
 )
 from src.retrieval import (
     retrieve,
+    keyword_score,
+    hybrid_rank,
+    hybrid_retrieve,
     format_retrieval_output,
+    format_filtered_vs_unfiltered_output,
+    format_hybrid_output,
     load_indexed_vector_collection,
     run_retrieval_demonstration,
 )
@@ -25,10 +30,16 @@ __all__ = [
     "rank_chunks_by_similarity",
     "search_similar_chunks",
     "retrieve",
+    "keyword_score",
+    "hybrid_rank",
+    "hybrid_retrieve",
     "format_retrieval_output",
+    "format_filtered_vs_unfiltered_output",
+    "format_hybrid_output",
     "load_indexed_vector_collection",
     "run_retrieval_demonstration",
 ]
+
 
 
 if __name__ == "__main__":

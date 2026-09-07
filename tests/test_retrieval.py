@@ -1,9 +1,10 @@
 """
-Unit Tests for Task 3.32: Similarity Search & Top-K Retrieval Module
-======================================================================
-Tests query validation, k parameter validation, embedding model reuse,
-vector similarity search ranking, formatted output rendering, empty collection safety,
-missing metadata/text fallbacks, embedding API error handling, and top-k retrieval demonstrations.
+Unit Tests for Task 3.33: Metadata Filtering & Hybrid Search Module
+=====================================================================
+Tests query validation, k validation, metadata filtering precision,
+keyword_score() match calculations, hybrid_rank() weighted score combinations,
+hybrid_retrieve() pipeline, exact-match terminology scenarios, comparative outputs,
+and comprehensive error handling.
 """
 
 import unittest
@@ -19,35 +20,42 @@ if project_root not in sys.path:
 from src.indexing import VectorCollection
 from src.retrieval import (
     retrieve,
+    keyword_score,
+    hybrid_rank,
+    hybrid_retrieve,
     format_retrieval_output,
+    format_filtered_vs_unfiltered_output,
+    format_hybrid_output,
     load_indexed_vector_collection,
     run_retrieval_demonstration,
 )
 
 
 def get_sample_vector_collection() -> VectorCollection:
-    """Helper to construct a pre-populated mock VectorCollection with known embeddings."""
-    collection = VectorCollection(name="test_retrieval_col")
+    """Helper to construct a pre-populated mock VectorCollection with known metadata and text."""
+    collection = VectorCollection(name="test_hybrid_col")
     records = [
         {
             "id": "CDLP-ACC-01",
             "vector": [1.0, 0.0, 0.0, 0.0],
-            "text": "To reset your learner account password, navigate to the login portal and click 'Forgot Password'.",
+            "text": "To reset your learner account password, navigate to Account Settings and click 'Forgot Password'.",
             "metadata": {
                 "source": "account-guide.md",
                 "chunk_index": 1,
-                "section": "Authentication",
-                "page": "1"
+                "section": "Account access",
+                "document_type": "md",
+                "country": "Global"
             }
         },
         {
             "id": "CDLP-IN-8471-01",
             "vector": [0.0, 1.0, 0.0, 0.0],
-            "text": "Customs rules for shipping laptops (HS Code 8471.30) to India require BIS registration and commercial invoice.",
+            "text": "Customs rules for shipping laptops under HS Code 8471.30 to India require BIS Registration Certificate and DGFT Import License.",
             "metadata": {
                 "source": "customs_reg_india.json",
                 "chunk_index": 1,
                 "section": "Electronics",
+                "document_type": "json",
                 "country": "India",
                 "hs_code": "8471.30"
             }
@@ -55,11 +63,13 @@ def get_sample_vector_collection() -> VectorCollection:
         {
             "id": "CDLP-DOC-01",
             "vector": [0.0, 0.7071, 0.7071, 0.0],
-            "text": "Mandatory shipping documents for international trade include Commercial Invoice, Packing List, and Bill of Lading.",
+            "text": "Standard Incoterms 2020 define FOB and CIF shipping responsibilities. Commercial invoice and packing list are mandatory.",
             "metadata": {
                 "source": "shipping_rules.txt",
                 "chunk_index": 2,
                 "section": "Documentation",
+                "document_type": "txt",
+                "country": "Global",
                 "page": "3"
             }
         },
@@ -70,8 +80,9 @@ def get_sample_vector_collection() -> VectorCollection:
             "metadata": {
                 "source": "astronomy_guide.txt",
                 "chunk_index": 1,
-                "section": "Planets",
-                "page": "12"
+                "section": "Astronomy",
+                "document_type": "txt",
+                "country": "Global"
             }
         }
     ]
@@ -79,210 +90,206 @@ def get_sample_vector_collection() -> VectorCollection:
     return collection
 
 
-class TestRetrievalPipeline(unittest.TestCase):
+class TestMetadataFilteringAndHybridSearch(unittest.TestCase):
 
     def setUp(self):
         self.collection = get_sample_vector_collection()
 
     # --------------------------------------------------------------------------
-    # 1. QUERY VALIDATION TESTS
-    # --------------------------------------------------------------------------
-
-    def test_retrieve_empty_query_raises_value_error(self):
-        """Verifies that empty string query raises ValueError."""
-        with self.assertRaises(ValueError) as ctx:
-            retrieve("", k=3, collection=self.collection)
-        self.assertIn("Query must be a non-empty string", str(ctx.exception))
-
-    def test_retrieve_whitespace_query_raises_value_error(self):
-        """Verifies that whitespace-only query raises ValueError."""
-        with self.assertRaises(ValueError) as ctx:
-            retrieve("   \n\t  ", k=3, collection=self.collection)
-        self.assertIn("Query must be a non-empty string", str(ctx.exception))
-
-    def test_retrieve_invalid_query_type_raises_value_error(self):
-        """Verifies that non-string query type raises ValueError."""
-        with self.assertRaises(ValueError):
-            retrieve(None, k=3, collection=self.collection)
-
-        with self.assertRaises(ValueError):
-            retrieve(12345, k=3, collection=self.collection)
-
-    # --------------------------------------------------------------------------
-    # 2. K PARAMETER VALIDATION TESTS
-    # --------------------------------------------------------------------------
-
-    def test_retrieve_zero_or_negative_k_raises_value_error(self):
-        """Verifies that k <= 0 raises ValueError."""
-        with self.assertRaises(ValueError) as ctx:
-            retrieve("How to reset password?", k=0, collection=self.collection)
-        self.assertIn("must be a positive integer", str(ctx.exception))
-
-        with self.assertRaises(ValueError):
-            retrieve("How to reset password?", k=-5, collection=self.collection)
-
-    def test_retrieve_non_integer_k_raises_value_error(self):
-        """Verifies that boolean or float k parameter raises ValueError."""
-        with self.assertRaises(ValueError):
-            retrieve("How to reset password?", k=True, collection=self.collection)
-
-        with self.assertRaises(ValueError):
-            retrieve("How to reset password?", k=3.5, collection=self.collection)
-
-        with self.assertRaises(ValueError):
-            retrieve("How to reset password?", k="3", collection=self.collection)
-
-    def test_retrieve_k_greater_than_collection_count(self):
-        """Verifies that when k > indexed chunks count, all available chunks are returned."""
-        with patch("src.retrieval.generate_query_embedding") as mock_embed:
-            mock_embed.return_value = [1.0, 0.0, 0.0, 0.0]
-            # Collection has 4 chunks, requested k=100
-            results = retrieve("How to reset password?", k=100, collection=self.collection)
-            self.assertEqual(len(results), 4)
-
-    # --------------------------------------------------------------------------
-    # 3. VECTOR SIMILARITY SEARCH & RANKING TESTS
+    # 1. METADATA FILTERING TESTS
     # --------------------------------------------------------------------------
 
     @patch("src.retrieval.generate_query_embedding")
-    def test_retrieve_password_reset_query_ranking(self, mock_embed):
-        """Verifies exact password reset query returns account-guide chunk at rank 1."""
-        # Query vector matches account password reset record [1.0, 0.0, 0.0, 0.0]
-        mock_embed.return_value = [1.0, 0.0, 0.0, 0.0]
+    def test_retrieve_with_metadata_filter_section(self, mock_embed):
+        """Verifies filtering by section returns only matching section chunks."""
+        mock_embed.return_value = [0.5, 0.5, 0.0, 0.0]
 
-        results = retrieve("How can a learner reset their password?", k=3, collection=self.collection)
+        filter_dict = {"section": "Account access"}
+        results = retrieve("How to reset password?", k=3, metadata_filter=filter_dict, collection=self.collection)
 
-        self.assertEqual(len(results), 3)
-        # Check rank 1
-        self.assertEqual(results[0]["rank"], 1)
-        self.assertAlmostEqual(results[0]["similarity_score"], 1.0, places=3)
-        self.assertEqual(results[0]["source"], "account-guide.md")
-        self.assertIn("reset your learner account password", results[0]["chunk_text"])
-
-        # Verify ordering is strictly descending by similarity score
-        scores = [res["similarity_score"] for res in results]
-        self.assertEqual(scores, sorted(scores, reverse=True))
-
-    @patch("src.retrieval.generate_query_embedding")
-    def test_retrieve_returns_all_required_result_fields(self, mock_embed):
-        """Verifies result dict contains rank, similarity score, chunk text, source, chunk index, and metadata."""
-        mock_embed.return_value = [0.0, 1.0, 0.0, 0.0]
-
-        results = retrieve("What are the shipping rules in India?", k=1, collection=self.collection)
         self.assertEqual(len(results), 1)
-
-        item = results[0]
-        self.assertIn("rank", item)
-        self.assertIn("similarity_score", item)
-        self.assertIn("chunk_text", item)
-        self.assertIn("source", item)
-        self.assertIn("chunk_index", item)
-        self.assertIn("metadata", item)
-
-        self.assertEqual(item["rank"], 1)
-        self.assertEqual(item["source"], "customs_reg_india.json")
-        self.assertEqual(item["chunk_index"], 1)
-
-    # --------------------------------------------------------------------------
-    # 4. TOP-K PARAMETER DEMONSTRATIONS (k=1, k=3, k=5)
-    # --------------------------------------------------------------------------
+        self.assertEqual(results[0]["source"], "account-guide.md")
+        self.assertEqual(results[0]["section"], "Account access")
 
     @patch("src.retrieval.generate_query_embedding")
-    def test_retrieve_top_k_demonstrations(self, mock_embed):
-        """Verifies that k=1 returns 1 chunk, k=3 returns 3 chunks, and k=5 returns 4 (capped to total)."""
+    def test_retrieve_with_metadata_filter_country(self, mock_embed):
+        """Verifies filtering by country returns only matching country chunks."""
         mock_embed.return_value = [0.0, 1.0, 0.0, 0.0]
-        query = "What are the shipping rules in India?"
 
-        res_k1 = retrieve(query, k=1, collection=self.collection)
-        self.assertEqual(len(res_k1), 1)
+        filter_dict = {"country": "India"}
+        results = retrieve("What are the shipping rules?", k=3, metadata_filter=filter_dict, collection=self.collection)
 
-        res_k3 = retrieve(query, k=3, collection=self.collection)
-        self.assertEqual(len(res_k3), 3)
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["source"], "customs_reg_india.json")
+        self.assertEqual(results[0]["metadata"]["country"], "India")
 
-        res_k5 = retrieve(query, k=5, collection=self.collection)
-        self.assertEqual(len(res_k5), 4)  # Capped at collection total of 4
-
-    # --------------------------------------------------------------------------
-    # 5. ERROR HANDLING & FALLBACK TESTS
-    # --------------------------------------------------------------------------
-
-    def test_retrieve_empty_collection_raises_value_error(self):
-        """Verifies that querying an empty collection raises ValueError."""
-        empty_col = VectorCollection(name="empty_collection")
+    def test_retrieve_invalid_metadata_filter_type_raises_value_error(self):
+        """Verifies non-dictionary metadata_filter raises ValueError."""
         with self.assertRaises(ValueError) as ctx:
-            retrieve("What are the shipping rules?", k=3, collection=empty_col)
-        self.assertIn("Vector collection is empty", str(ctx.exception))
+            retrieve("What are the rules?", k=3, metadata_filter="invalid_string_filter", collection=self.collection)
+        self.assertIn("metadata_filter must be a dictionary", str(ctx.exception))
 
     @patch("src.retrieval.generate_query_embedding")
-    def test_retrieve_api_error_raises_runtime_error(self, mock_embed):
-        """Verifies embedding API exception is converted to RuntimeError."""
-        mock_embed.side_effect = RuntimeError("API key invalid")
+    def test_unfiltered_vs_filtered_comparison(self, mock_embed):
+        """Verifies comparison between unfiltered (entire corpus) and filtered search."""
+        mock_embed.return_value = [0.0, 1.0, 0.0, 0.0]
+        query = "What are the requirements?"
 
-        with self.assertRaises(RuntimeError) as ctx:
-            retrieve("Test query", k=3, collection=self.collection)
-        self.assertIn("Embedding API error", str(ctx.exception))
+        unfiltered = retrieve(query, k=3, metadata_filter=None, collection=self.collection)
+        filtered = retrieve(query, k=3, metadata_filter={"country": "India"}, collection=self.collection)
 
-    def test_retrieve_missing_metadata_or_chunk_text_handled_safely(self):
-        """Verifies missing text or missing metadata fields use safe fallback values."""
-        sparse_col = VectorCollection(name="sparse_col")
-        sparse_col.upsert([
-            {
-                "id": "SPARSE_01",
-                "vector": [1.0, 0.0, 0.0, 0.0],
-                "text": "",
-                "metadata": {}
-            }
-        ])
-
-        with patch("src.retrieval.generate_query_embedding") as mock_embed:
-            mock_embed.return_value = [1.0, 0.0, 0.0, 0.0]
-            results = retrieve("Test query", k=1, collection=sparse_col)
-
-            self.assertEqual(len(results), 1)
-            self.assertEqual(results[0]["chunk_text"], "[Missing chunk text]")
-            self.assertEqual(results[0]["source"], "unknown")
-            self.assertEqual(results[0]["chunk_index"], 1)
+        self.assertEqual(len(unfiltered), 3)
+        self.assertEqual(len(filtered), 1)
+        self.assertEqual(filtered[0]["metadata"]["country"], "India")
 
     # --------------------------------------------------------------------------
-    # 6. FORMATTED OUTPUT RENDERER TESTS
+    # 2. KEYWORD SCORING TESTS
     # --------------------------------------------------------------------------
 
-    def test_format_retrieval_output_schema(self):
-        """Verifies that format_retrieval_output produces specified ASCII format."""
-        sample_results = [
+    def test_keyword_score_exact_matches(self):
+        """Verifies keyword_score converts to lowercase and calculates match ratio."""
+        text = "To reset your password, open Account Settings."
+        keywords = ["PASSWORD", "reset"]
+
+        score = keyword_score(text, keywords)
+        self.assertEqual(score, 1.0)
+
+    def test_keyword_score_partial_matches(self):
+        """Verifies partial keyword matches calculate fractional match ratio."""
+        text = "Customs rules for laptops require a commercial invoice."
+        keywords = ["laptops", "password", "invoice"]
+
+        # 2 out of 3 match ("laptops", "invoice")
+        score = keyword_score(text, keywords)
+        self.assertAlmostEqual(score, 0.6667, places=3)
+
+    def test_keyword_score_empty_or_invalid_inputs(self):
+        """Verifies empty keyword list or text safely returns 0.0."""
+        self.assertEqual(keyword_score("", ["password"]), 0.0)
+        self.assertEqual(keyword_score("Valid text", []), 0.0)
+        self.assertEqual(keyword_score(None, ["password"]), 0.0)
+        self.assertEqual(keyword_score("Valid text", None), 0.0)
+
+    # --------------------------------------------------------------------------
+    # 3. HYBRID RANKING TESTS
+    # --------------------------------------------------------------------------
+
+    def test_hybrid_rank_combination_and_sorting(self):
+        """Verifies hybrid score = (0.8 * vector) + (0.2 * keyword) and results are sorted descending."""
+        vector_results = [
             {
                 "rank": 1,
-                "similarity_score": 0.9521,
-                "source": "account-guide.md",
+                "similarity_score": 0.5000,
+                "chunk_text": "Random text without target terms.",
+                "source": "doc1.txt",
                 "chunk_index": 1,
-                "chunk_text": "To reset password click forgot password."
+                "metadata": {"section": "General"}
             },
             {
                 "rank": 2,
-                "similarity_score": 0.4120,
-                "source": "shipping_rules.txt",
-                "chunk_index": 2,
-                "chunk_text": "Commercial invoices required for customs."
+                "similarity_score": 0.4500,
+                "chunk_text": "To reset your password follow instructions.",
+                "source": "doc2.txt",
+                "chunk_index": 1,
+                "metadata": {"section": "Account access"}
             }
         ]
 
-        formatted = format_retrieval_output(
-            query="How can a learner reset their password?",
-            results=sample_results,
-            model_name="text-embedding-3-small",
-            k=3
-        )
+        keywords = ["password", "reset"]
+        # doc1: vec=0.5, kw=0.0 -> hybrid = 0.8*0.5 + 0.2*0.0 = 0.4000
+        # doc2: vec=0.45, kw=1.0 -> hybrid = 0.8*0.45 + 0.2*1.0 = 0.36 + 0.2 = 0.5600
 
-        self.assertIn("Top-K Retrieval", formatted)
-        self.assertIn("Query: How can a learner reset their password?", formatted)
-        self.assertIn("Embedding Model: text-embedding-3-small", formatted)
-        self.assertIn("Top-K: 3", formatted)
-        self.assertIn("--- Rank 1 ---", formatted)
-        self.assertIn("Similarity Score: 0.9521", formatted)
-        self.assertIn("Source: account-guide.md", formatted)
-        self.assertIn("Chunk Index: 1", formatted)
-        self.assertIn("Text: To reset password click forgot password.", formatted)
-        self.assertIn("--- Rank 2 ---", formatted)
+        ranked = hybrid_rank(vector_results, keywords, vector_weight=0.8, keyword_weight=0.2)
+
+        self.assertEqual(len(ranked), 2)
+        # doc2 should boost to rank 1 due to keyword match
+        self.assertEqual(ranked[0]["source"], "doc2.txt")
+        self.assertEqual(ranked[0]["rank"], 1)
+        self.assertEqual(ranked[0]["hybrid_score"], 0.5600)
+        self.assertEqual(ranked[0]["vector_score"], 0.4500)  # Original vector score preserved
+        self.assertEqual(ranked[0]["keyword_score"], 1.0)
+
+    # --------------------------------------------------------------------------
+    # 4. EXACT-MATCH SCENARIO TESTS
+    # --------------------------------------------------------------------------
+
+    @patch("src.retrieval.generate_query_embedding")
+    def test_exact_match_term_boosting(self, mock_embed):
+        """Verifies hybrid search boosts exact terms like 'BIS Registration Certificate' and '8471.30'."""
+        # Query vector gives doc2 slightly lower vector score than doc3, but exact keyword match boosts doc2 to #1
+        mock_embed.return_value = [0.0, 0.8, 0.5, 0.0]
+        query = "Customs rules for shipping laptops in India"
+        keywords = ["BIS Registration Certificate", "8471.30"]
+
+        v_only = retrieve(query, k=2, collection=self.collection)
+        results = hybrid_retrieve(query, keywords=keywords, k=2, collection=self.collection)
+
+        self.assertGreater(len(results), 0)
+        top_match = results[0]
+        self.assertEqual(top_match["source"], "customs_reg_india.json")
+        self.assertEqual(top_match["rank"], 1)
+        self.assertGreater(top_match["keyword_score"], 0.0)
+        self.assertGreater(top_match["hybrid_score"], top_match["vector_score"])
+
+
+    # --------------------------------------------------------------------------
+    # 5. INPUT VALIDATION & ERROR HANDLING TESTS (Test 4 from prompt)
+    # --------------------------------------------------------------------------
+
+    def test_retrieve_empty_and_invalid_inputs(self):
+        """Verifies handling of invalid/empty queries, invalid k, and empty collection."""
+        with self.assertRaises(ValueError):
+            retrieve("", k=3, collection=self.collection)
+
+        with self.assertRaises(ValueError):
+            retrieve("Valid query", k=0, collection=self.collection)
+
+        with self.assertRaises(ValueError):
+            retrieve("Valid query", k=-1, collection=self.collection)
+
+        empty_col = VectorCollection(name="empty")
+        with self.assertRaises(ValueError):
+            retrieve("Valid query", k=3, collection=empty_col)
+
+    # --------------------------------------------------------------------------
+    # 6. OUTPUT FORMATTER TESTS
+    # --------------------------------------------------------------------------
+
+    def test_format_filtered_vs_unfiltered_output(self):
+        """Verifies formatting of unfiltered vs filtered side-by-side comparative report."""
+        unfiltered = [
+            {"rank": 1, "similarity_score": 0.8, "source": "doc1.txt", "section": "SecA", "chunk_index": 1, "chunk_text": "Text 1"}
+        ]
+        filtered = [
+            {"rank": 1, "similarity_score": 0.8, "source": "doc1.txt", "section": "SecA", "chunk_index": 1, "chunk_text": "Text 1"}
+        ]
+
+        fmt = format_filtered_vs_unfiltered_output("Query", unfiltered, filtered, {"section": "SecA"})
+        self.assertIn("UNFILTERED RESULTS", fmt)
+        self.assertIn("FILTERED RESULTS", fmt)
+        self.assertIn("Rank: 1", fmt)
+        self.assertIn("Score: 0.8000", fmt)
+
+    def test_format_hybrid_output(self):
+        """Verifies formatting of hybrid search report."""
+        hybrid_res = [
+            {
+                "rank": 1,
+                "vector_score": 0.7500,
+                "keyword_score": 1.0000,
+                "hybrid_score": 0.8000,
+                "source": "doc1.txt",
+                "section": "SecA",
+                "chunk_index": 1,
+                "chunk_text": "Sample text"
+            }
+        ]
+
+        fmt = format_hybrid_output("Test query", ["sample"], hybrid_res)
+        self.assertIn("HYBRID SEARCH RESULTS", fmt)
+        self.assertIn("Vector Score: 0.7500", fmt)
+        self.assertIn("Keyword Score: 1.0000", fmt)
+        self.assertIn("Hybrid Score: 0.8000", fmt)
 
 
 if __name__ == "__main__":

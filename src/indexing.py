@@ -188,19 +188,29 @@ class VectorCollection:
             except Exception:
                 pass
 
-    def query(self, query_vector: List[float], top_k: int = 3) -> List[Dict[str, Any]]:
+    def query(
+        self,
+        query_vector: List[float],
+        top_k: int = 3,
+        metadata_filter: Optional[Dict[str, Any]] = None
+    ) -> List[Dict[str, Any]]:
         """
-        Performs vector similarity search against indexed records using cosine similarity.
+        Performs vector similarity search against indexed records using cosine similarity,
+        with optional metadata filtering.
 
         Args:
             query_vector: Dense numerical query embedding vector.
             top_k: Maximum number of top similar records to return.
+            metadata_filter: Optional dict of metadata key-value criteria.
 
         Returns:
             List of result dicts sorted by similarity score descending.
         """
         if not query_vector or top_k <= 0:
             return []
+
+        if metadata_filter is not None and not isinstance(metadata_filter, dict):
+            raise ValueError("metadata_filter must be a dictionary.")
 
         all_records = list(self._records_store.values())
 
@@ -224,6 +234,26 @@ class VectorCollection:
 
         results = []
         for rec in all_records:
+            rec_meta = rec.get("metadata", {})
+
+            # Apply metadata filter if specified
+            if metadata_filter:
+                match = True
+                for fk, fv in metadata_filter.items():
+                    val = rec_meta.get(fk)
+                    if val is None:
+                        match = False
+                        break
+                    if isinstance(fv, str) and isinstance(val, str):
+                        if fv.strip().lower() != val.strip().lower():
+                            match = False
+                            break
+                    elif val != fv:
+                        match = False
+                        break
+                if not match:
+                    continue
+
             vec = rec.get("vector", [])
             score = cosine_similarity(query_vector, vec)
             results.append({
@@ -231,11 +261,12 @@ class VectorCollection:
                 "text": rec.get("text", ""),
                 "score": round(float(score), 4),
                 "vector": vec,
-                "metadata": rec.get("metadata", {})
+                "metadata": rec_meta
             })
 
         results.sort(key=lambda x: x["score"], reverse=True)
         return results[:top_k]
+
 
 
 
