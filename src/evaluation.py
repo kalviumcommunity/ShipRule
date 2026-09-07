@@ -159,6 +159,8 @@ def evaluate_retrieval(
     meta_filter = setting.get("filter")
     min_score = setting.get("min_score", 0.0)
     use_hybrid = setting.get("use_hybrid", False)
+    use_reranking = setting.get("use_reranking", False)
+    candidate_k = setting.get("candidate_k", 10)
 
     query_eval_results = []
     total_queries = len(dataset)
@@ -173,7 +175,18 @@ def evaluate_retrieval(
         keywords = test_case.get("keywords", [])
 
         # 1. Perform Retrieval
-        if use_hybrid:
+        if use_reranking:
+            from src.reranker import retrieve_and_rerank
+            _, raw_results, _ = retrieve_and_rerank(
+                query=query,
+                candidate_k=candidate_k,
+                final_k=k,
+                metadata_filter=meta_filter,
+                collection=collection,
+                client=client,
+                model=model
+            )
+        elif use_hybrid:
             raw_results = hybrid_retrieve(
                 query=query,
                 keywords=keywords,
@@ -194,7 +207,13 @@ def evaluate_retrieval(
             )
 
         # 2. Apply Score Threshold Filter
-        score_key = "hybrid_score" if use_hybrid else "similarity_score"
+        if use_reranking:
+            score_key = "rerank_score"
+        elif use_hybrid:
+            score_key = "hybrid_score"
+        else:
+            score_key = "similarity_score"
+
         threshold_filtered_results = [
             res for res in raw_results
             if res.get(score_key, res.get("similarity_score", 0.0)) >= min_score

@@ -23,6 +23,13 @@ from src.retrieval import (
     load_indexed_vector_collection,
     run_retrieval_demonstration,
 )
+from src.reranker import (
+    rerank_score,
+    rerank,
+    retrieve_and_rerank,
+    format_before_after_comparison,
+    format_rank_movement_report,
+)
 from src.evaluation import (
     evaluate_retrieval,
     compare_configurations,
@@ -45,6 +52,11 @@ __all__ = [
     "format_hybrid_output",
     "load_indexed_vector_collection",
     "run_retrieval_demonstration",
+    "rerank_score",
+    "rerank",
+    "retrieve_and_rerank",
+    "format_before_after_comparison",
+    "format_rank_movement_report",
     "evaluate_retrieval",
     "compare_configurations",
     "format_manual_inspection_view",
