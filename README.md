@@ -729,3 +729,55 @@ Three sprint-level analytical tasks have been created as issues in the repositor
 A screenshot of the created issues is available at [docs/issues_list.png](file:///c:/Users/HP/OneDrive/Desktop/ShipRule/docs/issues_list.png).
 
 
+---
+
+## Module 3.42 - Conversational RAG & Follow-Up Context
+
+### Overview
+In real-world multi-turn dialogues, users ask follow-up questions like *"What about the video?"*, *"Does it apply to Sprint 2?"*, or *"What about the deadline?"*. These questions depend on prior conversation context and break naive vector retrieval because embedding partial phrases returns irrelevant or weak context chunks.
+
+Conversational RAG resolves this problem by tracking dialogue history and rewriting ambiguous follow-up questions into clear, self-contained standalone search queries prior to vector embedding and retrieval.
+
+```
+User Input ("What about the video?") + Conversation History
+                       ↓
+         rewrite_followup(history, question)
+                       ↓
+  Standalone Query ("What video explanation is required for project submission?")
+                       ↓
+         retrieve_context(standalone_query)
+                       ↓
+            retrieval_is_strong(chunks)
+           /                           \
+       (True)                         (False)
+         ↓                               ↓
+generate_answer(context)   "I don't have enough reliable context..."
+```
+
+### Key Components
+
+1. **History Tracking (`ConversationalRAGManager`)**:
+   - Stores recent user and assistant turns in a rolling history buffer (`history = [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]`).
+   - Balances history depth and LLM token budgets via `trim_history()`.
+
+2. **Query Rewriting (`rewrite_followup`)**:
+   - Uses conversation history **only to resolve references** (pronouns, implicit subjects) without answering the question.
+   - Outputs a standalone retrieval query for embedding.
+
+3. **Strength-Checked Retrieval (`retrieval_is_strong`)**:
+   - Evaluates retrieved chunks against distance thresholds and relevance guardrails.
+   - Enforces safe refusal when retrieval is weak or out of domain.
+
+4. **Multi-Turn Demonstration CLI (`conversational_rag_demo.py`)**:
+   - Demonstrates multi-turn RAG dialogue across 5 sample turns.
+   - Exports detailed JSON and text artifacts to `outputs/conversational_rag_output.json` and `outputs/conversational_dialogue.txt`.
+
+### Execution Commands
+
+```bash
+# Run Conversational RAG CLI Demonstration
+python conversational_rag_demo.py
+
+# Run Conversational RAG Unit Tests
+python -m unittest tests/test_conversational_rag.py
+```

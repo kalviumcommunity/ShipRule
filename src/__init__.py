@@ -11,6 +11,12 @@ from src.sanity_checker import (
     print_sanity_report,
     run_sanity_pipeline
 )
+from src.conversational_rag import (
+    rewrite_followup,
+    conversational_answer,
+    retrieval_is_strong,
+    ConversationalRAGManager
+)
 
 __all__ = [
     "clean",
@@ -19,8 +25,9 @@ __all__ = [
     "run_embedding_sanity_tests",
     "format_sanity_report",
     "print_sanity_report",
-    "run_sanity_pipeline"
+    "run_sanity_pipeline",
+    "rewrite_followup",
+    "conversational_answer",
+    "retrieval_is_strong",
+    "ConversationalRAGManager"
 ]
-
-
-

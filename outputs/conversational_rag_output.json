@@ -1,0 +1,275 @@
+{
+  "dialogue_history": [
+    {
+      "role": "user",
+      "content": "What evidence is required for project submission?"
+    },
+    {
+      "role": "assistant",
+      "content": "The submission must include two pieces of evidence:\n\n1. A link to the GitHub pull‑request that is open in the team repository.  \n2. A 3–5 minute screen‑share video walkthrough that explains the project (covering why follow‑up questions break naive retrieval, how follow‑ups are rewritten into standalone queries, multi‑turn dialogue examples, how history and token limits are balanced, and how to keep long conversations grounded). The video should be uploaded to Google Drive with the sharing setting set to “Anyone with the link can view.” [1]"
+    },
+    {
+      "role": "user",
+      "content": "What about the video?"
+    },
+    {
+      "role": "assistant",
+      "content": "The submission must include a **3‑5 minute screen‑share video** that walks through:\n\n* Why follow‑up questions break naïve retrieval  \n* How follow‑ups are rewritten into standalone queries  \n* Multi‑turn dialogue examples  \n* How history and token limits are balanced  \n* How to keep long conversations grounded  \n\nAfter creating the video, upload it to Google Drive and set the sharing permission to **“Anyone with the link can view.”** [1]"
+    },
+    {
+      "role": "user",
+      "content": "What shipping documents are required for international customs clearance?"
+    },
+    {
+      "role": "assistant",
+      "content": "The standard documents needed for international customs clearance are:\n\n- Commercial Invoice  \n- Packing List  \n- Certificate of Origin  \n- Bill of Lading **or** Air Waybill  \n\nThese are listed as the required customs clearance documents for all international shipments【1】."
+    },
+    {
+      "role": "user",
+      "content": "What is the duty rate for cars in Italy?"
+    },
+    {
+      "role": "assistant",
+      "content": "The duty rate for cars imported into Italy is **10 % Basic Customs Duty plus a 22 % Value Added Tax (VAT)**【1】."
+    },
+    {
+      "role": "user",
+      "content": "Does it apply to space shuttles?"
+    },
+    {
+      "role": "assistant",
+      "content": "The provided context is insufficient to answer this question."
+    }
+  ],
+  "turns_detail": [
+    {
+      "turn": 1,
+      "original_question": "What evidence is required for project submission?",
+      "history_before": [],
+      "rewritten_query": "What evidence is required for project submission?",
+      "retrieved_chunks_count": 3,
+      "sources": [
+        {
+          "source": "submission_guidelines.md",
+          "section": "Evidence Requirements",
+          "doc_type": "Guidelines",
+          "chunk_index": 1
+        },
+        {
+          "source": "customs_reg_italy.json",
+          "section": "Motor Vehicles (Italy)",
+          "doc_type": "RegulationData",
+          "chunk_index": 2
+        },
+        {
+          "source": "shipping_rules.txt",
+          "section": "General Customs Clearance",
+          "doc_type": "Policy",
+          "chunk_index": 3
+        }
+      ],
+      "answer": "The submission must include two pieces of evidence:\n\n1. A link to the GitHub pull‑request that is open in the team repository.  \n2. A 3–5 minute screen‑share video walkthrough that explains the project (covering why follow‑up questions break naive retrieval, how follow‑ups are rewritten into standalone queries, multi‑turn dialogue examples, how history and token limits are balanced, and how to keep long conversations grounded). The video should be uploaded to Google Drive with the sharing setting set to “Anyone with the link can view.” [1]",
+      "latency_ms": 2025.06
+    },
+    {
+      "turn": 2,
+      "original_question": "What about the video?",
+      "history_before": [
+        {
+          "role": "user",
+          "content": "What evidence is required for project submission?"
+        },
+        {
+          "role": "assistant",
+          "content": "The submission must include two pieces of evidence:\n\n1. A link to the GitHub pull‑request that is open in the team repository.  \n2. A 3–5 minute screen‑share video walkthrough that explains the project (covering why follow‑up questions break naive retrieval, how follow‑ups are rewritten into standalone queries, multi‑turn dialogue examples, how history and token limits are balanced, and how to keep long conversations grounded). The video should be uploaded to Google Drive with the sharing setting set to “Anyone with the link can view.” [1]"
+        }
+      ],
+      "rewritten_query": "requirements for the 3–5 minute screen‑share video walkthrough for project submission",
+      "retrieved_chunks_count": 3,
+      "sources": [
+        {
+          "source": "submission_guidelines.md",
+          "section": "Evidence Requirements",
+          "doc_type": "Guidelines",
+          "chunk_index": 1
+        },
+        {
+          "source": "shipping_rules.txt",
+          "section": "General Customs Clearance",
+          "doc_type": "Policy",
+          "chunk_index": 3
+        },
+        {
+          "source": "customs_reg_italy.json",
+          "section": "Motor Vehicles (Italy)",
+          "doc_type": "RegulationData",
+          "chunk_index": 2
+        }
+      ],
+      "answer": "The submission must include a **3‑5 minute screen‑share video** that walks through:\n\n* Why follow‑up questions break naïve retrieval  \n* How follow‑ups are rewritten into standalone queries  \n* Multi‑turn dialogue examples  \n* How history and token limits are balanced  \n* How to keep long conversations grounded  \n\nAfter creating the video, upload it to Google Drive and set the sharing permission to **“Anyone with the link can view.”** [1]",
+      "latency_ms": 3404.64
+    },
+    {
+      "turn": 3,
+      "original_question": "What shipping documents are required for international customs clearance?",
+      "history_before": [
+        {
+          "role": "user",
+          "content": "What evidence is required for project submission?"
+        },
+        {
+          "role": "assistant",
+          "content": "The submission must include two pieces of evidence:\n\n1. A link to the GitHub pull‑request that is open in the team repository.  \n2. A 3–5 minute screen‑share video walkthrough that explains the project (covering why follow‑up questions break naive retrieval, how follow‑ups are rewritten into standalone queries, multi‑turn dialogue examples, how history and token limits are balanced, and how to keep long conversations grounded). The video should be uploaded to Google Drive with the sharing setting set to “Anyone with the link can view.” [1]"
+        },
+        {
+          "role": "user",
+          "content": "What about the video?"
+        },
+        {
+          "role": "assistant",
+          "content": "The submission must include a **3‑5 minute screen‑share video** that walks through:\n\n* Why follow‑up questions break naïve retrieval  \n* How follow‑ups are rewritten into standalone queries  \n* Multi‑turn dialogue examples  \n* How history and token limits are balanced  \n* How to keep long conversations grounded  \n\nAfter creating the video, upload it to Google Drive and set the sharing permission to **“Anyone with the link can view.”** [1]"
+        }
+      ],
+      "rewritten_query": "required shipping documents for international customs clearance",
+      "retrieved_chunks_count": 3,
+      "sources": [
+        {
+          "source": "shipping_rules.txt",
+          "section": "General Customs Clearance",
+          "doc_type": "Policy",
+          "chunk_index": 3
+        },
+        {
+          "source": "customs_reg_italy.json",
+          "section": "Motor Vehicles (Italy)",
+          "doc_type": "RegulationData",
+          "chunk_index": 2
+        },
+        {
+          "source": "submission_guidelines.md",
+          "section": "Evidence Requirements",
+          "doc_type": "Guidelines",
+          "chunk_index": 1
+        }
+      ],
+      "answer": "The standard documents needed for international customs clearance are:\n\n- Commercial Invoice  \n- Packing List  \n- Certificate of Origin  \n- Bill of Lading **or** Air Waybill  \n\nThese are listed as the required customs clearance documents for all international shipments【1】.",
+      "latency_ms": 2446.73
+    },
+    {
+      "turn": 4,
+      "original_question": "What is the duty rate for cars in Italy?",
+      "history_before": [
+        {
+          "role": "user",
+          "content": "What evidence is required for project submission?"
+        },
+        {
+          "role": "assistant",
+          "content": "The submission must include two pieces of evidence:\n\n1. A link to the GitHub pull‑request that is open in the team repository.  \n2. A 3–5 minute screen‑share video walkthrough that explains the project (covering why follow‑up questions break naive retrieval, how follow‑ups are rewritten into standalone queries, multi‑turn dialogue examples, how history and token limits are balanced, and how to keep long conversations grounded). The video should be uploaded to Google Drive with the sharing setting set to “Anyone with the link can view.” [1]"
+        },
+        {
+          "role": "user",
+          "content": "What about the video?"
+        },
+        {
+          "role": "assistant",
+          "content": "The submission must include a **3‑5 minute screen‑share video** that walks through:\n\n* Why follow‑up questions break naïve retrieval  \n* How follow‑ups are rewritten into standalone queries  \n* Multi‑turn dialogue examples  \n* How history and token limits are balanced  \n* How to keep long conversations grounded  \n\nAfter creating the video, upload it to Google Drive and set the sharing permission to **“Anyone with the link can view.”** [1]"
+        },
+        {
+          "role": "user",
+          "content": "What shipping documents are required for international customs clearance?"
+        },
+        {
+          "role": "assistant",
+          "content": "The standard documents needed for international customs clearance are:\n\n- Commercial Invoice  \n- Packing List  \n- Certificate of Origin  \n- Bill of Lading **or** Air Waybill  \n\nThese are listed as the required customs clearance documents for all international shipments【1】."
+        }
+      ],
+      "rewritten_query": "duty rate for cars in Italy",
+      "retrieved_chunks_count": 3,
+      "sources": [
+        {
+          "source": "customs_reg_italy.json",
+          "section": "Motor Vehicles (Italy)",
+          "doc_type": "RegulationData",
+          "chunk_index": 2
+        },
+        {
+          "source": "shipping_rules.txt",
+          "section": "General Customs Clearance",
+          "doc_type": "Policy",
+          "chunk_index": 3
+        },
+        {
+          "source": "submission_guidelines.md",
+          "section": "Evidence Requirements",
+          "doc_type": "Guidelines",
+          "chunk_index": 1
+        }
+      ],
+      "answer": "The duty rate for cars imported into Italy is **10 % Basic Customs Duty plus a 22 % Value Added Tax (VAT)**【1】.",
+      "latency_ms": 2562.53
+    },
+    {
+      "turn": 5,
+      "original_question": "Does it apply to space shuttles?",
+      "history_before": [
+        {
+          "role": "user",
+          "content": "What evidence is required for project submission?"
+        },
+        {
+          "role": "assistant",
+          "content": "The submission must include two pieces of evidence:\n\n1. A link to the GitHub pull‑request that is open in the team repository.  \n2. A 3–5 minute screen‑share video walkthrough that explains the project (covering why follow‑up questions break naive retrieval, how follow‑ups are rewritten into standalone queries, multi‑turn dialogue examples, how history and token limits are balanced, and how to keep long conversations grounded). The video should be uploaded to Google Drive with the sharing setting set to “Anyone with the link can view.” [1]"
+        },
+        {
+          "role": "user",
+          "content": "What about the video?"
+        },
+        {
+          "role": "assistant",
+          "content": "The submission must include a **3‑5 minute screen‑share video** that walks through:\n\n* Why follow‑up questions break naïve retrieval  \n* How follow‑ups are rewritten into standalone queries  \n* Multi‑turn dialogue examples  \n* How history and token limits are balanced  \n* How to keep long conversations grounded  \n\nAfter creating the video, upload it to Google Drive and set the sharing permission to **“Anyone with the link can view.”** [1]"
+        },
+        {
+          "role": "user",
+          "content": "What shipping documents are required for international customs clearance?"
+        },
+        {
+          "role": "assistant",
+          "content": "The standard documents needed for international customs clearance are:\n\n- Commercial Invoice  \n- Packing List  \n- Certificate of Origin  \n- Bill of Lading **or** Air Waybill  \n\nThese are listed as the required customs clearance documents for all international shipments【1】."
+        },
+        {
+          "role": "user",
+          "content": "What is the duty rate for cars in Italy?"
+        },
+        {
+          "role": "assistant",
+          "content": "The duty rate for cars imported into Italy is **10 % Basic Customs Duty plus a 22 % Value Added Tax (VAT)**【1】."
+        }
+      ],
+      "rewritten_query": "Italian import duty rate and VAT applicability to space shuttles",
+      "retrieved_chunks_count": 3,
+      "sources": [
+        {
+          "source": "customs_reg_italy.json",
+          "section": "Motor Vehicles (Italy)",
+          "doc_type": "RegulationData",
+          "chunk_index": 2
+        },
+        {
+          "source": "shipping_rules.txt",
+          "section": "General Customs Clearance",
+          "doc_type": "Policy",
+          "chunk_index": 3
+        },
+        {
+          "source": "submission_guidelines.md",
+          "section": "Evidence Requirements",
+          "doc_type": "Guidelines",
+          "chunk_index": 1
+        }
+      ],
+      "answer": "The provided context is insufficient to answer this question.",
+      "latency_ms": 2412.7
+    }
+  ]
+}
