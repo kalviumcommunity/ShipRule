@@ -1,0 +1,15 @@
+Question:
+What are the shipment regulations for importing live dolphins into Antarctica?
+
+Retrieved Chunks: 0
+Relevant Chunks: 0
+Retrieval Quality: INSUFFICIENT
+Reason: no_results
+Guardrail Decision: REFUSE
+LLM Called: No
+
+Answer:
+I don't know based on the available documents.
+
+Citations:
+None
