@@ -50,6 +50,12 @@ from src.citation_manager import (
     format_sample_cited_answer,
     export_citation_mapping_json
 )
+from src.retrieval_guardrail import (
+    check_retrieval_quality,
+    get_safe_refusal_response,
+    format_guardrail_report,
+    SAFE_REFUSAL_MESSAGE
+)
 from src.token_counter import count_tokens
 
 # Configure logging
@@ -406,12 +412,22 @@ def answer_query(
         model=model
     )
 
-    # 3. Handle Empty / Insufficient Retrieval Safely
-    if not chunks:
+    # 3. Stage 2.5: Retrieval Quality Guardrail Check
+    guardrail_result = check_retrieval_quality(
+        retrieved_chunks=chunks,
+        max_distance_threshold=metadata_filter.get("max_distance_threshold") if isinstance(metadata_filter, dict) else None,
+        min_relevant_chunks=metadata_filter.get("min_relevant_chunks") if isinstance(metadata_filter, dict) else None
+    )
+
+    if not guardrail_result["is_sufficient"]:
         t_total_end = time.perf_counter()
         total_ms = round((t_total_end - t_start) * 1000, 2)
 
-        fallback_answer = "I could not find enough relevant information in the available knowledge base to answer this question. The provided context is insufficient to answer this question."
+        fallback_answer = (
+            "I could not find enough relevant information in the available knowledge base to answer this question. "
+            "I don't know based on the available documents. "
+            "The provided context is insufficient to answer this question."
+        )
         source_val = validate_answer_sources(fallback_answer, available_sources=[], is_retrieval_mode=True)
         citation_ver = verify_answer_citations(fallback_answer, registry={}, is_retrieval_mode=True)
 
@@ -423,6 +439,9 @@ def answer_query(
             "citation_registry": {},
             "citation_mapping": {},
             "citation_verification": citation_ver,
+            "guardrail": guardrail_result,
+            "guardrail_decision": "REFUSE",
+            "llm_called": False,
             "token_usage": {
                 "input_tokens": count_tokens(query),
                 "context_tokens": 0,
@@ -444,7 +463,9 @@ def answer_query(
                 "candidate_k": candidate_k,
                 "final_k": final_k,
                 "metadata_filter": metadata_filter,
-                "status": "empty_retrieval_fallback",
+                "status": "retrieval_guardrail_refusal",
+                "guardrail": guardrail_result,
+                "guardrail_report": guardrail_result["report"],
                 "source_validation": source_val,
                 "citation_verification": citation_ver
             }
@@ -499,6 +520,9 @@ def answer_query(
         "citation_registry": citation_registry,
         "citation_mapping": citation_registry,
         "citation_verification": citation_ver,
+        "guardrail": guardrail_result,
+        "guardrail_decision": "ALLOW",
+        "llm_called": True,
         "token_usage": {
             "input_tokens": input_tokens,
             "context_tokens": grounded_assembly.token_count,
@@ -609,6 +633,14 @@ def answer_query_without_retrieval(
         "citation_registry": {},
         "citation_mapping": {},
         "citation_verification": citation_ver,
+        "guardrail": {
+            "is_sufficient": False,
+            "reason": "no_retrieval_mode",
+            "decision": "REFUSE",
+            "retrieved_count": 0,
+            "relevant_count": 0
+        },
+        "guardrail_decision": "REFUSE",
         "token_usage": {
             "input_tokens": input_tokens,
             "context_tokens": 0,

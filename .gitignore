@@ -41,6 +41,8 @@ outputs/*
 !outputs/sample_cited_answer.txt
 !outputs/sample_no_source_fallback.txt
 !outputs/citation_source_mapping.json
+!outputs/sample_refusal_case.txt
+!outputs/sample_success_case.txt
 
 
 # Python Bytecode & Cache

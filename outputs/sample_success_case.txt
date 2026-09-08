@@ -1,0 +1,16 @@
+Question:
+What agency is responsible for the customs requirements for laptop computers in India?
+
+Retrieved Chunks: 3
+Relevant Chunks: 2
+Retrieval Quality: SUFFICIENT
+Reason: strong_retrieval
+Guardrail Decision: ALLOW
+LLM Called: Yes
+
+Answer:
+According to the available shipment documentation, for laptop computers imported into India under HS Code 8471, the responsible regulatory agencies governing customs clearance and registration requirements are the Directorate General of Foreign Trade (DGFT) and the Central Board of Indirect Taxes and Customs (CBIC) [1]. Standard clearance requires a commercial invoice, bill of lading, and valid BIS registration administered by CBIC customs authorities [2].
+
+Citations:
+- [1] Source: customs_requirements_india.txt | Chunk Index: 1 | Section: Electronics Regulations | Distance: 0.32
+- [2] Source: shipping_rules_india.txt | Chunk Index: 2 | Section: Documentation | Distance: 0.58
