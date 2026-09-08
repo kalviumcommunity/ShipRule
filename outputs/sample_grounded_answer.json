@@ -94,17 +94,17 @@
     "report": "[Answer Validation]\nAnswer Generated       : YES\nSource Markers Used    : [1], [2], [3]\nAvailable Source Marks : [1], [2], [3]\nUnsupported Markers    : None\nSource Validation      : PASS\nGrounding Status       : GROUNDED"
   },
   "token_usage": {
-    "input_tokens": 590,
+    "input_tokens": 645,
     "context_tokens": 420,
     "output_tokens": 72,
-    "total_tokens": 662
+    "total_tokens": 717
   },
   "timing": {
-    "embedding_ms": 739.27,
-    "retrieval_ms": 174.34,
-    "reranking_ms": 0.08,
-    "context_assembly_ms": 183.77,
-    "generation_ms": 734.05,
-    "total_pipeline_time_ms": 1831.54
+    "embedding_ms": 1128.72,
+    "retrieval_ms": 278.44,
+    "reranking_ms": 0.1,
+    "context_assembly_ms": 242.2,
+    "generation_ms": 720.31,
+    "total_pipeline_time_ms": 2369.83
   }
 }

@@ -38,6 +38,9 @@ outputs/*
 !outputs/sample_grounded_answer.json
 !outputs/sample_fallback_answer.txt
 !outputs/retrieval_comparison.txt
+!outputs/sample_cited_answer.txt
+!outputs/sample_no_source_fallback.txt
+!outputs/citation_source_mapping.json
 
 
 # Python Bytecode & Cache

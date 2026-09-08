@@ -100,8 +100,12 @@ DEFAULT_GROUNDING_INSTRUCTIONS = (
     "Do not invent customs rules, rates, documents, agencies, dates, URLs, or other facts.\n"
     "When the provided context does not contain enough information to answer, state clearly:\n"
     "'The provided context is insufficient to answer this question.'\n"
-    "When making factual claims, cite the relevant source marker such as [1] or [2].\n"
-    "Never invent or fabricate source markers."
+    "When making factual claims, cite the supporting retrieved source using the source marker provided in the context, such as [1] or [2].\n"
+    "Only cite source markers that appear in the provided context.\n"
+    "Every citation must correspond to the retrieved source chunk containing the supporting information.\n"
+    "Never invent citation numbers.\n"
+    "Never invent or fabricate source markers.\n"
+    "If the provided context does not support a claim, do not make the claim."
 )
 
 GROUNDED_AUGMENTED_PROMPT_TEMPLATE = PromptTemplate(

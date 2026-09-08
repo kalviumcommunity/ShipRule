@@ -42,6 +42,14 @@ from src.reranker import rerank, retrieve_and_rerank
 from src.prompt_templates import ANSWER_TEMPLATE, PromptTemplate, DEFAULT_GROUNDING_INSTRUCTIONS, GROUNDED_AUGMENTED_PROMPT_TEMPLATE
 from src.context_assembler import assemble_context as assemble_grounded_context, format_budget_report, build_augmented_prompt
 from src.answer_validator import validate_answer_sources, format_validation_report
+from src.citation_manager import (
+    build_citation_registry,
+    verify_answer_citations,
+    format_citation_registry,
+    format_citation_details,
+    format_sample_cited_answer,
+    export_citation_mapping_json
+)
 from src.token_counter import count_tokens
 
 # Configure logging
@@ -405,12 +413,16 @@ def answer_query(
 
         fallback_answer = "I could not find enough relevant information in the available knowledge base to answer this question. The provided context is insufficient to answer this question."
         source_val = validate_answer_sources(fallback_answer, available_sources=[], is_retrieval_mode=True)
+        citation_ver = verify_answer_citations(fallback_answer, registry={}, is_retrieval_mode=True)
 
         safe_response = {
             "answer": fallback_answer,
             "sources": [],
             "retrieved_chunks": [],
             "source_validation": source_val,
+            "citation_registry": {},
+            "citation_mapping": {},
+            "citation_verification": citation_ver,
             "token_usage": {
                 "input_tokens": count_tokens(query),
                 "context_tokens": 0,
@@ -433,17 +445,19 @@ def answer_query(
                 "final_k": final_k,
                 "metadata_filter": metadata_filter,
                 "status": "empty_retrieval_fallback",
-                "source_validation": source_val
+                "source_validation": source_val,
+                "citation_verification": citation_ver
             }
         return safe_response
 
-    # 4. Stage 3: Context Assembly
+    # 4. Stage 3: Context Assembly & Citation Registry Mapping
     t_asm_start = time.perf_counter()
     grounded_assembly = assemble_grounded_context(
         retrieved_chunks=chunks,
         user_question=query
     )
     assembled_context, sources_info = assemble_context(chunks)
+    citation_registry = build_citation_registry(chunks)
     t_asm_end = time.perf_counter()
     asm_ms = round((t_asm_end - t_asm_start) * 1000, 2)
 
@@ -462,10 +476,15 @@ def answer_query(
     t_total_end = time.perf_counter()
     total_ms = round((t_total_end - t_start) * 1000, 2)
 
-    # 6. Stage 5: Source Accuracy Validation
+    # 6. Stage 5: Source Accuracy & Citation Verification
     source_val = validate_answer_sources(
         answer=gen_result["answer"],
         available_sources=grounded_assembly.source_mapping or sources_info,
+        is_retrieval_mode=True
+    )
+    citation_ver = verify_answer_citations(
+        answer=gen_result["answer"],
+        registry=citation_registry,
         is_retrieval_mode=True
     )
 
@@ -477,6 +496,9 @@ def answer_query(
         "sources": gen_result["sources"],
         "retrieved_chunks": chunks,
         "source_validation": source_val,
+        "citation_registry": citation_registry,
+        "citation_mapping": citation_registry,
+        "citation_verification": citation_ver,
         "token_usage": {
             "input_tokens": input_tokens,
             "context_tokens": grounded_assembly.token_count,
@@ -509,7 +531,11 @@ def answer_query(
             "budget_report": grounded_assembly.budget_report,
             "augmented_prompt": grounded_assembly.augmented_prompt,
             "source_validation": source_val,
-            "source_validation_report": source_val["report"]
+            "source_validation_report": source_val["report"],
+            "citation_registry": citation_registry,
+            "citation_registry_report": format_citation_registry(citation_registry),
+            "citation_verification": citation_ver,
+            "citation_verification_report": citation_ver["report"]
         }
 
     return pipeline_result
@@ -535,7 +561,7 @@ def answer_query_without_retrieval(
         model: Optional model name.
 
     Returns:
-        Structured result dict containing 'answer', 'sources', 'token_usage', and 'source_validation'.
+        Structured result dict containing 'answer', 'sources', 'token_usage', 'source_validation', and 'citation_verification'.
     """
     t_start = time.perf_counter()
     if query is None or not isinstance(query, str) or not query.strip():
@@ -566,6 +592,11 @@ def answer_query_without_retrieval(
         available_sources=[],
         is_retrieval_mode=False
     )
+    citation_ver = verify_answer_citations(
+        answer=answer_text,
+        registry={},
+        is_retrieval_mode=False
+    )
 
     return {
         "query": query,
@@ -575,6 +606,9 @@ def answer_query_without_retrieval(
         "retrieved_chunks_count": 0,
         "context": "NONE",
         "source_validation": source_val,
+        "citation_registry": {},
+        "citation_mapping": {},
+        "citation_verification": citation_ver,
         "token_usage": {
             "input_tokens": input_tokens,
             "context_tokens": 0,
