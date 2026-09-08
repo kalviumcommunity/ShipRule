@@ -1,0 +1,1 @@
+Special Customs Requirement: Shipments containing UNIQUE_CUSTOMS_RULE_c6c34a require Certificate XYZ-99.

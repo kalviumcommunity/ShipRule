@@ -417,7 +417,7 @@ Output is printed to the terminal and saved to [`outputs/token_chunking_results.
 
 ##### Run Unit Tests:
 ```bash
-pytest tests/test_token_chunks.py
+pytest tests/test_all.py
 ```
 
 ---
@@ -645,7 +645,7 @@ Results are returned in a clean, structured JSON format:
   Saves results to [`outputs/similarity_demo_output.json`](file:///c:/Users/hp/Desktop/ShipRule/outputs/similarity_demo_output.json).
 - **Run Unit Tests**:
   ```bash
-  pytest tests/test_similarity.py
+  pytest tests/test_all.py
   ```
 
 
@@ -779,5 +779,5 @@ generate_answer(context)   "I don't have enough reliable context..."
 python conversational_rag_demo.py
 
 # Run Conversational RAG Unit Tests
-python -m unittest tests/test_conversational_rag.py
+pytest tests/test_all.py
 ```
