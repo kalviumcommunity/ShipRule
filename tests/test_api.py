@@ -9,6 +9,8 @@ import unittest
 from unittest.mock import patch, MagicMock
 import os
 import sys
+import uuid
+
 
 # Ensure project root is in sys.path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -138,5 +140,177 @@ class TestRAGBackendAPI(unittest.TestCase):
         self.assertEqual(response.json()["detail"], "RAG service failed")
 
 
+# ------------------------------------------------------------------------------
+# 4. DOCUMENT UPLOAD & INDEXING ENDPOINT TESTS (POST /documents)
+# ------------------------------------------------------------------------------
+
+class TestDocumentUploadAPI(unittest.TestCase):
+
+    def setUp(self):
+        self.client = TestClient(app)
+
+    @patch("src.api.generate_embedding")
+    @patch("src.api.create_embedding_client")
+    def test_upload_txt_success(self, mock_client, mock_embed):
+        """1. Successful .txt upload."""
+        mock_embed.return_value = [0.1] * 384
+        content = b"Customs Tariff Code 9999 is applicable for special maritime imports."
+        files = {"file": ("customs_tariff_9999.txt", content, "text/plain")}
+
+        response = self.client.post("/documents", files=files)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["status"], "indexed")
+        self.assertEqual(data["filename"], "customs_tariff_9999.txt")
+        self.assertIn("summary", data)
+        self.assertGreater(data["summary"]["chunks"], 0)
+        self.assertEqual(data["summary"]["chunks"], data["summary"]["indexed"])
+
+    @patch("src.api.generate_embedding")
+    @patch("src.api.create_embedding_client")
+    def test_upload_md_success(self, mock_client, mock_embed):
+        """2. Successful .md upload."""
+        mock_embed.return_value = [0.2] * 384
+        content = b"# Markdown Shipping Guide\n\nAll containerized freight must have tamper-evident seals."
+        files = {"file": ("freight_guide.md", content, "text/markdown")}
+
+        response = self.client.post("/documents", files=files)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["status"], "indexed")
+        self.assertEqual(data["filename"], "freight_guide.md")
+        self.assertGreater(data["summary"]["chunks"], 0)
+
+    @patch("src.api.generate_embedding")
+    @patch("src.api.create_embedding_client")
+    def test_upload_pdf_success(self, mock_client, mock_embed):
+        """3. Successful .pdf upload."""
+        mock_embed.return_value = [0.3] * 384
+        from fpdf import FPDF
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Helvetica", size=12)
+        pdf.cell(200, 10, txt="International Maritime Hazardous Materials Protocol", ln=1)
+        pdf_bytes = bytes(pdf.output())
+
+        files = {"file": ("hazardous_protocol.pdf", pdf_bytes, "application/pdf")}
+        response = self.client.post("/documents", files=files)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["status"], "indexed")
+        self.assertEqual(data["filename"], "hazardous_protocol.pdf")
+        self.assertGreater(data["summary"]["chunks"], 0)
+
+    def test_upload_unsupported_extension(self):
+        """4. Unsupported extension -> HTTP 415."""
+        files = {"file": ("malicious_script.exe", b"binary content", "application/octet-stream")}
+        response = self.client.post("/documents", files=files)
+        self.assertEqual(response.status_code, 415)
+        self.assertIn("Unsupported file type", response.json()["detail"])
+
+    def test_upload_missing_filename(self):
+        """5. Missing/invalid filename -> HTTP 400 or 422."""
+        files = {"file": ("   ", b"some content", "text/plain")}
+        response = self.client.post("/documents", files=files)
+        self.assertIn(response.status_code, [400, 422])
+
+    def test_upload_empty_file(self):
+        """6. Empty file -> HTTP 400."""
+        files = {"file": ("empty_document.txt", b"", "text/plain")}
+        response = self.client.post("/documents", files=files)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("no extractable text", response.json()["detail"])
+
+    @patch("src.api.MAX_UPLOAD_SIZE_MB", 1)
+    def test_upload_exceeding_max_size(self):
+        """7. File exceeding maximum size -> HTTP 413."""
+        large_content = b"A" * (2 * 1024 * 1024)  # 2MB > 1MB limit
+        files = {"file": ("oversized_file.txt", large_content, "text/plain")}
+        response = self.client.post("/documents", files=files)
+        self.assertEqual(response.status_code, 413)
+        self.assertIn("exceeds maximum", response.json()["detail"].lower())
+
+    @patch("src.api.generate_embedding")
+    @patch("src.api.create_embedding_client")
+    def test_upload_path_traversal_attempt(self, mock_client, mock_embed):
+        """8. Unsafe filename/path traversal attempt."""
+        mock_embed.return_value = [0.1] * 384
+        content = b"Path traversal payload text content."
+        files = {"file": ("../../etc/passwd.txt", content, "text/plain")}
+        response = self.client.post("/documents", files=files)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["filename"], "passwd.txt")
+        self.assertFalse("../../" in data["summary"]["document"])
+
+    @patch("src.api._load_pdf")
+    def test_upload_text_extraction_failure(self, mock_pdf_load):
+        """9. Text extraction failure (empty PDF or unreadable text) -> HTTP 400."""
+        mock_pdf_load.side_effect = ValueError("PDF document contains no extractable text.")
+        files = {"file": ("scanned_blank_image.pdf", b"fake pdf header", "application/pdf")}
+        response = self.client.post("/documents", files=files)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("no extractable text", response.json()["detail"])
+
+    @patch("src.api.generate_embedding")
+    @patch("src.api.create_embedding_client")
+    def test_upload_embedding_failure(self, mock_client, mock_embed):
+        """10. Embedding failure -> HTTP 500."""
+        mock_embed.side_effect = RuntimeError("Embedding provider service offline")
+        files = {"file": ("valid_policy.txt", b"Valid policy text content.", "text/plain")}
+        response = self.client.post("/documents", files=files)
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.json()["detail"], "Document indexing failed")
+
+    @patch("src.api.process_uploaded_document")
+    def test_upload_vector_indexing_failure(self, mock_process):
+        """11. Vector indexing failure -> HTTP 500."""
+        mock_process.side_effect = Exception("Disk I/O error writing vector store")
+        files = {"file": ("valid_policy.txt", b"Valid policy text content.", "text/plain")}
+        response = self.client.post("/documents", files=files)
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.json()["detail"], "Document indexing failed")
+
+    @patch("src.api.generate_embedding")
+    @patch("src.api.create_embedding_client")
+    def test_upload_correct_chunk_count_summary(self, mock_client, mock_embed):
+        """12. Successful indexing returns correct chunk count."""
+        mock_embed.return_value = [0.1] * 384
+        content = b"Chunk 1 text content.\n\n" + (b"Word " * 500)
+        files = {"file": ("multi_chunk_doc.txt", content, "text/plain")}
+        response = self.client.post("/documents", files=files)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertGreaterEqual(data["summary"]["chunks"], 2)
+        self.assertEqual(data["summary"]["chunks"], data["summary"]["indexed"])
+
+    def test_runtime_search_newly_uploaded_content(self):
+        """13. Newly uploaded content is immediately retrievable through /query."""
+        unique_token = f"UNIQUE_CUSTOMS_RULE_{uuid.uuid4().hex[:6]}"
+        unique_text = f"Special Customs Requirement: Shipments containing {unique_token} require Certificate XYZ-99."
+        files = {"file": ("unique_customs_policy.txt", unique_text.encode("utf-8"), "text/plain")}
+
+        # 1. Upload document
+        upload_resp = self.client.post("/documents", files=files)
+        self.assertEqual(upload_resp.status_code, 200)
+        self.assertEqual(upload_resp.json()["status"], "indexed")
+
+        # 2. Query unique sentence via POST /query
+        query_payload = {
+            "question": f"What certificate is required for shipments with {unique_token}?",
+            "use_reranking": False,
+            "final_k": 3
+        }
+        query_resp = self.client.post("/query", json=query_payload)
+        self.assertEqual(query_resp.status_code, 200)
+        query_data = query_resp.json()
+
+        # 3. Verify retrieved answer or sources reference the uploaded document
+        self.assertEqual(query_data["status"], "answered")
+        sources_found = [s["source"] for s in query_data.get("sources", [])]
+        self.assertTrue(any("unique_customs_policy.txt" in s for s in sources_found))
+
+
 if __name__ == "__main__":
     unittest.main()
+

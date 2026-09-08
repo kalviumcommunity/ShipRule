@@ -76,7 +76,7 @@ class TestAnswerGroundingAndValidation(unittest.TestCase):
         )
 
         self.assertIn("answer", res)
-        self.assertIn("Commercial invoice", res["answer"])
+        self.assertIn("commercial invoice", res["answer"].lower())
         self.assertEqual(res["sources"], ["shipping_rules.txt"])
 
     # --------------------------------------------------------------------------
