@@ -43,6 +43,8 @@ outputs/*
 !outputs/citation_source_mapping.json
 !outputs/sample_refusal_case.txt
 !outputs/sample_success_case.txt
+!outputs/conversational_rag_output.json
+!outputs/conversational_dialogue.txt
 
 
 # Python Bytecode & Cache
