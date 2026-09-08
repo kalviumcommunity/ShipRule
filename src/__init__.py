@@ -27,6 +27,13 @@ from src.rag_evaluation import (
     evaluate_rag_quality,
     format_evaluation_summary
 )
+from src.api import (
+    app,
+    QueryRequest,
+    Source,
+    QueryResponse,
+    query_rag
+)
 
 __all__ = [
     "clean",
@@ -47,6 +54,12 @@ __all__ = [
     "check_citations",
     "score_answer",
     "evaluate_rag_quality",
-    "format_evaluation_summary"
+    "format_evaluation_summary",
+    "app",
+    "QueryRequest",
+    "Source",
+    "QueryResponse",
+    "query_rag"
 ]
+
 

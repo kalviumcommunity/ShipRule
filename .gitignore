@@ -47,6 +47,9 @@ outputs/*
 !outputs/conversational_dialogue.txt
 !outputs/rag_evaluation_results.json
 !outputs/rag_evaluation_summary.txt
+!outputs/api_sample_request.json
+!outputs/api_sample_response.json
+
 
 
 
