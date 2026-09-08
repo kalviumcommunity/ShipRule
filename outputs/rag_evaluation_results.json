@@ -95,7 +95,7 @@
     },
     {
       "question": "What mandatory statutory registrations are required for importing IT hardware and telecommunications equipment?",
-      "answer": "Importing IT hardware and telecommunications equipment requires mandatory statutory registrations before customs assessment. Specifically:\n\n* **IT electronics** must be registered under the **Bureau of Indian Standards (BIS) Compulsory Registration Scheme (CRS)**.  \n* **Telecommunications equipment** that includes wireless radio‑frequency modules must obtain **Equipment Type Approval (ETA)**.  \n\nThese registrations are required for the respective product categories [1].",
+      "answer": "Importing IT hardware and telecommunications equipment requires statutory registrations before customs assessment. Specifically:\n\n* **IT electronics** must be registered under the **Bureau of Indian Standards (BIS) Compulsory Registration Scheme (CRS)**.  \n* **Telecommunications equipment** – in particular wireless radio‑frequency modules – must obtain **Equipment Type Approval (ETA)**.  \n\nThese registrations are mandatory for the respective product categories [1].",
       "correctness": 1.0,
       "grounding": 1.0,
       "citation_accuracy": 1.0,
@@ -135,7 +135,7 @@
     },
     {
       "question": "What shipping documentation is required for international customs clearance?",
-      "answer": "International shipments must be accompanied by accurate shipping documentation. Required documents may include :\n\n- A commercial invoice and packing list  \n- A certificate of origin  \n- Transport documents such as a bill of lading or an air waybill  \n\n[1]",
+      "answer": "International shipments must be accompanied by accurate shipping documentation. Required documents may include :\n\n- A commercial invoice  \n- A packing list  \n- A certificate of origin (if applicable)  \n- Transport documents such as a bill of lading or an air waybill  \n\nThese documents are needed for customs clearance of international shipments【1】.",
       "correctness": 1.0,
       "grounding": 1.0,
       "citation_accuracy": 1.0,
@@ -153,7 +153,7 @@
     },
     {
       "question": "How are preferential tariff rates granted under Free Trade Agreements?",
-      "answer": "Preferential tariff rates are available when the imported shipment is accompanied by a valid Certificate of Origin that is issued under a bilateral or multilateral Free Trade Agreement (FTA). To qualify, the importer must strictly meet the FTA’s country‑of‑origin rules and any required value‑addition thresholds [1].",
+      "answer": "Preferential tariff rates are applied when the import shipment is accompanied by a valid Certificate of Origin that is issued under a bilateral or multilateral Free Trade Agreement (FTA). To qualify, the importer must strictly meet the FTA’s country‑of‑origin rules and any required value‑addition thresholds [1].",
       "correctness": 1.0,
       "grounding": 1.0,
       "citation_accuracy": 1.0,
