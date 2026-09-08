@@ -1,0 +1,188 @@
+{
+  "questions": 7,
+  "avg_correctness": 0.7143,
+  "avg_grounding": 1.0,
+  "avg_citation_accuracy": 0.9714,
+  "overall_score": 0.8952,
+  "overall_score_pct": 89.52,
+  "weakest_dimension": "Correctness",
+  "recommendation": "Inspect vector retrieval similarity thresholds, increase Top-K candidate count, and refine prompt instructions.",
+  "failures": [
+    {
+      "question": "What evidence is required for project submission?",
+      "answer": "The provided context is insufficient to answer this question.",
+      "correctness": 0.0,
+      "grounding": 1.0,
+      "citation_accuracy": 1.0,
+      "citations": [
+        "customs_requirements.txt",
+        "shipping_rules.txt"
+      ],
+      "expected_points": [
+        "PR link",
+        "sample output",
+        "video explanation"
+      ],
+      "expected_sources": [
+        "submission-rubric.md"
+      ],
+      "likely_causes": [
+        "Weak correctness: Answer missed key expected points (check Top-K or prompt completion instructions)."
+      ]
+    },
+    {
+      "question": "Which Incoterms 2020 rules define FOB and CIF shipping obligations and risk transfer?",
+      "answer": "The provided context is insufficient to answer this question.",
+      "correctness": 0.0,
+      "grounding": 1.0,
+      "citation_accuracy": 0.8,
+      "citations": [
+        "customs_requirements.txt",
+        "shipping_rules.txt"
+      ],
+      "expected_points": [
+        "Incoterms 2020",
+        "FOB",
+        "CIF",
+        "risk"
+      ],
+      "expected_sources": [
+        "international_shipping_guide.pdf"
+      ],
+      "likely_causes": [
+        "Weak correctness: Answer missed key expected points (check Top-K or prompt completion instructions).",
+        "Weak citations: Citations did not match expected supporting sources or were omitted."
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "question": "What evidence is required for project submission?",
+      "answer": "The provided context is insufficient to answer this question.",
+      "correctness": 0.0,
+      "grounding": 1.0,
+      "citation_accuracy": 1.0,
+      "citations": [
+        "customs_requirements.txt",
+        "shipping_rules.txt"
+      ],
+      "expected_points": [
+        "PR link",
+        "sample output",
+        "video explanation"
+      ],
+      "expected_sources": [
+        "submission-rubric.md"
+      ]
+    },
+    {
+      "question": "What should the system do when context is missing?",
+      "answer": "The provided context is insufficient to answer this question.",
+      "correctness": 1.0,
+      "grounding": 1.0,
+      "citation_accuracy": 1.0,
+      "citations": [
+        "customs_requirements.txt",
+        "shipping_rules.txt"
+      ],
+      "expected_points": [
+        "refuse",
+        "not enough information"
+      ],
+      "expected_sources": [
+        "guardrails.md"
+      ]
+    },
+    {
+      "question": "What mandatory statutory registrations are required for importing IT hardware and telecommunications equipment?",
+      "answer": "Importing IT hardware and telecommunications equipment requires statutory registrations before customs assessment. Specifically:\n\n* **IT electronics** must be registered under the **Bureau of Indian Standards (BIS) Compulsory Registration Scheme (CRS)**.  \n* **Telecommunications equipment** – in particular wireless radio‑frequency modules – must obtain **Equipment Type Approval (ETA)**.  \n\nThese registrations are mandatory for the respective product categories [1].",
+      "correctness": 1.0,
+      "grounding": 1.0,
+      "citation_accuracy": 1.0,
+      "citations": [
+        "customs_requirements.txt",
+        "shipping_rules.txt"
+      ],
+      "expected_points": [
+        "Bureau of Indian Standards",
+        "BIS",
+        "Compulsory Registration Scheme",
+        "CRS"
+      ],
+      "expected_sources": [
+        "customs_requirements.txt"
+      ]
+    },
+    {
+      "question": "Which Incoterms 2020 rules define FOB and CIF shipping obligations and risk transfer?",
+      "answer": "The provided context is insufficient to answer this question.",
+      "correctness": 0.0,
+      "grounding": 1.0,
+      "citation_accuracy": 0.8,
+      "citations": [
+        "customs_requirements.txt",
+        "shipping_rules.txt"
+      ],
+      "expected_points": [
+        "Incoterms 2020",
+        "FOB",
+        "CIF",
+        "risk"
+      ],
+      "expected_sources": [
+        "international_shipping_guide.pdf"
+      ]
+    },
+    {
+      "question": "What shipping documentation is required for international customs clearance?",
+      "answer": "International shipments must be accompanied by accurate shipping documentation. Required documents may include :\n\n- A commercial invoice  \n- A packing list  \n- A certificate of origin (if applicable)  \n- Transport documents such as a bill of lading or an air waybill  \n\nThese documents are needed for customs clearance of international shipments【1】.",
+      "correctness": 1.0,
+      "grounding": 1.0,
+      "citation_accuracy": 1.0,
+      "citations": [
+        "customs_requirements.txt",
+        "shipping_rules.txt"
+      ],
+      "expected_points": [
+        "commercial invoice",
+        "packing list"
+      ],
+      "expected_sources": [
+        "shipping_rules.txt"
+      ]
+    },
+    {
+      "question": "How are preferential tariff rates granted under Free Trade Agreements?",
+      "answer": "Preferential tariff rates are applied when the import shipment is accompanied by a valid Certificate of Origin that is issued under a bilateral or multilateral Free Trade Agreement (FTA). To qualify, the importer must strictly meet the FTA’s country‑of‑origin rules and any required value‑addition thresholds [1].",
+      "correctness": 1.0,
+      "grounding": 1.0,
+      "citation_accuracy": 1.0,
+      "citations": [
+        "customs_requirements.txt",
+        "shipping_rules.txt"
+      ],
+      "expected_points": [
+        "Certificate of Origin",
+        "Free Trade Agreement"
+      ],
+      "expected_sources": [
+        "customs_requirements.txt"
+      ]
+    },
+    {
+      "question": "What is the policy for employee vacation approval and leave carryover?",
+      "answer": "The provided context is insufficient to answer this question.",
+      "correctness": 1.0,
+      "grounding": 1.0,
+      "citation_accuracy": 1.0,
+      "citations": [
+        "customs_requirements.txt"
+      ],
+      "expected_points": [
+        "refuse",
+        "not enough information"
+      ],
+      "expected_sources": []
+    }
+  ]
+}

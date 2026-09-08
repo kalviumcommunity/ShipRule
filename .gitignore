@@ -45,6 +45,9 @@ outputs/*
 !outputs/sample_success_case.txt
 !outputs/conversational_rag_output.json
 !outputs/conversational_dialogue.txt
+!outputs/rag_evaluation_results.json
+!outputs/rag_evaluation_summary.txt
+
 
 
 # Python Bytecode & Cache

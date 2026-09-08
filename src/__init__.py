@@ -17,6 +17,16 @@ from src.conversational_rag import (
     retrieval_is_strong,
     ConversationalRAGManager
 )
+from src.rag_evaluation import (
+    TEST_SET,
+    answer_with_citations,
+    judge_expected_points,
+    judge_grounding,
+    check_citations,
+    score_answer,
+    evaluate_rag_quality,
+    format_evaluation_summary
+)
 
 __all__ = [
     "clean",
@@ -29,5 +39,14 @@ __all__ = [
     "rewrite_followup",
     "conversational_answer",
     "retrieval_is_strong",
-    "ConversationalRAGManager"
+    "ConversationalRAGManager",
+    "TEST_SET",
+    "answer_with_citations",
+    "judge_expected_points",
+    "judge_grounding",
+    "check_citations",
+    "score_answer",
+    "evaluate_rag_quality",
+    "format_evaluation_summary"
 ]
+
