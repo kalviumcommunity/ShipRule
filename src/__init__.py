@@ -32,7 +32,10 @@ from src.api import (
     QueryRequest,
     Source,
     QueryResponse,
-    query_rag
+    IndexingSummary,
+    DocumentUploadResponse,
+    query_rag,
+    upload_document
 )
 
 __all__ = [
@@ -59,7 +62,10 @@ __all__ = [
     "QueryRequest",
     "Source",
     "QueryResponse",
-    "query_rag"
+    "IndexingSummary",
+    "DocumentUploadResponse",
+    "query_rag",
+    "upload_document"
 ]
 
 
