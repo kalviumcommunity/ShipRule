@@ -1,0 +1,15 @@
+========================================
+SHIPRULE FALLBACK TEST
+Question:
+What is the customs duty for XYZ-9000 teleportation equipment in India?
+Retrieved Sources:
+NONE
+Answer:
+The provided context is insufficient to answer this question.
+Citation Validation:
+PASS
+Citations:
+NONE
+Grounding:
+INSUFFICIENT CONTEXT
+========================================
