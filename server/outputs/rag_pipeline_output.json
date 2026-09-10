@@ -1,0 +1,63 @@
+{
+  "pipeline_demonstration": [
+    {
+      "label": "Standard Customs Documentation Query",
+      "query": "What shipping documents are required for international customs clearance?",
+      "filter": null,
+      "answer": "International customs clearance typically requires the following shipping documents:\n\n- Commercial invoice  \n- Packing list  \n- Certificate of origin  \n- Transport documents (e.g., bill of lading or air waybill)  \n\nThese documents ensure accurate shipment information for customs processing【1】.",
+      "sources": [
+        "shipping_rules.txt",
+        "international_shipping_guide.pdf",
+        "customs_requirements.txt"
+      ],
+      "timing": {
+        "embedding_ms": 788.44,
+        "retrieval_ms": 179.95,
+        "reranking_ms": 0.25,
+        "context_assembly_ms": 0.01,
+        "generation_ms": 887.84,
+        "total_pipeline_time_ms": 1856.52
+      },
+      "retrieved_chunks_count": 3
+    },
+    {
+      "label": "Statutory Registrations Query (Filtered)",
+      "query": "What mandatory statutory registrations and compliance licenses are required for importing IT hardware in India?",
+      "filter": {
+        "source": "customs_requirements.txt"
+      },
+      "answer": "Importing IT hardware into India requires the Bureau of Indian Standards (BIS) Compulsory Registration Scheme (CRS) compliance. If the hardware includes wireless radio‑frequency modules, an additional Equipment Type Approval (ETA) is also mandatory【1】.",
+      "sources": [
+        "customs_requirements.txt"
+      ],
+      "timing": {
+        "embedding_ms": 188.9,
+        "retrieval_ms": 166.98,
+        "reranking_ms": 0.07,
+        "context_assembly_ms": 0.01,
+        "generation_ms": 1182.48,
+        "total_pipeline_time_ms": 1538.48
+      },
+      "retrieved_chunks_count": 3
+    }
+  ],
+  "grounding_test": {
+    "label": "Unanswerable / Out-of-Domain Query (Hallucination Test)",
+    "query": "What is the speed of light in vacuum and how is it measured?",
+    "filter": null,
+    "answer": "The available context does not contain enough information to answer this question.",
+    "sources": [
+      "customs_requirements.txt",
+      "international_shipping_guide.pdf"
+    ],
+    "timing": {
+      "embedding_ms": 179.67,
+      "retrieval_ms": 170.77,
+      "reranking_ms": 0.09,
+      "context_assembly_ms": 0.01,
+      "generation_ms": 830.15,
+      "total_pipeline_time_ms": 1180.71
+    },
+    "retrieved_chunks_count": 3
+  }
+}

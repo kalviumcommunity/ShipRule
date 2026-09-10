@@ -1,0 +1,137 @@
+========================================
+RAG PIPELINE DEMONSTRATION #1
+========================================
+Query: What shipping documents are required for international customs clearance?
+
+----------------------------------------
+RETRIEVED CONTEXT
+----------------------------------------
+[1] Source: shipping_rules.txt | Chunk Index: 1
+    Re-Rank Score: 5.68 | Vector Score: 0.7252
+    Text: All international shipments must include accurate shipping documentation. Required documents may include a commercial invoice and packing li...
+
+[2] Source: international_shipping_guide.pdf | Chunk Index: 1
+    Re-Rank Score: 4.48 | Vector Score: 0.5798
+    Text: [Page 1]
+Import and export shipments must comply with applicable customs procedures and destination-specific requirements.
+Cross-border trad...
+
+[3] Source: customs_requirements.txt | Chunk Index: 1
+    Re-Rank Score: 3.80 | Vector Score: 0.5216
+    Text: Customs duties may vary according to the product type, declared value, country of origin, and destination country. Every imported commodity ...
+
+----------------------------------------
+GENERATED ANSWER
+----------------------------------------
+International customs clearance typically requires the following shipping documents:
+
+- Commercial invoice  
+- Packing list  
+- Certificate of origin  
+- Transport documents (e.g., bill of lading or air waybill)  
+
+These documents ensure accurate shipment information for customs processing【1】.
+
+----------------------------------------
+SOURCES
+----------------------------------------
+[1] shipping_rules.txt
+[2] international_shipping_guide.pdf
+[3] customs_requirements.txt
+
+----------------------------------------
+PIPELINE TIMING METRICS
+----------------------------------------
+Embedding:         788.44 ms
+Retrieval:         179.95 ms
+Re-ranking:          0.25 ms
+Context Assembly:    0.01 ms
+Generation:        887.84 ms
+Total Pipeline:   1856.52 ms
+========================================
+
+========================================
+RAG PIPELINE DEMONSTRATION #2
+========================================
+Query: What mandatory statutory registrations and compliance licenses are required for importing IT hardware in India?
+Metadata Filter: {'source': 'customs_requirements.txt'}
+
+----------------------------------------
+RETRIEVED CONTEXT
+----------------------------------------
+[1] Source: customs_requirements.txt | Chunk Index: 3
+    Re-Rank Score: 6.31 | Vector Score: 0.7165
+    Text: Certain regulated product categories—including information technology hardware, telecommunications equipment, medical devices, and chemicals...
+
+[2] Source: customs_requirements.txt | Chunk Index: 2
+    Re-Rank Score: 3.29 | Vector Score: 0.4718
+    Text: Preferential tariff rates may be granted if the shipment is accompanied by a valid Certificate of Origin under a Bilateral or Multilateral F...
+
+[3] Source: customs_requirements.txt | Chunk Index: 1
+    Re-Rank Score: 2.68 | Vector Score: 0.3701
+    Text: Customs duties may vary according to the product type, declared value, country of origin, and destination country. Every imported commodity ...
+
+----------------------------------------
+GENERATED ANSWER
+----------------------------------------
+Importing IT hardware into India requires the Bureau of Indian Standards (BIS) Compulsory Registration Scheme (CRS) compliance. If the hardware includes wireless radio‑frequency modules, an additional Equipment Type Approval (ETA) is also mandatory【1】.
+
+----------------------------------------
+SOURCES
+----------------------------------------
+[1] customs_requirements.txt
+
+----------------------------------------
+PIPELINE TIMING METRICS
+----------------------------------------
+Embedding:         188.90 ms
+Retrieval:         166.98 ms
+Re-ranking:          0.07 ms
+Context Assembly:    0.01 ms
+Generation:       1182.48 ms
+Total Pipeline:   1538.48 ms
+========================================
+
+========================================
+RAG PIPELINE DEMONSTRATION #3
+========================================
+Query: What is the speed of light in vacuum and how is it measured?
+
+----------------------------------------
+RETRIEVED CONTEXT
+----------------------------------------
+[1] Source: customs_requirements.txt | Chunk Index: 1
+    Re-Rank Score: 1.24 | Vector Score: 0.0809
+    Text: Customs duties may vary according to the product type, declared value, country of origin, and destination country. Every imported commodity ...
+
+[2] Source: international_shipping_guide.pdf | Chunk Index: 1
+    Re-Rank Score: 1.04 | Vector Score: 0.0476
+    Text: [Page 1]
+Import and export shipments must comply with applicable customs procedures and destination-specific requirements.
+Cross-border trad...
+
+[3] Source: customs_requirements.txt | Chunk Index: 2
+    Re-Rank Score: 0.94 | Vector Score: 0.0316
+    Text: Preferential tariff rates may be granted if the shipment is accompanied by a valid Certificate of Origin under a Bilateral or Multilateral F...
+
+----------------------------------------
+GENERATED ANSWER
+----------------------------------------
+The available context does not contain enough information to answer this question.
+
+----------------------------------------
+SOURCES
+----------------------------------------
+[1] customs_requirements.txt
+[2] international_shipping_guide.pdf
+
+----------------------------------------
+PIPELINE TIMING METRICS
+----------------------------------------
+Embedding:         179.67 ms
+Retrieval:         170.77 ms
+Re-ranking:          0.09 ms
+Context Assembly:    0.01 ms
+Generation:        830.15 ms
+Total Pipeline:   1180.71 ms
+========================================

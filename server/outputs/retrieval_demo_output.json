@@ -1,0 +1,531 @@
+{
+  "embedding_model": "text-embedding-3-small",
+  "total_indexed_chunks": 5,
+  "unfiltered_vs_filtered_demo": {
+    "query": "What are the password reset steps?",
+    "unfiltered": [
+      {
+        "rank": 1,
+        "similarity_score": 0.0653,
+        "vector_score": 0.0653,
+        "chunk_text": "Certain regulated product categories—including information technology hardware, telecommunications equipment, medical devices, and chemicals—require mandatory statutory registrations prior to customs assessment. In particular, IT electronics require Bureau of Indian Standards (BIS) Compulsory Registration Scheme (CRS) compliance, and wireless radio frequency modules require Equipment Type Approval (ETA).",
+        "source": "customs_requirements.txt",
+        "chunk_index": 3,
+        "section": "General Customs",
+        "metadata": {
+          "source": "customs_requirements.txt",
+          "chunk_index": 3,
+          "section": "General Customs",
+          "document_type": "txt",
+          "strategy": "paragraph",
+          "page": "1",
+          "embedding_id": "embedding_003"
+        },
+        "embedding_model": "text-embedding-3-small",
+        "document_id": "customs_requirements_paragraph_003"
+      },
+      {
+        "rank": 2,
+        "similarity_score": 0.0412,
+        "vector_score": 0.0412,
+        "chunk_text": "[Page 1]\nImport and export shipments must comply with applicable customs procedures and destination-specific requirements.\nCross-border trade operations require accurate origin declaration, manifest validation, and statutory duty assessment\ntimelines.\nStandard Incoterms 2020 define the division of costs and risks between buyer and seller:\n- FOB (Free On Board): The seller delivers goods on board the vessel nominated by the buyer at the port of shipment.\nThe buyer bears all costs and risks from that point forward.\n- CIF (Cost, Insurance, and Freight): The seller delivers goods on board the vessel and pays freight and minimum\ninsurance coverage to the destination port.\n- DDP (Delivered Duty Paid): The seller fulfills the obligation to deliver when goods are placed at the disposal of the\nbuyer, cleared for import on arriving transport means.\nUpon arrival at the destination port of entry, shipments are presented for formal customs examination. The electronic Bill\nof Entry is assessed against the official customs tariff schedule. Duty payments (including Basic Customs Duty, Social\nWelfare Surcharge, and Integrated GST) must be settled before out-of-charge clearance is granted by customs\nauthorities.",
+        "source": "international_shipping_guide.pdf",
+        "chunk_index": 1,
+        "section": "General Customs",
+        "metadata": {
+          "source": "international_shipping_guide.pdf",
+          "chunk_index": 1,
+          "section": "General Customs",
+          "document_type": "pdf",
+          "strategy": "paragraph",
+          "page": "1",
+          "embedding_id": "embedding_004"
+        },
+        "embedding_model": "text-embedding-3-small",
+        "document_id": "international_shipping_guide_paragraph_001"
+      },
+      {
+        "rank": 3,
+        "similarity_score": 0.02,
+        "vector_score": 0.02,
+        "chunk_text": "All international shipments must include accurate shipping documentation. Required documents may include a commercial invoice and packing list, certificate of origin, and transport documents such as a bill of lading or air waybill.",
+        "source": "shipping_rules.txt",
+        "chunk_index": 1,
+        "section": "General Customs",
+        "metadata": {
+          "source": "shipping_rules.txt",
+          "chunk_index": 1,
+          "section": "General Customs",
+          "document_type": "txt",
+          "strategy": "paragraph",
+          "page": "1",
+          "embedding_id": "embedding_005"
+        },
+        "embedding_model": "text-embedding-3-small",
+        "document_id": "shipping_rules_paragraph_001"
+      }
+    ],
+    "filtered": [
+      {
+        "rank": 1,
+        "similarity_score": 0.0653,
+        "vector_score": 0.0653,
+        "chunk_text": "Certain regulated product categories—including information technology hardware, telecommunications equipment, medical devices, and chemicals—require mandatory statutory registrations prior to customs assessment. In particular, IT electronics require Bureau of Indian Standards (BIS) Compulsory Registration Scheme (CRS) compliance, and wireless radio frequency modules require Equipment Type Approval (ETA).",
+        "source": "customs_requirements.txt",
+        "chunk_index": 3,
+        "section": "General Customs",
+        "metadata": {
+          "source": "customs_requirements.txt",
+          "chunk_index": 3,
+          "section": "General Customs",
+          "document_type": "txt",
+          "strategy": "paragraph",
+          "page": "1",
+          "embedding_id": "embedding_003"
+        },
+        "embedding_model": "text-embedding-3-small",
+        "document_id": "customs_requirements_paragraph_003"
+      },
+      {
+        "rank": 2,
+        "similarity_score": 0.0056,
+        "vector_score": 0.0056,
+        "chunk_text": "Customs duties may vary according to the product type, declared value, country of origin, and destination country. Every imported commodity is classified under a specific Harmonized System (HS) code that dictates the applicable Basic Customs Duty (BCD), national goods and services taxes, and auxiliary cess charges.",
+        "source": "customs_requirements.txt",
+        "chunk_index": 1,
+        "section": "General Customs",
+        "metadata": {
+          "source": "customs_requirements.txt",
+          "chunk_index": 1,
+          "section": "General Customs",
+          "document_type": "txt",
+          "strategy": "paragraph",
+          "page": "1",
+          "embedding_id": "embedding_001"
+        },
+        "embedding_model": "text-embedding-3-small",
+        "document_id": "customs_requirements_paragraph_001"
+      },
+      {
+        "rank": 3,
+        "similarity_score": -0.0237,
+        "vector_score": -0.0237,
+        "chunk_text": "Preferential tariff rates may be granted if the shipment is accompanied by a valid Certificate of Origin under a Bilateral or Multilateral Free Trade Agreement (FTA). Importers must ensure that the country of origin criteria and value addition thresholds are strictly satisfied.",
+        "source": "customs_requirements.txt",
+        "chunk_index": 2,
+        "section": "General Customs",
+        "metadata": {
+          "source": "customs_requirements.txt",
+          "chunk_index": 2,
+          "section": "General Customs",
+          "document_type": "txt",
+          "strategy": "paragraph",
+          "page": "1",
+          "embedding_id": "embedding_002"
+        },
+        "embedding_model": "text-embedding-3-small",
+        "document_id": "customs_requirements_paragraph_002"
+      }
+    ]
+  },
+  "hybrid_demo": {
+    "query": "What are the password reset steps?",
+    "keywords": [
+      "password",
+      "reset"
+    ],
+    "results": [
+      {
+        "rank": 1,
+        "vector_score": 0.0653,
+        "similarity_score": 0.0653,
+        "keyword_score": 0.0,
+        "hybrid_score": 0.0522,
+        "chunk_text": "Certain regulated product categories—including information technology hardware, telecommunications equipment, medical devices, and chemicals—require mandatory statutory registrations prior to customs assessment. In particular, IT electronics require Bureau of Indian Standards (BIS) Compulsory Registration Scheme (CRS) compliance, and wireless radio frequency modules require Equipment Type Approval (ETA).",
+        "source": "customs_requirements.txt",
+        "chunk_index": 3,
+        "section": "General Customs",
+        "metadata": {
+          "source": "customs_requirements.txt",
+          "chunk_index": 3,
+          "section": "General Customs",
+          "document_type": "txt",
+          "strategy": "paragraph",
+          "page": "1",
+          "embedding_id": "embedding_003"
+        },
+        "embedding_model": "text-embedding-3-small",
+        "document_id": "customs_requirements_paragraph_003"
+      },
+      {
+        "rank": 2,
+        "vector_score": 0.0412,
+        "similarity_score": 0.0412,
+        "keyword_score": 0.0,
+        "hybrid_score": 0.033,
+        "chunk_text": "[Page 1]\nImport and export shipments must comply with applicable customs procedures and destination-specific requirements.\nCross-border trade operations require accurate origin declaration, manifest validation, and statutory duty assessment\ntimelines.\nStandard Incoterms 2020 define the division of costs and risks between buyer and seller:\n- FOB (Free On Board): The seller delivers goods on board the vessel nominated by the buyer at the port of shipment.\nThe buyer bears all costs and risks from that point forward.\n- CIF (Cost, Insurance, and Freight): The seller delivers goods on board the vessel and pays freight and minimum\ninsurance coverage to the destination port.\n- DDP (Delivered Duty Paid): The seller fulfills the obligation to deliver when goods are placed at the disposal of the\nbuyer, cleared for import on arriving transport means.\nUpon arrival at the destination port of entry, shipments are presented for formal customs examination. The electronic Bill\nof Entry is assessed against the official customs tariff schedule. Duty payments (including Basic Customs Duty, Social\nWelfare Surcharge, and Integrated GST) must be settled before out-of-charge clearance is granted by customs\nauthorities.",
+        "source": "international_shipping_guide.pdf",
+        "chunk_index": 1,
+        "section": "General Customs",
+        "metadata": {
+          "source": "international_shipping_guide.pdf",
+          "chunk_index": 1,
+          "section": "General Customs",
+          "document_type": "pdf",
+          "strategy": "paragraph",
+          "page": "1",
+          "embedding_id": "embedding_004"
+        },
+        "embedding_model": "text-embedding-3-small",
+        "document_id": "international_shipping_guide_paragraph_001"
+      },
+      {
+        "rank": 3,
+        "vector_score": 0.02,
+        "similarity_score": 0.02,
+        "keyword_score": 0.0,
+        "hybrid_score": 0.016,
+        "chunk_text": "All international shipments must include accurate shipping documentation. Required documents may include a commercial invoice and packing list, certificate of origin, and transport documents such as a bill of lading or air waybill.",
+        "source": "shipping_rules.txt",
+        "chunk_index": 1,
+        "section": "General Customs",
+        "metadata": {
+          "source": "shipping_rules.txt",
+          "chunk_index": 1,
+          "section": "General Customs",
+          "document_type": "txt",
+          "strategy": "paragraph",
+          "page": "1",
+          "embedding_id": "embedding_005"
+        },
+        "embedding_model": "text-embedding-3-small",
+        "document_id": "shipping_rules_paragraph_001"
+      }
+    ]
+  },
+  "exact_match_demo": [
+    {
+      "query": "What import document and BIS Registration Certificate are needed for laptops in India?",
+      "keywords": [
+        "BIS",
+        "registration",
+        "laptops",
+        "India"
+      ],
+      "filter": {
+        "source": "customs_requirements.txt"
+      },
+      "vector_only": [
+        {
+          "rank": 1,
+          "similarity_score": 0.6126,
+          "vector_score": 0.6126,
+          "chunk_text": "Certain regulated product categories—including information technology hardware, telecommunications equipment, medical devices, and chemicals—require mandatory statutory registrations prior to customs assessment. In particular, IT electronics require Bureau of Indian Standards (BIS) Compulsory Registration Scheme (CRS) compliance, and wireless radio frequency modules require Equipment Type Approval (ETA).",
+          "source": "customs_requirements.txt",
+          "chunk_index": 3,
+          "section": "General Customs",
+          "metadata": {
+            "source": "customs_requirements.txt",
+            "chunk_index": 3,
+            "section": "General Customs",
+            "document_type": "txt",
+            "strategy": "paragraph",
+            "page": "1",
+            "embedding_id": "embedding_003"
+          },
+          "embedding_model": "text-embedding-3-small",
+          "document_id": "customs_requirements_paragraph_003"
+        },
+        {
+          "rank": 2,
+          "similarity_score": 0.3496,
+          "vector_score": 0.3496,
+          "chunk_text": "All international shipments must include accurate shipping documentation. Required documents may include a commercial invoice and packing list, certificate of origin, and transport documents such as a bill of lading or air waybill.",
+          "source": "shipping_rules.txt",
+          "chunk_index": 1,
+          "section": "General Customs",
+          "metadata": {
+            "source": "shipping_rules.txt",
+            "chunk_index": 1,
+            "section": "General Customs",
+            "document_type": "txt",
+            "strategy": "paragraph",
+            "page": "1",
+            "embedding_id": "embedding_005"
+          },
+          "embedding_model": "text-embedding-3-small",
+          "document_id": "shipping_rules_paragraph_001"
+        },
+        {
+          "rank": 3,
+          "similarity_score": 0.3288,
+          "vector_score": 0.3288,
+          "chunk_text": "[Page 1]\nImport and export shipments must comply with applicable customs procedures and destination-specific requirements.\nCross-border trade operations require accurate origin declaration, manifest validation, and statutory duty assessment\ntimelines.\nStandard Incoterms 2020 define the division of costs and risks between buyer and seller:\n- FOB (Free On Board): The seller delivers goods on board the vessel nominated by the buyer at the port of shipment.\nThe buyer bears all costs and risks from that point forward.\n- CIF (Cost, Insurance, and Freight): The seller delivers goods on board the vessel and pays freight and minimum\ninsurance coverage to the destination port.\n- DDP (Delivered Duty Paid): The seller fulfills the obligation to deliver when goods are placed at the disposal of the\nbuyer, cleared for import on arriving transport means.\nUpon arrival at the destination port of entry, shipments are presented for formal customs examination. The electronic Bill\nof Entry is assessed against the official customs tariff schedule. Duty payments (including Basic Customs Duty, Social\nWelfare Surcharge, and Integrated GST) must be settled before out-of-charge clearance is granted by customs\nauthorities.",
+          "source": "international_shipping_guide.pdf",
+          "chunk_index": 1,
+          "section": "General Customs",
+          "metadata": {
+            "source": "international_shipping_guide.pdf",
+            "chunk_index": 1,
+            "section": "General Customs",
+            "document_type": "pdf",
+            "strategy": "paragraph",
+            "page": "1",
+            "embedding_id": "embedding_004"
+          },
+          "embedding_model": "text-embedding-3-small",
+          "document_id": "international_shipping_guide_paragraph_001"
+        }
+      ],
+      "vector_filtered": [
+        {
+          "rank": 1,
+          "similarity_score": 0.6126,
+          "vector_score": 0.6126,
+          "chunk_text": "Certain regulated product categories—including information technology hardware, telecommunications equipment, medical devices, and chemicals—require mandatory statutory registrations prior to customs assessment. In particular, IT electronics require Bureau of Indian Standards (BIS) Compulsory Registration Scheme (CRS) compliance, and wireless radio frequency modules require Equipment Type Approval (ETA).",
+          "source": "customs_requirements.txt",
+          "chunk_index": 3,
+          "section": "General Customs",
+          "metadata": {
+            "source": "customs_requirements.txt",
+            "chunk_index": 3,
+            "section": "General Customs",
+            "document_type": "txt",
+            "strategy": "paragraph",
+            "page": "1",
+            "embedding_id": "embedding_003"
+          },
+          "embedding_model": "text-embedding-3-small",
+          "document_id": "customs_requirements_paragraph_003"
+        },
+        {
+          "rank": 2,
+          "similarity_score": 0.2964,
+          "vector_score": 0.2964,
+          "chunk_text": "Preferential tariff rates may be granted if the shipment is accompanied by a valid Certificate of Origin under a Bilateral or Multilateral Free Trade Agreement (FTA). Importers must ensure that the country of origin criteria and value addition thresholds are strictly satisfied.",
+          "source": "customs_requirements.txt",
+          "chunk_index": 2,
+          "section": "General Customs",
+          "metadata": {
+            "source": "customs_requirements.txt",
+            "chunk_index": 2,
+            "section": "General Customs",
+            "document_type": "txt",
+            "strategy": "paragraph",
+            "page": "1",
+            "embedding_id": "embedding_002"
+          },
+          "embedding_model": "text-embedding-3-small",
+          "document_id": "customs_requirements_paragraph_002"
+        },
+        {
+          "rank": 3,
+          "similarity_score": 0.2595,
+          "vector_score": 0.2595,
+          "chunk_text": "Customs duties may vary according to the product type, declared value, country of origin, and destination country. Every imported commodity is classified under a specific Harmonized System (HS) code that dictates the applicable Basic Customs Duty (BCD), national goods and services taxes, and auxiliary cess charges.",
+          "source": "customs_requirements.txt",
+          "chunk_index": 1,
+          "section": "General Customs",
+          "metadata": {
+            "source": "customs_requirements.txt",
+            "chunk_index": 1,
+            "section": "General Customs",
+            "document_type": "txt",
+            "strategy": "paragraph",
+            "page": "1",
+            "embedding_id": "embedding_001"
+          },
+          "embedding_model": "text-embedding-3-small",
+          "document_id": "customs_requirements_paragraph_001"
+        }
+      ],
+      "hybrid_results": [
+        {
+          "rank": 1,
+          "vector_score": 0.6126,
+          "similarity_score": 0.6126,
+          "keyword_score": 0.75,
+          "hybrid_score": 0.6401,
+          "chunk_text": "Certain regulated product categories—including information technology hardware, telecommunications equipment, medical devices, and chemicals—require mandatory statutory registrations prior to customs assessment. In particular, IT electronics require Bureau of Indian Standards (BIS) Compulsory Registration Scheme (CRS) compliance, and wireless radio frequency modules require Equipment Type Approval (ETA).",
+          "source": "customs_requirements.txt",
+          "chunk_index": 3,
+          "section": "General Customs",
+          "metadata": {
+            "source": "customs_requirements.txt",
+            "chunk_index": 3,
+            "section": "General Customs",
+            "document_type": "txt",
+            "strategy": "paragraph",
+            "page": "1",
+            "embedding_id": "embedding_003"
+          },
+          "embedding_model": "text-embedding-3-small",
+          "document_id": "customs_requirements_paragraph_003"
+        },
+        {
+          "rank": 2,
+          "vector_score": 0.2964,
+          "similarity_score": 0.2964,
+          "keyword_score": 0.0,
+          "hybrid_score": 0.2371,
+          "chunk_text": "Preferential tariff rates may be granted if the shipment is accompanied by a valid Certificate of Origin under a Bilateral or Multilateral Free Trade Agreement (FTA). Importers must ensure that the country of origin criteria and value addition thresholds are strictly satisfied.",
+          "source": "customs_requirements.txt",
+          "chunk_index": 2,
+          "section": "General Customs",
+          "metadata": {
+            "source": "customs_requirements.txt",
+            "chunk_index": 2,
+            "section": "General Customs",
+            "document_type": "txt",
+            "strategy": "paragraph",
+            "page": "1",
+            "embedding_id": "embedding_002"
+          },
+          "embedding_model": "text-embedding-3-small",
+          "document_id": "customs_requirements_paragraph_002"
+        },
+        {
+          "rank": 3,
+          "vector_score": 0.2595,
+          "similarity_score": 0.2595,
+          "keyword_score": 0.0,
+          "hybrid_score": 0.2076,
+          "chunk_text": "Customs duties may vary according to the product type, declared value, country of origin, and destination country. Every imported commodity is classified under a specific Harmonized System (HS) code that dictates the applicable Basic Customs Duty (BCD), national goods and services taxes, and auxiliary cess charges.",
+          "source": "customs_requirements.txt",
+          "chunk_index": 1,
+          "section": "General Customs",
+          "metadata": {
+            "source": "customs_requirements.txt",
+            "chunk_index": 1,
+            "section": "General Customs",
+            "document_type": "txt",
+            "strategy": "paragraph",
+            "page": "1",
+            "embedding_id": "embedding_001"
+          },
+          "embedding_model": "text-embedding-3-small",
+          "document_id": "customs_requirements_paragraph_001"
+        }
+      ]
+    },
+    {
+      "query": "Explain Incoterms 2020 FOB and CIF terms for shipping",
+      "keywords": [
+        "Incoterms",
+        "FOB",
+        "CIF"
+      ],
+      "filter": {
+        "document_type": "pdf"
+      },
+      "vector_only": [
+        {
+          "rank": 1,
+          "similarity_score": 0.633,
+          "vector_score": 0.633,
+          "chunk_text": "[Page 1]\nImport and export shipments must comply with applicable customs procedures and destination-specific requirements.\nCross-border trade operations require accurate origin declaration, manifest validation, and statutory duty assessment\ntimelines.\nStandard Incoterms 2020 define the division of costs and risks between buyer and seller:\n- FOB (Free On Board): The seller delivers goods on board the vessel nominated by the buyer at the port of shipment.\nThe buyer bears all costs and risks from that point forward.\n- CIF (Cost, Insurance, and Freight): The seller delivers goods on board the vessel and pays freight and minimum\ninsurance coverage to the destination port.\n- DDP (Delivered Duty Paid): The seller fulfills the obligation to deliver when goods are placed at the disposal of the\nbuyer, cleared for import on arriving transport means.\nUpon arrival at the destination port of entry, shipments are presented for formal customs examination. The electronic Bill\nof Entry is assessed against the official customs tariff schedule. Duty payments (including Basic Customs Duty, Social\nWelfare Surcharge, and Integrated GST) must be settled before out-of-charge clearance is granted by customs\nauthorities.",
+          "source": "international_shipping_guide.pdf",
+          "chunk_index": 1,
+          "section": "General Customs",
+          "metadata": {
+            "source": "international_shipping_guide.pdf",
+            "chunk_index": 1,
+            "section": "General Customs",
+            "document_type": "pdf",
+            "strategy": "paragraph",
+            "page": "1",
+            "embedding_id": "embedding_004"
+          },
+          "embedding_model": "text-embedding-3-small",
+          "document_id": "international_shipping_guide_paragraph_001"
+        },
+        {
+          "rank": 2,
+          "similarity_score": 0.4074,
+          "vector_score": 0.4074,
+          "chunk_text": "Preferential tariff rates may be granted if the shipment is accompanied by a valid Certificate of Origin under a Bilateral or Multilateral Free Trade Agreement (FTA). Importers must ensure that the country of origin criteria and value addition thresholds are strictly satisfied.",
+          "source": "customs_requirements.txt",
+          "chunk_index": 2,
+          "section": "General Customs",
+          "metadata": {
+            "source": "customs_requirements.txt",
+            "chunk_index": 2,
+            "section": "General Customs",
+            "document_type": "txt",
+            "strategy": "paragraph",
+            "page": "1",
+            "embedding_id": "embedding_002"
+          },
+          "embedding_model": "text-embedding-3-small",
+          "document_id": "customs_requirements_paragraph_002"
+        },
+        {
+          "rank": 3,
+          "similarity_score": 0.3451,
+          "vector_score": 0.3451,
+          "chunk_text": "Customs duties may vary according to the product type, declared value, country of origin, and destination country. Every imported commodity is classified under a specific Harmonized System (HS) code that dictates the applicable Basic Customs Duty (BCD), national goods and services taxes, and auxiliary cess charges.",
+          "source": "customs_requirements.txt",
+          "chunk_index": 1,
+          "section": "General Customs",
+          "metadata": {
+            "source": "customs_requirements.txt",
+            "chunk_index": 1,
+            "section": "General Customs",
+            "document_type": "txt",
+            "strategy": "paragraph",
+            "page": "1",
+            "embedding_id": "embedding_001"
+          },
+          "embedding_model": "text-embedding-3-small",
+          "document_id": "customs_requirements_paragraph_001"
+        }
+      ],
+      "vector_filtered": [
+        {
+          "rank": 1,
+          "similarity_score": 0.633,
+          "vector_score": 0.633,
+          "chunk_text": "[Page 1]\nImport and export shipments must comply with applicable customs procedures and destination-specific requirements.\nCross-border trade operations require accurate origin declaration, manifest validation, and statutory duty assessment\ntimelines.\nStandard Incoterms 2020 define the division of costs and risks between buyer and seller:\n- FOB (Free On Board): The seller delivers goods on board the vessel nominated by the buyer at the port of shipment.\nThe buyer bears all costs and risks from that point forward.\n- CIF (Cost, Insurance, and Freight): The seller delivers goods on board the vessel and pays freight and minimum\ninsurance coverage to the destination port.\n- DDP (Delivered Duty Paid): The seller fulfills the obligation to deliver when goods are placed at the disposal of the\nbuyer, cleared for import on arriving transport means.\nUpon arrival at the destination port of entry, shipments are presented for formal customs examination. The electronic Bill\nof Entry is assessed against the official customs tariff schedule. Duty payments (including Basic Customs Duty, Social\nWelfare Surcharge, and Integrated GST) must be settled before out-of-charge clearance is granted by customs\nauthorities.",
+          "source": "international_shipping_guide.pdf",
+          "chunk_index": 1,
+          "section": "General Customs",
+          "metadata": {
+            "source": "international_shipping_guide.pdf",
+            "chunk_index": 1,
+            "section": "General Customs",
+            "document_type": "pdf",
+            "strategy": "paragraph",
+            "page": "1",
+            "embedding_id": "embedding_004"
+          },
+          "embedding_model": "text-embedding-3-small",
+          "document_id": "international_shipping_guide_paragraph_001"
+        }
+      ],
+      "hybrid_results": [
+        {
+          "rank": 1,
+          "vector_score": 0.633,
+          "similarity_score": 0.633,
+          "keyword_score": 1.0,
+          "hybrid_score": 0.7064,
+          "chunk_text": "[Page 1]\nImport and export shipments must comply with applicable customs procedures and destination-specific requirements.\nCross-border trade operations require accurate origin declaration, manifest validation, and statutory duty assessment\ntimelines.\nStandard Incoterms 2020 define the division of costs and risks between buyer and seller:\n- FOB (Free On Board): The seller delivers goods on board the vessel nominated by the buyer at the port of shipment.\nThe buyer bears all costs and risks from that point forward.\n- CIF (Cost, Insurance, and Freight): The seller delivers goods on board the vessel and pays freight and minimum\ninsurance coverage to the destination port.\n- DDP (Delivered Duty Paid): The seller fulfills the obligation to deliver when goods are placed at the disposal of the\nbuyer, cleared for import on arriving transport means.\nUpon arrival at the destination port of entry, shipments are presented for formal customs examination. The electronic Bill\nof Entry is assessed against the official customs tariff schedule. Duty payments (including Basic Customs Duty, Social\nWelfare Surcharge, and Integrated GST) must be settled before out-of-charge clearance is granted by customs\nauthorities.",
+          "source": "international_shipping_guide.pdf",
+          "chunk_index": 1,
+          "section": "General Customs",
+          "metadata": {
+            "source": "international_shipping_guide.pdf",
+            "chunk_index": 1,
+            "section": "General Customs",
+            "document_type": "pdf",
+            "strategy": "paragraph",
+            "page": "1",
+            "embedding_id": "embedding_004"
+          },
+          "embedding_model": "text-embedding-3-small",
+          "document_id": "international_shipping_guide_paragraph_001"
+        }
+      ]
+    }
+  ]
+}

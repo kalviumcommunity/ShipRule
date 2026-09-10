@@ -1,0 +1,1 @@
+Special Customs Requirement: Shipments containing UNIQUE_CUSTOMS_RULE_2d21e6 require Certificate XYZ-99.

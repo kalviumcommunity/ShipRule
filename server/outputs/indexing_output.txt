@@ -1,0 +1,16 @@
+==========================================================================
+ SHIPRULE CDLP - INDEXING EMBEDDINGS & METADATA STORAGE REPORT (KDU 3.31)
+==========================================================================
+Expected Chunks  : 3
+Inserted This Run: 3
+Indexed Count    : 3
+Count Validated  : True
+Failures         : []
+--------------------------------------------------------------------------
+SPOT-CHECK INTEGRITY READBACK:
+  Passed         : True
+  Sample Record ID: CDLP-IN-8471-01
+  Source Document: customs_reg_india.json
+  Vector Dim     : 384
+  Text Preview   : Customs Record India HS Code 8471.30 (Laptops): BCD 7.5%, SWS 10%. Documents: Commercial Invoice, BIS Registration, DGFT
+==========================================================================

@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-09-10T08:09:49.505056+00:00",
+  "embedding_model": "text-embedding-3-small",
+  "statistics": {
+    "chunks_selected": 5,
+    "chunks_successfully_embedded": 5,
+    "failed_embeddings": 0,
+    "vector_dimension": 384
+  },
+  "validation": {
+    "status": "PASSED",
+    "is_dimension_consistent": true,
+    "validation_errors": []
+  },
+  "output_files": {
+    "embedded_chunks": "outputs/embedded_chunks.json",
+    "embedding_report": "outputs/embedding_report.json",
+    "sample_embedding_output": "outputs/sample_embedding_output.json"
+  }
+}

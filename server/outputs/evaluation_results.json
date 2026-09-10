@@ -1,0 +1,164 @@
+{
+  "labelled_queries_count": 5,
+  "total_corpus_chunks": 5,
+  "strategy_comparison": {
+    "vector": {
+      "strategy": "vector",
+      "k_values": [
+        1,
+        3,
+        5,
+        10
+      ],
+      "metrics_by_k": {
+        "1": {
+          "k": 1,
+          "recall": 1.0,
+          "recall_pct": 100.0,
+          "precision": 1.0,
+          "precision_pct": 100.0,
+          "mrr": 1.0,
+          "successful_queries": 5,
+          "failed_queries": 0
+        },
+        "3": {
+          "k": 3,
+          "recall": 1.0,
+          "recall_pct": 100.0,
+          "precision": 0.5333,
+          "precision_pct": 53.33,
+          "mrr": 1.0,
+          "successful_queries": 5,
+          "failed_queries": 0
+        },
+        "5": {
+          "k": 5,
+          "recall": 1.0,
+          "recall_pct": 100.0,
+          "precision": 0.44,
+          "precision_pct": 44.0,
+          "mrr": 1.0,
+          "successful_queries": 5,
+          "failed_queries": 0
+        },
+        "10": {
+          "k": 10,
+          "recall": 1.0,
+          "recall_pct": 100.0,
+          "precision": 0.44,
+          "precision_pct": 44.0,
+          "mrr": 1.0,
+          "successful_queries": 5,
+          "failed_queries": 0
+        }
+      }
+    },
+    "hybrid": {
+      "strategy": "hybrid",
+      "k_values": [
+        1,
+        3,
+        5,
+        10
+      ],
+      "metrics_by_k": {
+        "1": {
+          "k": 1,
+          "recall": 1.0,
+          "recall_pct": 100.0,
+          "precision": 1.0,
+          "precision_pct": 100.0,
+          "mrr": 1.0,
+          "successful_queries": 5,
+          "failed_queries": 0
+        },
+        "3": {
+          "k": 3,
+          "recall": 1.0,
+          "recall_pct": 100.0,
+          "precision": 0.5333,
+          "precision_pct": 53.33,
+          "mrr": 1.0,
+          "successful_queries": 5,
+          "failed_queries": 0
+        },
+        "5": {
+          "k": 5,
+          "recall": 1.0,
+          "recall_pct": 100.0,
+          "precision": 0.44,
+          "precision_pct": 44.0,
+          "mrr": 1.0,
+          "successful_queries": 5,
+          "failed_queries": 0
+        },
+        "10": {
+          "k": 10,
+          "recall": 1.0,
+          "recall_pct": 100.0,
+          "precision": 0.44,
+          "precision_pct": 44.0,
+          "mrr": 1.0,
+          "successful_queries": 5,
+          "failed_queries": 0
+        }
+      }
+    },
+    "reranked": {
+      "strategy": "reranked",
+      "k_values": [
+        1,
+        3,
+        5,
+        10
+      ],
+      "metrics_by_k": {
+        "1": {
+          "k": 1,
+          "recall": 1.0,
+          "recall_pct": 100.0,
+          "precision": 1.0,
+          "precision_pct": 100.0,
+          "mrr": 1.0,
+          "successful_queries": 5,
+          "failed_queries": 0
+        },
+        "3": {
+          "k": 3,
+          "recall": 1.0,
+          "recall_pct": 100.0,
+          "precision": 0.5333,
+          "precision_pct": 53.33,
+          "mrr": 1.0,
+          "successful_queries": 5,
+          "failed_queries": 0
+        },
+        "5": {
+          "k": 5,
+          "recall": 1.0,
+          "recall_pct": 100.0,
+          "precision": 0.44,
+          "precision_pct": 44.0,
+          "mrr": 1.0,
+          "successful_queries": 5,
+          "failed_queries": 0
+        },
+        "10": {
+          "k": 10,
+          "recall": 1.0,
+          "recall_pct": 100.0,
+          "precision": 0.44,
+          "precision_pct": 44.0,
+          "mrr": 1.0,
+          "successful_queries": 5,
+          "failed_queries": 0
+        }
+      }
+    }
+  },
+  "k1_failures": [],
+  "recommendations": [
+    "Use candidate_k=10, final_k=3 Re-Ranked Hybrid Search for LLM prompt context construction.",
+    "Maintain Top-K=3 context limit to prevent prompt bloat while achieving 100% Recall."
+  ]
+}

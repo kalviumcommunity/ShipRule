@@ -1,0 +1,17 @@
+{
+  "indexing_summary": {
+    "expected_chunks": 3,
+    "inserted_this_run": 3,
+    "indexed_count": 3,
+    "failures": [],
+    "count_matched": true
+  },
+  "spot_check": {
+    "spot_check_passed": true,
+    "id": "CDLP-IN-8471-01",
+    "source": "customs_reg_india.json",
+    "text_preview": "Customs Record India HS Code 8471.30 (Laptops): BCD 7.5%, SWS 10%. Documents: Commercial Invoice, BIS Registration, DGFT",
+    "vector_dim": 384
+  },
+  "collection_name": "cdlp_indexing"
+}

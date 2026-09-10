@@ -1,0 +1,1 @@
+Special Customs Requirement: Shipments containing UNIQUE_CUSTOMS_RULE_9711d3 require Certificate XYZ-99.

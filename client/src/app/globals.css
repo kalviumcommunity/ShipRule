@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+:root {
+  --navy-deep: #0B192C;
+  --navy-surface: #0F2537;
+  --navy-card: #162A45;
+  --gold-leaf: #D4AF37;
+  --gold-hover: #C59E2B;
+  --background: #0B192C;
+  --foreground: #F8FAFC;
+}
+
+@theme inline {
+  --color-navy-deep: #0B192C;
+  --color-navy-surface: #0F2537;
+  --color-navy-card: #162A45;
+  --color-gold-leaf: #D4AF37;
+  --color-gold-hover: #C59E2B;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* 12px border-radius standard for cards, buttons, inputs, and badges */
+button, input, textarea, select, .rounded-card, .rounded-badge {
+  border-radius: 12px;
+}
+
