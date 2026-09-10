@@ -46,10 +46,7 @@ class Settings:
     SUPPORTED_EXTENSIONS: set = {".txt", ".md", ".pdf"}
     
     # MongoDB Atlas Database Configuration (Loaded from .env)
-    MONGODB_URI: str = os.getenv(
-        "MONGODB_URI",
-        "mongodb+srv://abhikollepara333:imY1MzMs9ZKcX6ql@cluster0.vmr7w.mongodb.net/Shiprule?retryWrites=true&w=majority&appName=Cluster0"
-    )
+    MONGODB_URI: str = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
     MONGODB_DB_NAME: str = os.getenv("MONGODB_DB_NAME", "Shiprule")
 
     # Authentication & Secrets (Loaded from .env)

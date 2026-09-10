@@ -208,6 +208,50 @@ export const apiService = {
   },
 
   /**
+   * Admin-protected: Fetches registered users list.
+   */
+  async getAdminUsers(): Promise<{ users: Array<import('../types/api').AdminUser> }> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/users`, {
+        headers: getHeaders(),
+        cache: 'no-store',
+      });
+      return await handleResponse<{ users: Array<import('../types/api').AdminUser> }>(res);
+    } catch (err) {
+      console.warn('Failed to fetch admin users:', err);
+      return { users: [] };
+    }
+  },
+
+  /**
+   * Admin-protected: Fetches user analytics and token metrics for a single user.
+   */
+  async getAdminUserDetail(userEmail: string): Promise<import('../types/api').UserAnalytics> {
+    const encoded = encodeURIComponent(userEmail);
+    const res = await fetch(`${API_BASE_URL}/admin/users/detail/${encoded}`, {
+      headers: getHeaders(),
+      cache: 'no-store',
+    });
+    return await handleResponse<import('../types/api').UserAnalytics>(res);
+  },
+
+  /**
+   * Admin-protected: Fetches query activity logs for user monitoring.
+   */
+  async getAdminLogs(limit: number = 50): Promise<{ logs: Array<{ timestamp: string; user_email: string; question: string; status: string; latency_ms: number }> }> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/logs?limit=${limit}`, {
+        headers: getHeaders(),
+        cache: 'no-store',
+      });
+      return await handleResponse<{ logs: Array<{ timestamp: string; user_email: string; question: string; status: string; latency_ms: number }> }>(res);
+    } catch (err) {
+      console.warn('Failed to fetch admin logs:', err);
+      return { logs: [] };
+    }
+  },
+
+  /**
    * Fetches uploaded document list.
    */
   async getDocuments(): Promise<DocumentItem[]> {

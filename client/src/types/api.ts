@@ -84,3 +84,39 @@ export interface AdminSettings {
   chat_model: string;
   collection_name: string;
 }
+
+export interface AdminUser {
+  email: string;
+  full_name?: string;
+  role: string;
+  total_queries?: number;
+  total_tokens?: number;
+  last_active?: string;
+}
+
+export interface UserQueryLog {
+  timestamp: string;
+  user_email: string;
+  question: string;
+  status: string;
+  latency_ms: number;
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  total_tokens?: number;
+}
+
+export interface UserAnalytics {
+  user: AdminUser;
+  metrics: {
+    total_queries: number;
+    total_tokens: number;
+    prompt_tokens: number;
+    completion_tokens: number;
+    avg_latency_ms: number;
+    successful_queries: number;
+    failed_queries: number;
+    last_active: string | null;
+  };
+  logs: UserQueryLog[];
+}
+

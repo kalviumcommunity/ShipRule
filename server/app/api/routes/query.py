@@ -5,7 +5,7 @@ Provides RAG pipeline querying with grounded answers, guardrail evaluation, and 
 """
 
 from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, HTTPException, status as http_status
+from fastapi import APIRouter, HTTPException, Header, status as http_status
 from pydantic import BaseModel, Field
 
 from app.core.logging import logger
@@ -79,12 +79,24 @@ class QueryResponse(BaseModel):
 
 
 @router.post("/query", response_model=QueryResponse, tags=["RAG Pipeline"])
-def query_rag(request: QueryRequest):
+def query_rag(
+    request: QueryRequest,
+    authorization: Optional[str] = Header(None, alias="Authorization")
+):
     """
     Query endpoint that accepts a user question, runs the RAG pipeline,
     and returns a grounded answer with structured source citations.
     """
     logger.info(f"Received API query request: {request.question}")
+
+    # Determine caller user email if token present
+    user_email = "registered_user"
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.split(" ", 1)[1]
+        from app.api.dependencies import decode_access_token
+        payload = decode_access_token(token)
+        if payload and payload.get("email"):
+            user_email = payload["email"]
 
     if not request.question or not request.question.strip():
         raise HTTPException(
@@ -133,10 +145,9 @@ def query_rag(request: QueryRequest):
             ))
 
     guardrail_info = pipeline_result.get("guardrail", {})
-    guardrail_reason = guardrail_info.get("reason") if isinstance(guardrail_info, dict) else None
+    guardrail_reason = guardrail_info.get("reason")
 
-    # Map backend decision state to explicit status codes
-    if guardrail_reason == "security_refusal":
+    if guardrail_decision == "BLOCK" or guardrail_reason in ("jailbreak_attempt", "prompt_injection"):
         status_str = "SECURITY_BLOCKED"
     elif guardrail_reason == "out_of_scope":
         status_str = "OUT_OF_SCOPE"
@@ -147,9 +158,37 @@ def query_rag(request: QueryRequest):
     else:
         status_str = "SUPPORTED"
 
+    timing_info = pipeline_result.get("timing", {})
+    latency_ms = timing_info.get("total_pipeline_time_ms", 0.0)
+
+    token_usage = pipeline_result.get("token_usage", {})
+    prompt_tokens = token_usage.get("prompt_tokens", 0) or token_usage.get("prompt_eval_count", 0)
+    completion_tokens = token_usage.get("completion_tokens", 0) or token_usage.get("eval_count", 0)
+    total_tokens = token_usage.get("total_tokens", 0) or (prompt_tokens + completion_tokens)
+
+    if total_tokens == 0:
+        prompt_tokens = max(10, len(request.question) // 4 + 40)
+        completion_tokens = max(10, len(answer_text) // 4 + 20)
+        total_tokens = prompt_tokens + completion_tokens
+
+    from app.db.mongodb import log_query_activity
+    log_query_activity(
+        question=request.question.strip(),
+        status=status_str,
+        user_email=user_email,
+        latency_ms=latency_ms,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        total_tokens=total_tokens
+    )
+
     metadata_dict = {
-        "token_usage": pipeline_result.get("token_usage", {}),
-        "timing": pipeline_result.get("timing", {}),
+        "token_usage": {
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "total_tokens": total_tokens
+        },
+        "timing": timing_info,
         "guardrail_decision": guardrail_decision
     }
 
