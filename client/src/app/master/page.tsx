@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+
 import {
   Key,
   ShieldCheck,
@@ -13,16 +15,19 @@ import {
   Clock,
   HardDrive,
   RefreshCw,
-  FileType,
   Activity,
   Cpu,
-  Layers,
   Save,
-  Lock
+  Lock,
+  Users,
+  Search,
+  UserCheck,
+  BarChart3,
+  ChevronRight
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { apiService, ApiError } from '@/services/api';
-import { DocumentItem, DocumentUploadResponse, AdminSettings, HealthResponse } from '@/types/api';
+import { DocumentItem, DocumentUploadResponse, AdminSettings, HealthResponse, AdminUser } from '@/types/api';
 import { formatBytes } from '@/lib/utils';
 
 export default function MasterAdminPage() {
@@ -32,7 +37,14 @@ export default function MasterAdminPage() {
   const [authLoading, setAuthLoading] = useState(false);
 
   // Active Admin Tab
-  const [activeTab, setActiveTab] = useState<'overview' | 'documents' | 'settings' | 'status'>('overview');
+  const [activeTab, setActiveTab] = useState<'logs' | 'documents' | 'settings' | 'status'>('logs');
+
+  // User Monitoring & Logs state
+  const [registeredUsers, setRegisteredUsers] = useState<AdminUser[]>([]);
+
+  const [queryLogs, setQueryLogs] = useState<Array<{ timestamp: string; user_email: string; question: string; status: string; latency_ms: number }>>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logSearchQuery, setLogSearchQuery] = useState('');
 
   // Documents state
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
@@ -57,20 +69,26 @@ export default function MasterAdminPage() {
   // Fetch Admin Data
   const loadAdminData = async () => {
     setDocsLoading(true);
+    setLogsLoading(true);
     try {
-      const [docs, settingsRes, healthRes] = await Promise.all([
+      const [docs, settingsRes, healthRes, usersRes, logsRes] = await Promise.all([
         apiService.getDocuments(),
         apiService.getAdminSettings(),
         apiService.checkHealth(),
+        apiService.getAdminUsers(),
+        apiService.getAdminLogs(50),
       ]);
       setDocuments(docs);
       setAdminSettings(settingsRes);
       setTopKInput(settingsRes.default_top_k);
       setHealth(healthRes);
-    } catch (err: any) {
-      // If error occurs
+      setRegisteredUsers(usersRes.users || []);
+      setQueryLogs(logsRes.logs || []);
+    } catch {
+      // Catch network or authorization error gracefully
     } finally {
       setDocsLoading(false);
+      setLogsLoading(false);
     }
   };
 
@@ -92,7 +110,7 @@ export default function MasterAdminPage() {
       if (err instanceof ApiError) {
         setAuthError(err.detail);
       } else {
-        setAuthError('Invalid Master Admin access key');
+        setAuthError('Invalid Master Admin access key.');
       }
     } finally {
       setAuthLoading(false);
@@ -153,42 +171,55 @@ export default function MasterAdminPage() {
     }
   };
 
+  // Filter logs by search query
+  const filteredLogs = queryLogs.filter((log) => {
+    if (!logSearchQuery.trim()) return true;
+    const q = logSearchQuery.toLowerCase();
+    return (
+      (log.question || '').toLowerCase().includes(q) ||
+      (log.user_email || '').toLowerCase().includes(q) ||
+      (log.status || '').toLowerCase().includes(q)
+    );
+  });
+
   // Protected View Check: If not logged in as Admin
   if (role !== 'admin') {
     return (
-      <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center p-4">
+      <div className="w-full min-h-[calc(100vh-5rem)] bg-[#0B192C] flex items-center justify-center p-6 text-slate-100">
         <div className="w-full max-w-md space-y-6">
-          <div className="text-center space-y-2">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-950/80 border border-amber-800/80 text-amber-400 shadow-xl shadow-amber-500/10">
-              <Lock className="h-7 w-7" />
+          
+          {/* Header Branding */}
+          <div className="text-center space-y-2 flex flex-col items-center">
+            <div className="p-3 bg-[#0F2537] border border-[#D4AF37] text-[#D4AF37] rounded-xl shadow-xl mb-1">
+              <Lock className="h-6 w-6" />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">
-              Protected Master Admin Panel
+            <h1 className="text-xl font-black uppercase tracking-tight text-white font-sans">
+              Master Admin Authentication
             </h1>
-            <p className="text-xs text-slate-400">
-              Access to <code className="text-amber-400 font-mono">/master</code> requires Master Admin Access Key authentication.
+            <p className="text-xs text-slate-300 max-w-xs">
+              Enter master key to access user monitoring logs, vector indexes, and Top-K settings.
             </p>
           </div>
 
           {authError && (
-            <div className="flex items-center gap-2.5 rounded-xl border border-rose-900/50 bg-rose-950/30 p-3 text-xs text-rose-300">
+            <div className="flex items-center gap-2.5 border border-rose-800 bg-[#1e1015] p-3 text-xs text-rose-300 rounded-xl">
               <AlertCircle className="h-4 w-4 text-rose-400 flex-shrink-0" />
               <span>{authError}</span>
             </div>
           )}
 
-          <form onSubmit={handleKeyAuth} className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 space-y-4 shadow-xl">
+          <form onSubmit={handleKeyAuth} className="border border-[#D4AF37]/30 bg-[#0F2537] p-6 space-y-4 shadow-xl rounded-xl">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-300">Enter Admin Access Key</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Master Access Key</label>
               <div className="relative">
-                <Key className="absolute left-3.5 top-3 h-4 w-4 text-amber-400" />
+                <Key className="absolute left-3.5 top-3 h-4 w-4 text-[#D4AF37]" />
                 <input
                   type="password"
                   required
                   value={accessKeyInput}
                   onChange={(e) => setAccessKeyInput(e.target.value)}
-                  placeholder="Enter access key"
-                  className="w-full border border-slate-700 bg-[#0B192C] py-2.5 pl-10 pr-4 text-xs text-white placeholder-slate-500 focus:border-[#D4AF37] focus:outline-none font-mono"
+                  placeholder="Enter master key"
+                  className="w-full border border-slate-700 bg-[#0B192C] py-2.5 pl-10 pr-4 text-xs text-white placeholder-slate-500 focus:border-[#D4AF37] focus:outline-none rounded-xl font-mono"
                 />
               </div>
             </div>
@@ -196,9 +227,9 @@ export default function MasterAdminPage() {
             <button
               type="submit"
               disabled={authLoading || !accessKeyInput.trim()}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 py-2.5 text-xs font-semibold text-white hover:from-amber-400 hover:to-orange-500 transition shadow-lg shadow-amber-500/20 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 bg-[#D4AF37] hover:bg-[#C59E2B] py-3 text-xs font-extrabold uppercase tracking-wider text-[#0B192C] transition-all shadow-md disabled:opacity-50 border border-[#D4AF37] rounded-xl"
             >
-              {authLoading ? 'Verifying Key...' : 'Authenticate Admin Session'} <ShieldCheck className="h-4 w-4" />
+              {authLoading ? 'Verifying Key...' : 'Unlock Admin Panel'} <ShieldCheck className="h-4 w-4" />
             </button>
           </form>
         </div>
@@ -207,319 +238,431 @@ export default function MasterAdminPage() {
   }
 
   return (
-    <div className="max-w-6xl space-y-8">
-      {/* Header Banner */}
-      <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-950/30 via-slate-900 to-slate-950 p-6 shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-400 mb-2">
-              <Key className="h-3.5 w-3.5" /> MASTER ADMIN CONTROL PANEL
-            </div>
-            <h1 className="text-2xl font-extrabold text-white">
-              ShipRule Administration & RAG Configuration
-            </h1>
-            <p className="text-xs text-slate-400 mt-1">
-              Upload corpus documents, delete files, configure Top-K retrieval parameters, and inspect vector indexes.
-            </p>
-          </div>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-slate-800/80 pt-4 text-xs font-medium">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 transition ${
-              activeTab === 'overview'
-                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-            }`}
-          >
-            <Activity className="h-4 w-4" /> Overview & Metrics
-          </button>
-          <button
-            onClick={() => setActiveTab('documents')}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 transition ${
-              activeTab === 'documents'
-                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-            }`}
-          >
-            <FileText className="h-4 w-4" /> Document Ingestion ({documents.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('settings')}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 transition ${
-              activeTab === 'settings'
-                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-            }`}
-          >
-            <Sliders className="h-4 w-4" /> Top-K & RAG Settings
-          </button>
-          <button
-            onClick={() => setActiveTab('status')}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 transition ${
-              activeTab === 'status'
-                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-            }`}
-          >
-            <Cpu className="h-4 w-4" /> System Status
-          </button>
-        </div>
-      </div>
-
-      {/* TAB 1: OVERVIEW */}
-      {activeTab === 'overview' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-2">
-              <div className="flex items-center justify-between text-slate-400">
-                <span className="text-xs font-medium">Configured Top-K</span>
-                <Sliders className="h-4 w-4 text-amber-400" />
-              </div>
-              <div className="text-3xl font-bold text-white">
-                {adminSettings?.default_top_k || topKInput} <span className="text-xs text-slate-400 font-normal">chunks</span>
-              </div>
-              <p className="text-[11px] text-slate-500">Default chunks retrieved for queries</p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-2">
-              <div className="flex items-center justify-between text-slate-400">
-                <span className="text-xs font-medium">Corpus Documents</span>
-                <FileText className="h-4 w-4 text-cyan-400" />
-              </div>
-              <div className="text-3xl font-bold text-white">
-                {documents.length} <span className="text-xs text-slate-400 font-normal">files</span>
-              </div>
-              <p className="text-[11px] text-slate-500">Stored in server/uploads/</p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-2">
-              <div className="flex items-center justify-between text-slate-400">
-                <span className="text-xs font-medium">Max Upload Limit</span>
-                <HardDrive className="h-4 w-4 text-blue-400" />
-              </div>
-              <div className="text-3xl font-bold text-white">
-                {adminSettings?.max_upload_size_mb || 10} <span className="text-xs text-slate-400 font-normal">MB</span>
-              </div>
-              <p className="text-[11px] text-slate-500">Supported: .txt, .md, .pdf</p>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 space-y-4">
-            <h3 className="font-semibold text-white flex items-center gap-2">
-              <Layers className="h-4 w-4 text-amber-400" /> Master Admin Capabilities
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-300">
-              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-1">
-                <h4 className="font-semibold text-cyan-300">1. Document Ingestion & Deletion</h4>
-                <p className="text-slate-400 leading-relaxed">
-                  Upload new maritime regulations or delete obsolete policy documents directly from vector store index.
-                </p>
-              </div>
-              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-1">
-                <h4 className="font-semibold text-amber-300">2. Top-K Retrieval Tuning</h4>
-                <p className="text-slate-400 leading-relaxed">
-                  Tune the default candidate context depth (Top-K) passed to context assembler and LLM generator.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 2: DOCUMENTS MANAGEMENT */}
-      {activeTab === 'documents' && (
-        <div className="space-y-6">
-          {/* Upload Area */}
-          <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-900/50 p-6 text-center space-y-4">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-amber-950/60 border border-amber-800 text-amber-400 shadow-md">
-              <UploadCloud className="h-6 w-6" />
-            </div>
+    <div className="w-full min-h-screen bg-[#0B192C] py-12 px-6 lg:px-12 text-slate-100">
+      <div className="max-w-6xl mx-auto space-y-8">
+        
+        {/* Header Banner */}
+        <div className="border border-[#D4AF37]/30 bg-[#0F2537] p-8 shadow-xl rounded-xl space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-[#D4AF37]/20 pb-4">
             <div>
-              <h3 className="font-semibold text-white">Upload New Document to Corpus</h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Supported file types: <strong className="text-slate-300">.txt, .md, .pdf</strong> (Max limit: 10MB)
+              <div className="inline-flex items-center gap-2 border border-[#D4AF37] bg-[#0B192C] px-3 py-1 text-[11px] font-extrabold uppercase tracking-widest text-[#D4AF37] mb-2 rounded-xl">
+                <Key className="h-3.5 w-3.5" /> MASTER ADMIN CONTROL PANEL
+              </div>
+              <h1 className="text-3xl font-black uppercase text-white tracking-tight font-sans">
+                User Activity Monitoring & System Administration
+              </h1>
+              <p className="mt-1 text-xs text-slate-300">
+                Monitor user accounts, inspect live query execution logs, manage document ingestion, and tune RAG parameters.
               </p>
             </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <label className="cursor-pointer rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700">
-                Browse File
-                <input type="file" accept=".txt,.md,.pdf" onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    setSelectedFile(e.target.files[0]);
-                    setUploadError(null);
-                    setUploadSuccess(null);
-                  }
-                }} className="hidden" />
-              </label>
-
-              {selectedFile && (
-                <span className="text-xs text-cyan-300 font-mono bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
-                  {selectedFile.name} ({formatBytes(selectedFile.size)})
-                </span>
-              )}
-
-              <button
-                onClick={handleUpload}
-                disabled={!selectedFile || uploading}
-                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-2 text-xs font-semibold text-white hover:from-amber-400 hover:to-orange-500 disabled:opacity-50 shadow-md"
-              >
-                {uploading ? 'Processing...' : 'Upload & Index'}
-              </button>
-            </div>
-
-            {uploadSuccess && (
-              <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-800 text-xs text-emerald-300 text-left font-mono space-y-1">
-                <p className="font-bold text-emerald-200 flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4" /> Document Indexed Successfully
-                </p>
-                <p>Path: {uploadSuccess.summary.document}</p>
-                <p>Chunks: {uploadSuccess.summary.chunks} | Embedded: {uploadSuccess.summary.indexed}</p>
-              </div>
-            )}
-
-            {uploadError && (
-              <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-900 text-xs text-rose-300 text-left">
-                {uploadError}
-              </div>
-            )}
           </div>
 
-          {/* Delete Status Alert */}
-          {deleteStatus && (
-            <div className="p-3 rounded-xl bg-slate-900 border border-slate-700 text-xs text-cyan-300">
-              {deleteStatus}
-            </div>
-          )}
-
-          {/* Documents Table */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-white flex items-center gap-2">
-                <HardDrive className="h-4 w-4 text-amber-400" />
-                Manage Stored Documents ({documents.length})
-              </h3>
-              <button onClick={loadAdminData} className="text-xs text-slate-400 hover:text-white flex items-center gap-1">
-                <RefreshCw className="h-3.5 w-3.5" /> Refresh
-              </button>
-            </div>
-
-            {docsLoading ? (
-              <div className="py-6 text-center text-xs text-slate-500">Loading documents...</div>
-            ) : documents.length === 0 ? (
-              <div className="py-6 text-center text-xs text-slate-500">No documents found in corpus uploads/ folder.</div>
-            ) : (
-              <div className="divide-y divide-slate-800">
-                {documents.map((doc, idx) => (
-                  <div key={idx} className="flex items-center justify-between py-3 text-xs">
-                    <div className="flex items-center gap-3">
-                      <FileText className="h-4 w-4 text-cyan-400 flex-shrink-0" />
-                      <div>
-                        <h5 className="font-medium text-slate-200">{doc.filename}</h5>
-                        <span className="text-[11px] text-slate-500 font-mono">{doc.stored_filename}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] font-mono text-slate-300 uppercase">
-                        .{doc.document_type}
-                      </span>
-                      <span className="text-slate-400">{formatBytes(doc.size_bytes)}</span>
-                      <button
-                        onClick={() => handleDelete(doc.stored_filename)}
-                        className="flex items-center gap-1 rounded bg-rose-950/60 border border-rose-800/80 px-2.5 py-1 text-[11px] font-medium text-rose-300 hover:bg-rose-900 transition"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" /> Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* TAB 3: RAG SETTINGS (TOP-K) */}
-      {activeTab === 'settings' && (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 space-y-6">
-          <div>
-            <h3 className="font-semibold text-white flex items-center gap-2">
-              <Sliders className="h-5 w-5 text-amber-400" />
-              Configure RAG Retrieval Top-K Parameter
-            </h3>
-            <p className="text-xs text-slate-400 mt-1">
-              Adjust the default number of Top-K context chunks retrieved for user questions.
-            </p>
-          </div>
-
-          {saveSuccess && (
-            <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-800 text-xs text-emerald-300 flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400" /> {saveSuccess}
-            </div>
-          )}
-
-          <div className="rounded-xl border border-slate-800 bg-slate-950 p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-200">Default Top-K Chunks</span>
-              <span className="text-base font-bold text-amber-400 font-mono">{topKInput}</span>
-            </div>
-
-            <input
-              type="range"
-              min={1}
-              max={10}
-              value={topKInput}
-              onChange={(e) => setTopKInput(Number(e.target.value))}
-              className="w-full accent-amber-500 cursor-pointer"
-            />
-            <div className="flex justify-between text-[10px] text-slate-500">
-              <span>1 (Fastest / Concise)</span>
-              <span>5 (Standard)</span>
-              <span>10 (Maximum Context)</span>
-            </div>
-
+          {/* Tab Navigation */}
+          <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-wider">
             <button
-              onClick={handleSaveSettings}
-              disabled={savingSettings}
-              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 px-5 py-2 text-xs font-semibold text-white hover:from-amber-400 hover:to-orange-500 transition shadow-md shadow-amber-500/20 disabled:opacity-50"
+              onClick={() => setActiveTab('logs')}
+              className={`flex items-center gap-2 px-4 py-2.5 transition rounded-xl ${
+                activeTab === 'logs'
+                  ? 'bg-[#D4AF37] text-[#0B192C] font-extrabold shadow-md'
+                  : 'border border-slate-700 bg-[#0B192C] text-slate-300 hover:border-[#D4AF37] hover:text-[#D4AF37]'
+              }`}
             >
-              <Save className="h-4 w-4" /> Save Top-K Parameter
+              <Users className="h-4 w-4" /> Users & Activity Logs
+            </button>
+            <button
+              onClick={() => setActiveTab('documents')}
+              className={`flex items-center gap-2 px-4 py-2.5 transition rounded-xl ${
+                activeTab === 'documents'
+                  ? 'bg-[#D4AF37] text-[#0B192C] font-extrabold shadow-md'
+                  : 'border border-slate-700 bg-[#0B192C] text-slate-300 hover:border-[#D4AF37] hover:text-[#D4AF37]'
+              }`}
+            >
+              <FileText className="h-4 w-4" /> Document Ingestion ({documents.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`flex items-center gap-2 px-4 py-2.5 transition rounded-xl ${
+                activeTab === 'settings'
+                  ? 'bg-[#D4AF37] text-[#0B192C] font-extrabold shadow-md'
+                  : 'border border-slate-700 bg-[#0B192C] text-slate-300 hover:border-[#D4AF37] hover:text-[#D4AF37]'
+              }`}
+            >
+              <Sliders className="h-4 w-4" /> Top-K & RAG Settings
+            </button>
+            <button
+              onClick={() => setActiveTab('status')}
+              className={`flex items-center gap-2 px-4 py-2.5 transition rounded-xl ${
+                activeTab === 'status'
+                  ? 'bg-[#D4AF37] text-[#0B192C] font-extrabold shadow-md'
+                  : 'border border-slate-700 bg-[#0B192C] text-slate-300 hover:border-[#D4AF37] hover:text-[#D4AF37]'
+              }`}
+            >
+              <Cpu className="h-4 w-4" /> System Status
             </button>
           </div>
         </div>
-      )}
 
-      {/* TAB 4: SYSTEM STATUS */}
-      {activeTab === 'status' && (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 space-y-6">
-          <h3 className="font-semibold text-white flex items-center gap-2">
-            <Cpu className="h-5 w-5 text-cyan-400" />
-            Backend Operational Status & Environment
-          </h3>
-
-          {health ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
-              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-2">
-                <span className="text-slate-500 text-[10px] font-sans font-semibold uppercase">API Service</span>
-                <div className="text-slate-200">Name: <strong className="text-cyan-300">{health.service}</strong></div>
-                <div className="text-slate-200">Status: <strong className="text-emerald-400">{health.status}</strong></div>
+        {/* TAB 1: USERS & QUERY LOGS MONITORING */}
+        {activeTab === 'logs' && (
+          <div className="space-y-6">
+            
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="border border-[#D4AF37]/30 bg-[#0F2537] p-6 space-y-2 rounded-xl shadow-md">
+                <div className="flex items-center justify-between text-slate-300">
+                  <span className="text-xs font-bold uppercase tracking-wider">Registered Users</span>
+                  <UserCheck className="h-4 w-4 text-[#D4AF37]" />
+                </div>
+                <div className="text-3xl font-black text-white font-sans">
+                  {registeredUsers.length} <span className="text-xs text-slate-400 font-normal font-mono">accounts</span>
+                </div>
+                <p className="text-[11px] text-slate-400">Stored in MongoDB authentication database</p>
               </div>
 
-              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-2">
-                <span className="text-slate-500 text-[10px] font-sans font-semibold uppercase">Vector Store</span>
-                <div className="text-slate-200">Path: <strong className="text-amber-300">{health.environment.vector_db_path}</strong></div>
-                <div className="text-slate-200">Collection: <strong className="text-slate-300">{health.environment.collection_name}</strong></div>
+              <div className="border border-[#D4AF37]/30 bg-[#0F2537] p-6 space-y-2 rounded-xl shadow-md">
+                <div className="flex items-center justify-between text-slate-300">
+                  <span className="text-xs font-bold uppercase tracking-wider font-sans">Total Queries Executed</span>
+                  <Activity className="h-4 w-4 text-[#D4AF37]" />
+                </div>
+                <div className="text-3xl font-black text-white font-sans">
+                  {queryLogs.length} <span className="text-xs text-slate-400 font-normal font-mono">logged</span>
+                </div>
+                <p className="text-[11px] text-slate-400">Real-time user search & RAG activity</p>
+              </div>
+
+              <div className="border border-[#D4AF37]/30 bg-[#0F2537] p-6 space-y-2 rounded-xl shadow-md">
+                <div className="flex items-center justify-between text-slate-300">
+                  <span className="text-xs font-bold uppercase tracking-wider font-sans">Active Top-K Depth</span>
+                  <Sliders className="h-4 w-4 text-[#D4AF37]" />
+                </div>
+                <div className="text-3xl font-black text-white font-sans">
+                  {adminSettings?.default_top_k || topKInput} <span className="text-xs text-slate-400 font-normal font-mono">chunks</span>
+                </div>
+                <p className="text-[11px] text-slate-400">Retrieval candidate context depth</p>
               </div>
             </div>
-          ) : (
-            <div className="text-xs text-rose-400">Backend status check failed.</div>
-          )}
-        </div>
-      )}
+
+            {/* Registered Users Table */}
+            <div className="border border-[#D4AF37]/30 bg-[#0F2537] p-6 space-y-4 rounded-xl shadow-md">
+              <div className="flex items-center justify-between border-b border-[#D4AF37]/20 pb-3">
+                <h3 className="font-extrabold text-white uppercase text-xs tracking-wider flex items-center gap-2 font-sans">
+                  <Users className="h-4 w-4 text-[#D4AF37]" />
+                  Registered User Accounts ({registeredUsers.length})
+                </h3>
+                <button onClick={loadAdminData} className="text-xs text-slate-300 hover:text-[#D4AF37] flex items-center gap-1 font-bold uppercase">
+                  <RefreshCw className="h-3.5 w-3.5" /> Refresh
+                </button>
+              </div>
+
+              {registeredUsers.length === 0 ? (
+                <p className="text-xs text-slate-400 italic py-4 text-center">No user accounts registered yet.</p>
+              ) : (
+                <div className="divide-y divide-slate-800">
+                  {registeredUsers.map((u, idx) => (
+                    <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between py-3.5 gap-3 text-xs hover:bg-[#0B192C]/50 px-3 rounded-xl transition">
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-xl border border-[#D4AF37]/40 bg-[#0B192C] flex items-center justify-center font-bold text-[#D4AF37] uppercase text-xs shadow-inner">
+                          {u.full_name ? u.full_name[0] : u.email[0]}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-bold text-white font-mono">{u.email}</p>
+                            <span className="px-2 py-0.5 bg-[#0B192C] border border-[#D4AF37]/30 text-[#D4AF37] font-bold text-[9px] uppercase rounded-lg">
+                              {u.role}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-400">{u.full_name || 'Registered User'}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <div className="text-right hidden sm:block">
+                          <p className="text-[11px] font-bold text-slate-200">
+                            {u.total_queries ?? 0} <span className="text-[10px] text-slate-400 font-normal">queries</span>
+                          </p>
+                          <p className="text-[10px] text-[#D4AF37] font-mono">
+                            {(u.total_tokens ?? 0).toLocaleString()} tokens spent
+                          </p>
+                        </div>
+
+                        <Link
+                          href={`/master/${encodeURIComponent(u.email)}`}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0B192C] border border-[#D4AF37]/40 hover:bg-[#D4AF37] text-[#D4AF37] hover:text-[#0B192C] font-bold text-xs rounded-xl transition shadow-sm"
+                        >
+                          <BarChart3 className="h-3.5 w-3.5" />
+                          <span>Monitor Details</span>
+                          <ChevronRight className="h-3.5 w-3.5" />
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+              )}
+            </div>
+
+            {/* User Query Activity Logs Table */}
+            <div className="border border-[#D4AF37]/30 bg-[#0F2537] p-6 space-y-4 rounded-xl shadow-md">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#D4AF37]/20 pb-3">
+                <h3 className="font-extrabold text-white uppercase text-xs tracking-wider flex items-center gap-2 font-sans">
+                  <Activity className="h-4 w-4 text-[#D4AF37]" />
+                  User Query Execution Logs ({filteredLogs.length})
+                </h3>
+
+                {/* Filter Search Input */}
+                <div className="relative max-w-xs w-full">
+                  <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={logSearchQuery}
+                    onChange={(e) => setLogSearchQuery(e.target.value)}
+                    placeholder="Search queries or status..."
+                    className="w-full bg-[#0B192C] border border-slate-700 rounded-xl py-1.5 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:border-[#D4AF37] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {logsLoading ? (
+                <p className="text-xs text-slate-400 font-mono py-6 text-center">Loading activity logs...</p>
+              ) : filteredLogs.length === 0 ? (
+                <p className="text-xs text-slate-400 italic py-6 text-center">No user query logs recorded yet.</p>
+              ) : (
+                <div className="divide-y divide-slate-800">
+                  {filteredLogs.map((log, idx) => (
+                    <div key={idx} className="py-3 space-y-1 text-xs">
+                      <div className="flex flex-wrap items-center justify-between gap-2 font-mono">
+                        <span className="text-slate-400 text-[11px] flex items-center gap-1">
+                          <Clock className="h-3 w-3 text-[#D4AF37]" /> {log.timestamp ? new Date(log.timestamp).toLocaleString() : 'Recent'}
+                        </span>
+                        
+                        <span className={`px-2.5 py-0.5 text-[10px] font-bold uppercase rounded-xl border ${
+                          log.status === 'SUPPORTED'
+                            ? 'bg-emerald-950 border-emerald-700 text-emerald-400'
+                            : log.status === 'OUT_OF_SCOPE'
+                            ? 'bg-amber-950 border-amber-700 text-amber-400'
+                            : 'bg-rose-950 border-rose-700 text-rose-400'
+                        }`}>
+                          {log.status}
+                        </span>
+                      </div>
+
+                      <p className="text-slate-100 font-medium font-sans">&ldquo;{log.question}&rdquo;</p>
+                      
+                      <div className="flex items-center gap-4 text-[11px] text-slate-400 font-mono">
+                        <span>User: <strong className="text-slate-300">{log.user_email || 'Registered User'}</strong></span>
+                        {log.latency_ms > 0 && (
+                          <span>Latency: <strong className="text-[#D4AF37]">{log.latency_ms} ms</strong></span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+          </div>
+        )}
+
+        {/* TAB 2: DOCUMENTS MANAGEMENT */}
+        {activeTab === 'documents' && (
+          <div className="space-y-6">
+            {/* Upload Area */}
+            <div className="border border-dashed border-[#D4AF37]/40 bg-[#0F2537] p-8 text-center space-y-4 rounded-xl shadow-md">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#0B192C] border border-[#D4AF37] text-[#D4AF37] shadow-md">
+                <UploadCloud className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white uppercase text-sm font-sans">Upload New Document to Corpus</h3>
+                <p className="text-xs text-slate-300 mt-1">
+                  Supported formats: <strong className="text-white">.txt, .md, .pdf</strong> (Max file size: 10MB)
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <label className="cursor-pointer rounded-xl border border-slate-700 bg-[#0B192C] px-4 py-2.5 text-xs font-bold text-slate-200 hover:border-[#D4AF37] transition uppercase">
+                  Browse File
+                  <input
+                    type="file"
+                    accept=".txt,.md,.pdf"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setSelectedFile(e.target.files[0]);
+                        setUploadError(null);
+                        setUploadSuccess(null);
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+
+                {selectedFile && (
+                  <span className="text-xs text-[#D4AF37] font-mono bg-[#0B192C] px-3 py-2 rounded-xl border border-[#D4AF37]/40">
+                    {selectedFile.name} ({formatBytes(selectedFile.size)})
+                  </span>
+                )}
+
+                <button
+                  onClick={handleUpload}
+                  disabled={!selectedFile || uploading}
+                  className="flex items-center gap-2 rounded-xl bg-[#D4AF37] hover:bg-[#C59E2B] px-5 py-2.5 text-xs font-extrabold uppercase tracking-wider text-[#0B192C] disabled:opacity-50 shadow-md border border-[#D4AF37]"
+                >
+                  {uploading ? 'Processing & Indexing...' : 'Upload & Index'}
+                </button>
+              </div>
+
+              {uploadSuccess && (
+                <div className="p-4 rounded-xl bg-emerald-950/60 border border-emerald-700 text-xs text-emerald-300 text-left font-mono space-y-1">
+                  <p className="font-bold text-emerald-200 flex items-center gap-1.5 uppercase">
+                    <CheckCircle2 className="h-4 w-4" /> Document Indexed Successfully
+                  </p>
+                  <p>Path: {uploadSuccess.summary.document}</p>
+                  <p>Chunks: {uploadSuccess.summary.chunks} | Embedded: {uploadSuccess.summary.indexed}</p>
+                </div>
+              )}
+
+              {uploadError && (
+                <div className="p-3 rounded-xl bg-rose-950/60 border border-rose-800 text-xs text-rose-300 text-left">
+                  {uploadError}
+                </div>
+              )}
+            </div>
+
+            {/* Delete Status Alert */}
+            {deleteStatus && (
+              <div className="p-3 rounded-xl bg-[#0F2537] border border-[#D4AF37]/50 text-xs text-[#D4AF37] font-mono">
+                {deleteStatus}
+              </div>
+            )}
+
+            {/* Documents Table */}
+            <div className="border border-[#D4AF37]/30 bg-[#0F2537] p-6 space-y-4 rounded-xl shadow-md">
+              <div className="flex items-center justify-between border-b border-[#D4AF37]/20 pb-3">
+                <h3 className="font-extrabold text-white uppercase text-xs tracking-wider flex items-center gap-2 font-sans">
+                  <HardDrive className="h-4 w-4 text-[#D4AF37]" />
+                  Manage Stored Documents ({documents.length})
+                </h3>
+                <button onClick={loadAdminData} className="text-xs text-slate-300 hover:text-[#D4AF37] flex items-center gap-1 font-bold uppercase">
+                  <RefreshCw className="h-3.5 w-3.5" /> Refresh List
+                </button>
+              </div>
+
+              {docsLoading ? (
+                <div className="py-6 text-center text-xs text-slate-400 font-mono">Loading corpus documents...</div>
+              ) : documents.length === 0 ? (
+                <div className="py-6 text-center text-xs text-slate-400">No documents found in uploads corpus directory.</div>
+              ) : (
+                <div className="divide-y divide-slate-800">
+                  {documents.map((doc, idx) => (
+                    <div key={idx} className="flex items-center justify-between py-3 text-xs">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-4 w-4 text-[#D4AF37] flex-shrink-0" />
+                        <div>
+                          <h5 className="font-bold text-slate-100">{doc.filename}</h5>
+                          <span className="text-[11px] text-slate-400 font-mono">{doc.stored_filename}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <span className="rounded-xl border border-slate-700 bg-[#0B192C] px-2.5 py-0.5 text-[10px] font-mono text-slate-300 uppercase">
+                          .{doc.document_type}
+                        </span>
+                        <span className="text-slate-400 font-mono">{formatBytes(doc.size_bytes)}</span>
+                        <button
+                          onClick={() => handleDelete(doc.stored_filename)}
+                          className="flex items-center gap-1 rounded-xl bg-rose-950/80 border border-rose-800 px-3 py-1 text-[11px] font-bold text-rose-300 hover:bg-rose-900 transition uppercase"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" /> Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: RAG SETTINGS (TOP-K) */}
+        {activeTab === 'settings' && (
+          <div className="border border-[#D4AF37]/30 bg-[#0F2537] p-6 space-y-6 rounded-xl shadow-md">
+            <div className="border-b border-[#D4AF37]/20 pb-3">
+              <h3 className="font-extrabold text-white uppercase text-sm tracking-wider flex items-center gap-2 font-sans">
+                <Sliders className="h-4 w-4 text-[#D4AF37]" />
+                Configure RAG Retrieval Top-K Parameter
+              </h3>
+              <p className="text-xs text-slate-300 mt-1">
+                Adjust the default number of Top-K context document chunks retrieved for user queries.
+              </p>
+            </div>
+
+            {saveSuccess && (
+              <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-700 text-xs text-emerald-300 flex items-center gap-2 font-mono">
+                <CheckCircle2 className="h-4 w-4 text-emerald-400" /> {saveSuccess}
+              </div>
+            )}
+
+            <div className="rounded-xl border border-slate-700 bg-[#0B192C] p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-200">Default Top-K Chunks</span>
+                <span className="text-lg font-black text-[#D4AF37] font-mono">{topKInput}</span>
+              </div>
+
+              <input
+                type="range"
+                min={1}
+                max={10}
+                value={topKInput}
+                onChange={(e) => setTopKInput(Number(e.target.value))}
+                className="w-full accent-[#D4AF37] cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                <span>1 (Fastest / Concise)</span>
+                <span>5 (Standard)</span>
+                <span>10 (Maximum Context)</span>
+              </div>
+
+              <button
+                onClick={handleSaveSettings}
+                disabled={savingSettings}
+                className="flex items-center gap-2 rounded-xl bg-[#D4AF37] hover:bg-[#C59E2B] px-5 py-2.5 text-xs font-extrabold uppercase tracking-wider text-[#0B192C] transition-all shadow-md border border-[#D4AF37] disabled:opacity-50"
+              >
+                <Save className="h-4 w-4" /> Save Top-K Parameter
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: SYSTEM STATUS */}
+        {activeTab === 'status' && (
+          <div className="border border-[#D4AF37]/30 bg-[#0F2537] p-6 space-y-6 rounded-xl shadow-md">
+            <div className="border-b border-[#D4AF37]/20 pb-3">
+              <h3 className="font-extrabold text-white uppercase text-sm tracking-wider flex items-center gap-2 font-sans">
+                <Cpu className="h-4 w-4 text-[#D4AF37]" />
+                Backend Operational Status & Environment
+              </h3>
+            </div>
+
+            {health ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+                <div className="p-4 rounded-xl border border-slate-700 bg-[#0B192C] space-y-2">
+                  <span className="text-[#D4AF37] text-[10px] font-sans font-extrabold uppercase tracking-wider">API Service</span>
+                  <div className="text-slate-200">Name: <strong className="text-white">{health.service}</strong></div>
+                  <div className="text-slate-200">Status: <strong className="text-emerald-400 font-bold">{health.status}</strong></div>
+                </div>
+
+                <div className="p-4 rounded-xl border border-slate-700 bg-[#0B192C] space-y-2">
+                  <span className="text-[#D4AF37] text-[10px] font-sans font-extrabold uppercase tracking-wider">Vector Store</span>
+                  <div className="text-slate-200">Path: <strong className="text-slate-300">{health.environment.vector_db_path}</strong></div>
+                  <div className="text-slate-200">Collection: <strong className="text-slate-300">{health.environment.collection_name}</strong></div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-xs text-rose-400 font-mono">Backend status check failed.</div>
+            )}
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }

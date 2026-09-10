@@ -2,7 +2,11 @@
 ShipRule CDLP - API Package Re-exports
 """
 
-from main import app
+try:
+    from main import app
+except ImportError:
+    app = None
+
 from app.core.config import settings
 from app.api.routes.query import QueryRequest, QueryResponse, Source, query_rag
 from app.api.routes.documents import (

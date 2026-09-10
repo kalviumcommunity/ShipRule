@@ -1,0 +1,408 @@
+SHIPRULE
+CUSTOMS DUTY & TARIFF SCHEDULE
+Knowledge Base Document
+
+PURPOSE
+This document provides a structured reference for answering questions about Indian import customs duties and tariff schedules. It covers Basic Customs Duty (BCD), effective/concessional BCD, Social Welfare Surcharge (SWS), Integrated GST (IGST), Anti-Dumping Duty (ADD), and other applicable customs duties.
+
+IMPORTANT
+Customs duty rates are product-specific and can change based on tariff classification, country of origin, importer/end use, effective dates, exemptions, preferential trade agreements, and government notifications.
+
+ShipRule should never assume that one fixed duty rate applies to all products. For an accurate answer, identify the applicable HS/CTH classification and verify the effective tariff/notification.
+
+1. BASIC CUSTOMS DUTY (BCD)
+
+Basic Customs Duty is the primary customs duty applicable to imported goods under the Indian Customs Tariff framework.
+
+BCD is determined primarily by:
+- Indian Customs Tariff Heading (CTH/HS Code)
+- Product description and technical characteristics
+- Applicable tariff item
+- Effective customs notifications
+- Country of origin where preferential treatment applies
+- Eligible exemptions or concessional-rate notifications
+- Date of import
+
+SHIPRULE RULE:
+Always distinguish between the standard tariff BCD rate and the effective BCD rate after applicable exemptions, concessions, or notifications.
+
+Recommended fields:
+- hs_code
+- cth
+- product_description
+- bcd_tariff_rate
+- bcd_effective_rate
+- bcd_notification
+- effective_from
+- effective_to
+- origin_country
+
+2. SOCIAL WELFARE SURCHARGE (SWS)
+
+Social Welfare Surcharge is an additional customs surcharge applicable to specified imports.
+
+SWS should not be treated as a simple percentage of the invoice value. Its calculation base depends on the applicable customs provisions and exclusions.
+
+SHIPRULE RULE:
+Store SWS separately from BCD and calculate it using the legally applicable base.
+
+Recommended fields:
+- sws_rate
+- sws_base_rule
+- sws_exemption
+- sws_notification
+
+3. INTEGRATED GST (IGST) ON IMPORTS
+
+IGST is collected on imported goods under the customs framework. The applicable IGST rate depends on the classification and applicable GST/tax schedule.
+
+The IGST calculation base is not necessarily the invoice value alone. The legally prescribed import-tax base must be used.
+
+SHIPRULE RULE:
+Never calculate IGST as simply:
+Assessable Value × IGST Rate
+
+Instead:
+1. Determine the assessable value.
+2. Determine applicable customs duties/components.
+3. Determine the legally applicable IGST base.
+4. Apply the correct IGST rate.
+5. Check exemptions or special treatment.
+
+Recommended fields:
+- igst_rate
+- igst_base_rule
+- igst_exemption
+- igst_notification
+
+4. ANTI-DUMPING DUTY (ADD)
+
+Anti-Dumping Duty is a trade-remedy duty imposed on specified imported products where an applicable anti-dumping measure is in force.
+
+ADD is highly specific and may depend on:
+- Product
+- Technical/product description
+- HS/CTH classification
+- Country of origin
+- Country of export
+- Exporter
+- Producer
+- Quantity/unit of measurement
+- Applicable notification
+- Effective date
+- Product exclusions
+
+SHIPRULE RULE:
+Do not assume a universal Anti-Dumping Duty percentage.
+
+An ADD lookup should match:
+Product + HS/CTH + Country of Origin + Exporter/Producer (where applicable) + Date
+
+ADD may be expressed as:
+- Percentage of value
+- Fixed amount per unit
+- Other notification-defined method
+
+Recommended fields:
+- add_applicable
+- add_rate
+- add_unit
+- add_origin_country
+- add_exporter
+- add_producer
+- add_notification
+- add_effective_from
+- add_effective_to
+
+5. OTHER CUSTOMS DUTIES TO CHECK
+
+Depending on the product and transaction, ShipRule should also check:
+
+A. Safeguard Duty
+A temporary trade-remedy duty that may apply to specified goods under an applicable safeguard measure.
+
+B. Countervailing Duty (CVD)
+A trade-remedy duty that may apply to subsidized imports from specified countries.
+
+C. Agriculture Infrastructure and Development Cess (AIDC)
+May apply to specified products according to the relevant customs/tax provisions.
+
+D. Other Cesses or Customs Components
+Any additional levy specifically applicable to the tariff item or notification should be considered.
+
+E. Preferential Duty
+A lower customs duty may apply when the goods qualify under an applicable Free Trade Agreement, Preferential Trade Agreement, or other preferential arrangement.
+
+F. Exemption / Concessional Duty
+A notification may provide a reduced or zero duty rate subject to specific conditions.
+
+6. INFORMATION REQUIRED FOR AN ACCURATE TARIFF ANSWER
+
+For the most accurate result, ShipRule should collect:
+
+1. HS Code / CTH
+Preferably the complete 8-digit Indian tariff item.
+
+2. Product Description
+Include:
+- Product name
+- Material/composition
+- Function
+- Technical specifications
+- Model
+- Intended use
+when classification depends on these factors.
+
+3. Country of Origin
+Important for:
+- Preferential rates
+- Anti-Dumping Duty
+- Safeguard measures
+- Other trade remedies
+
+4. Assessable Value
+The customs-assessed value used for duty calculation.
+
+5. Import Date
+Duty rates and notifications are time-sensitive.
+
+6. End Use / Importer Eligibility
+Important when an exemption or concessional notification contains conditions.
+
+7. Exporter / Producer
+Important for certain anti-dumping and trade-remedy measures.
+
+7. DUTY CALCULATION FLOW
+
+ShipRule should use the following process:
+
+STEP 1 — CLASSIFY
+Determine the correct Indian Customs Tariff Heading (CTH/HS Code).
+
+STEP 2 — IDENTIFY ORIGIN
+Determine the country of origin and, when required, country of export and exporter/producer.
+
+STEP 3 — DETERMINE EFFECTIVE BCD
+Find the standard tariff BCD and then apply valid exemptions, concessions, preferential rates, or notifications.
+
+STEP 4 — CHECK OTHER CUSTOMS DUTIES
+Check:
+- SWS
+- AIDC
+- Anti-Dumping Duty
+- Safeguard Duty
+- Countervailing Duty
+- Other applicable cesses/duties
+
+STEP 5 — DETERMINE IGST
+Identify the correct IGST rate and legally prescribed import-tax base.
+
+STEP 6 — CALCULATE TOTAL
+Calculate each component separately and show a transparent breakdown.
+
+STEP 7 — SHOW SOURCES
+Provide notification numbers, dates, and source references whenever available.
+
+8. ILLUSTRATIVE CALCULATION
+
+The following is only an example and is NOT a statement of the current rate for any particular product.
+
+Assume:
+Assessable Value = INR 100,000
+Illustrative BCD = 10%
+Illustrative SWS = 10% of the specified BCD base
+Illustrative IGST = 18%
+
+BCD:
+100,000 × 10% = INR 10,000
+
+SWS:
+10% × 10,000 = INR 1,000
+
+Illustrative IGST base:
+INR 111,000
+
+IGST:
+111,000 × 18% = INR 19,980
+
+Illustrative total of these components:
+10,000 + 1,000 + 19,980 = INR 30,980
+
+IMPORTANT:
+This arithmetic is illustrative only. Actual IGST base, BCD, SWS, ADD, and other duties must be determined from the applicable tariff item and legal notifications.
+
+9. EXAMPLE USER QUESTIONS
+
+Question 1:
+What are the applicable BCD, IGST, Social Welfare Surcharge and Anti-Dumping Duty rates for importing a laptop under HS Code 8471 into India from China?
+
+Question 2:
+What is the current customs duty on importing a mobile phone into India? Include BCD, SWS and IGST.
+
+Question 3:
+For HS Code 8471, what is the effective BCD rate and are there any applicable exemptions?
+
+Question 4:
+Does Anti-Dumping Duty apply to this product when importing it from China? If yes, what is the applicable notification and duty amount?
+
+Question 5:
+Calculate the total import duty for a product with an assessable value of INR 100,000.
+
+Question 6:
+What customs duties apply to HS Code 8471 when imported from the United States?
+
+Question 7:
+Does an FTA or preferential tariff apply to this import based on the country of origin?
+
+Question 8:
+Show me the complete duty breakup for this product, including BCD, SWS, IGST, ADD and other applicable duties.
+
+10. RECOMMENDED SHIPRULE RESPONSE FORMAT
+
+When answering a tariff question, use this structure:
+
+PRODUCT:
+[Product name]
+
+HS / CTH:
+[HS Code]
+
+COUNTRY OF ORIGIN:
+[Country]
+
+ASSESSABLE VALUE:
+[Amount]
+
+BASIC CUSTOMS DUTY (BCD):
+[Rate]
+[Amount]
+[Notification/source if applicable]
+
+SOCIAL WELFARE SURCHARGE (SWS):
+[Rate]
+[Calculation base]
+[Amount]
+
+INTEGRATED GST (IGST):
+[Rate]
+[Calculation base]
+[Amount]
+
+ANTI-DUMPING DUTY (ADD):
+[Applicable / Not Applicable]
+[Rate or amount]
+[Unit]
+[Notification]
+[Origin/exporter conditions]
+
+OTHER DUTIES:
+[List]
+
+PREFERENTIAL / EXEMPTION:
+[Applicable / Not Applicable]
+[Conditions]
+
+TOTAL CUSTOMS DUTY:
+[Amount]
+
+SOURCE / VERIFICATION:
+[Notification numbers, effective dates, and official source references]
+
+11. TARIFF DATA MODEL
+
+Recommended ShipRule tariff fields:
+
+hs_code
+cth
+product_description
+origin_country
+export_country
+exporter
+producer
+effective_from
+effective_to
+bcd_tariff_rate
+bcd_effective_rate
+bcd_notification
+sws_rate
+sws_base_rule
+sws_exemption
+igst_rate
+igst_base_rule
+igst_exemption
+igst_notification
+add_applicable
+add_rate
+add_unit
+add_origin_country
+add_exporter
+add_producer
+add_notification
+safeguard_applicable
+safeguard_rate
+cvd_applicable
+cvd_rate
+aidc_rate
+other_duties
+preferential_rate
+preferential_agreement
+exemption
+exemption_conditions
+source_url
+source_date
+last_verified
+
+12. RAG / KNOWLEDGE BASE RULES FOR SHIPRULE
+
+Rule 1:
+Do not invent tariff rates.
+
+Rule 2:
+Do not provide a current rate unless the source supports that rate and its effective date.
+
+Rule 3:
+Always prefer the most specific tariff item available.
+
+Rule 4:
+When the user's product description is insufficient to determine classification, ask for the missing product details instead of guessing.
+
+Rule 5:
+For Anti-Dumping Duty, always consider product scope and country of origin/export before concluding that ADD applies.
+
+Rule 6:
+For preferential duty, verify country of origin and applicable origin requirements.
+
+Rule 7:
+For exemptions, verify all conditions before applying the exemption.
+
+Rule 8:
+Show each duty component separately rather than returning only a single total percentage.
+
+Rule 9:
+If a duty cannot be verified, clearly state that it requires verification rather than inventing a value.
+
+Rule 10:
+Preserve source references and effective dates for traceability.
+
+13. OFFICIAL VERIFICATION SOURCES
+
+ICEGATE:
+https://www.icegate.gov.in/
+
+ICEGATE Trade Guide on Imports:
+https://www.icegate.gov.in/Webappl/index_imp.jsp
+
+ICEGATE Customs Duty Calculator:
+https://www.icegate.gov.in/services/customs-duty-calculator
+
+CBIC:
+https://www.cbic.gov.in/
+
+DGTR:
+https://www.dgtr.gov.in/en
+
+14. FINAL NOTE
+
+ShipRule is intended to provide grounded customs and shipping guidance. Tariff information is dynamic and must be tied to the relevant tariff classification, effective date, origin, notification, and applicable conditions.
+
+For production-grade answers, every calculated duty should be traceable to the underlying tariff entry or official notification.

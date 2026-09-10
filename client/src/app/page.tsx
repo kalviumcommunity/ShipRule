@@ -301,54 +301,54 @@ export default function Home() {
       <section id="about" className="w-full border-b border-[#D4AF37]/30 bg-[#0F2537] py-16 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-6 space-y-6">
-            <span className="border border-[#D4AF37] bg-[#0B192C] px-3 py-1 text-xs font-black uppercase tracking-widest text-[#D4AF37] inline-block">
+            <span className="border border-[#D4AF37] bg-[#0B192C] px-3 py-1 text-xs font-black uppercase tracking-widest text-[#D4AF37] inline-block rounded-xl">
               About ShipRule CDLP
             </span>
             <h2 className="text-3xl font-black uppercase tracking-tight text-white font-sans">
-              Empowering International Logistics with Grounded AI Intelligence
+              Global Freight & Customs Intelligence Platform
             </h2>
             <p className="text-sm text-slate-300 leading-relaxed font-sans">
-              ShipRule CDLP (Customs Duty & Shipping Documentation Lookup Platform) is engineered specifically for global trade operations, supply chain managers, freight forwarders, and customs brokers.
+              ShipRule CDLP (Customs Duty & Shipping Documentation Lookup Platform) is a dedicated logistics hub engineered to streamline international trade compliance for importers, exporters, supply chain managers, and freight forwarders.
             </p>
             <p className="text-sm text-slate-300 leading-relaxed font-sans">
-              Unlike generic conversational AI tools, ShipRule strictly operates under a zero-hallucination policy. Every answer is backed by verifiable document citations, explicit evidence scoring, and transparent guardrail classification.
+              Our platform centralizes complex tariff schedules, departmental customs regulations, mandatory shipping documentation requirements, and Incoterm guidelines into a unified, grounded lookup system designed to eliminate port clearance delays.
             </p>
             <div className="pt-2 flex items-center gap-6 text-xs font-mono text-[#D4AF37]">
               <div>
-                <span className="block text-2xl font-black text-white font-sans">324 / 324</span>
-                <span>Unit Tests Passing</span>
+                <span className="block text-2xl font-black text-white font-sans">24 / 7</span>
+                <span>Customs Compliance Access</span>
               </div>
               <div className="border-l border-slate-700 pl-6">
                 <span className="block text-2xl font-black text-white font-sans">100%</span>
-                <span>Citation Verification</span>
+                <span>Verified Source Citations</span>
               </div>
             </div>
           </div>
 
-          <div className="lg:col-span-6 border border-[#D4AF37]/40 bg-[#0B192C] p-8 space-y-6">
+          <div className="lg:col-span-6 border border-[#D4AF37]/40 bg-[#0B192C] p-8 space-y-6 rounded-xl">
             <h3 className="text-xl font-bold text-white uppercase tracking-wider font-sans border-b border-slate-800 pb-3">
-              Platform Compliance Standards
+              Core Platform Capabilities
             </h3>
             <div className="space-y-4 text-xs text-slate-300">
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="h-5 w-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-white uppercase font-sans">Zero Hardcoding Guarantee</strong>
-                  <p className="mt-0.5">Semantic similarity operates dynamically across arbitrary terminology without static synonym dictionaries.</p>
+                  <strong className="text-white uppercase font-sans">Instant Tariff & Duty Calculation</strong>
+                  <p className="mt-0.5">Quickly retrieve applicable basic customs duties (BCD), integrated GST, and social welfare surcharges for imported goods.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="h-5 w-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-white uppercase font-sans">Four Explicit Decision States</strong>
-                  <p className="mt-0.5">Strictly separates SUPPORTED, INSUFFICIENT_CONTEXT, OUT_OF_SCOPE, and SECURITY_BLOCKED responses.</p>
+                  <strong className="text-white uppercase font-sans">Shipping Documentation Guidance</strong>
+                  <p className="mt-0.5">Identify mandatory documentation requirements including Bills of Lading, Commercial Invoices, Packing Lists, and Bills of Entry.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="h-5 w-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-white uppercase font-sans">System Prompt Protection</strong>
-                  <p className="mt-0.5">Protects internal system instructions and administrative secrets against prompt injection attempts.</p>
+                  <strong className="text-white uppercase font-sans">Incoterms & Risk Allocation</strong>
+                  <p className="mt-0.5">Clear legal breakdowns of buyer and seller obligations under CIF, FOB, EXW, and DDP shipping terms.</p>
                 </div>
               </div>
             </div>

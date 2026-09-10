@@ -51,6 +51,30 @@ def update_admin_settings(payload: AdminSettingsUpdate, admin: dict = Depends(re
     }
 
 
+@router.get("/users")
+def get_admin_users(admin: dict = Depends(require_admin)):
+    """Returns list of registered users in MongoDB / memory store for Master Admin monitoring."""
+    from app.db.mongodb import list_all_registered_users
+    return {"users": list_all_registered_users()}
+
+
+@router.get("/users/detail/{user_email}")
+def get_admin_user_detail(user_email: str, admin: dict = Depends(require_admin)):
+    """Returns comprehensive token usage, latency metrics, and query logs for a specific user."""
+    from app.db.mongodb import get_user_analytics_by_email
+    from urllib.parse import unquote
+    decoded_email = unquote(user_email)
+    return get_user_analytics_by_email(decoded_email)
+
+
+@router.get("/logs")
+def get_admin_query_logs(limit: int = 50, admin: dict = Depends(require_admin)):
+    """Returns user query activity logs for Master Admin monitoring."""
+    from app.db.mongodb import get_all_query_logs
+    return {"logs": get_all_query_logs(limit=limit)}
+
+
+
 @router.delete("/documents/{stored_filename}")
 def delete_document(stored_filename: str, admin: dict = Depends(require_admin)):
     """
