@@ -1,0 +1,1 @@
+Special Customs Requirement: Shipments containing UNIQUE_CUSTOMS_RULE_8fa090 require Certificate XYZ-99.

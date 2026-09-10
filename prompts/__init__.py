@@ -1,3 +1,0 @@
-"""
-ShipRule CDLP - Prompts Module
-"""

@@ -1,0 +1,101 @@
+======================================================================
+         SHIPRULE CDLP — TOKEN COUNTING & COST ESTIMATION REPORT
+======================================================================
+Tokenizer: tiktoken (Encoding: cl100k_base)
+Pricing Model: GPT-4o-mini (Input: $0.15 / 1M tokens | Output: $0.60 / 1M tokens)
+
+======================================================================
+SAMPLE 1: SHORT SHIPPING QUERY
+======================================================================
+
+Input Text:
+What are the shipping rules for this order?
+
+Input Length: 43 characters
+Input Tokens: 9
+
+Model Output:
+I do not have verified customs regulation data for this query in CDLP.
+
+Output Length: 70 characters
+Output Tokens: 15
+
+Cost Estimate (GPT-4o-mini):
+Input Cost  = 9 tokens × ($0.15 / 1,000,000) = $0.00000135
+Output Cost = 15 tokens × ($0.60 / 1,000,000) = $0.00000900
+Total Cost  = Input Cost ($0.00000135) + Output Cost ($0.00000900) = $0.00001035
+Cost per 100,000 Calls = $1.0350
+======================================================================
+
+======================================================================
+SAMPLE 2: MEDIUM CUSTOMS DUTY & COMPLIANCE QUERY
+======================================================================
+
+Input Text:
+What are the required import documents and duty rates for shipping laptop computers (HS Code 8471.30) to India?
+
+Input Length: 111 characters
+Input Tokens: 25
+
+Model Output:
+Laptops under HS Code 8471.30 entering India require a Commercial Invoice, Bill of Lading, BIS Registration Certificate, and Certificate of Origin. The standard basic customs duty rate is 7.5% subject to import licensing under DGFT guidelines.
+
+Output Length: 243 characters
+Output Tokens: 53
+
+Cost Estimate (GPT-4o-mini):
+Input Cost  = 25 tokens × ($0.15 / 1,000,000) = $0.00000375
+Output Cost = 53 tokens × ($0.60 / 1,000,000) = $0.00003180
+Total Cost  = Input Cost ($0.00000375) + Output Cost ($0.00003180) = $0.00003555
+Cost per 100,000 Calls = $3.5550
+======================================================================
+
+======================================================================
+SAMPLE 3: FULL REGULATORY KNOWLEDGE BASE & SYSTEM PROMPT
+======================================================================
+
+Input Text:
+ShipRule CDLP is an automated customs compliance and duty classification platform.
+Source traceability ensures every duty lookup is verified against official trade and customs regulations.
+You are an official AI Support Assistant for the Customs Duty & Documentation Lookup Platform (CDLP / ShipRule).
+Role & Scope: You provide answers ONLY regarding customs duties, import documentation requirements, HS code classifications, restriction status, government source traceability, and shipment/logistics regulations.
+Out-of-Scope Constraints: You MUST NOT answer questions outside logistics and customs.
+User Query: Summarize the core compliance rules and verification standards enforced by ShipRule CDLP.
+
+Input Length: 703 characters
+Input Tokens: 122
+
+Model Output:
+ShipRule CDLP enforces automated customs classification by verifying duty rates, mandatory import documentation (such as Commercial Invoices and Bills of Lading), and restriction statuses directly against official regulatory sources. Every lookup maintains strict source traceability to ensure auditability and compliance across cross-border shipments.
+
+Output Length: 352 characters
+Output Tokens: 56
+
+Cost Estimate (GPT-4o-mini):
+Input Cost  = 122 tokens × ($0.15 / 1,000,000) = $0.00001830
+Output Cost = 56 tokens × ($0.60 / 1,000,000) = $0.00003360
+Total Cost  = Input Cost ($0.00001830) + Output Cost ($0.00003360) = $0.00005190
+Cost per 100,000 Calls = $5.1900
+======================================================================
+
+======================================================================
+TASK 4: LENGTH VS. TOKEN RELATIONSHIP DEMONSTRATION
+======================================================================
+Demonstrating that text length and token count track together but are not strictly proportional:
+----------------------------------------------------------------------
+Category                         | Chars  | Words  | Tokens  | Chars/Tok 
+----------------------------------------------------------------------
+Standard English (Customs Rule)  | 89     | 13     | 15      | 5.93      
+Long / Compound Technical Words  | 97     | 3      | 28      | 3.46      
+Python Code Snippet              | 117    | 14     | 36      | 3.25      
+Multilingual: Hindi (Devanagari Script) | 71     | 13     | 75      | 0.95      
+Multilingual: Chinese (Mandarin) | 30     | 1      | 30      | 1.00      
+Special Symbols & Repeated Whitespace | 80     | 10     | 31      | 2.58      
+
+Key Takeaways:
+1. Tracking: In standard English prose, token count generally scales with character length (~4 characters/token).
+2. Divergence (Non-proportionality):
+   - Long/Uncommon Words: Break into multiple subword tokens (e.g. 97 chars / 3 words -> 28 tokens).
+   - Code & Special Characters: Syntax symbols, brackets, and whitespace create extra isolated tokens.
+   - Non-Latin Scripts: Devanagari (Hindi) and Chinese require multiple byte tokens per character (e.g. 71 chars -> 75 tokens).
+======================================================================

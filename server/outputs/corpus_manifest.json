@@ -1,0 +1,32 @@
+[
+  {
+    "file_path": "C:\\Users\\hp\\Desktop\\ShipRule\\data\\sample_corpus\\customs_requirements.txt",
+    "file_name": "customs_requirements.txt",
+    "document_type": "txt",
+    "status": "SUCCESS",
+    "character_count": 1005,
+    "chunk_count": 3,
+    "error_message": null,
+    "file_hash": "13837988d3d933ac6422b27dae03980c2617aad95c9bafb43812827abe38d9a4"
+  },
+  {
+    "file_path": "C:\\Users\\hp\\Desktop\\ShipRule\\data\\sample_corpus\\international_shipping_guide.pdf",
+    "file_name": "international_shipping_guide.pdf",
+    "document_type": "pdf",
+    "status": "SUCCESS",
+    "character_count": 1213,
+    "chunk_count": 1,
+    "error_message": null,
+    "file_hash": "a526205bf8edb50c3d93bd9d71ee54e4eede3ce3beeff52dec5e4c46ea8b2dea"
+  },
+  {
+    "file_path": "C:\\Users\\hp\\Desktop\\ShipRule\\data\\sample_corpus\\shipping_rules.txt",
+    "file_name": "shipping_rules.txt",
+    "document_type": "txt",
+    "status": "SUCCESS",
+    "character_count": 826,
+    "chunk_count": 4,
+    "error_message": null,
+    "file_hash": "96c83fcf13afdb6795371780c637b3c6919c33017ac6dbea5760945ec7718df7"
+  }
+]

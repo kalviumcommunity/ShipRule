@@ -1,0 +1,95 @@
+
+==============================================================================
+     SHIPRULE CDLP — TOKEN-AWARE CHUNK SIZING & OVERLAP DEMONSTRATION         
+==============================================================================
+
+======================================================================
+1. OVERLAP DEMONSTRATION (size=400, overlap=60)
+======================================================================
+Input text token count: 865 tokens
+Total chunks generated: 3
+
+--- Chunk 1 ---
+  Token range : tokens 0–399 (total: 400 tokens)
+  Text snippet: "Customs duties may vary according to the product type, declared value, country of origin, and destination country. Every..."
+
+--- Chunk 2 ---
+  Token range : tokens 340–739 (total: 400 tokens)
+  Text snippet: " Equipment Type Approval (ETA).  Customs duties may vary according to the product type, declared value, country of origi..."
+
+Overlap Analysis:
+  Chunk 1 token range: tokens 0–399
+  Chunk 2 token range: tokens 340–739
+  Shared token window: tokens 340–399 (60 tokens)
+  Shared text snippet: "Equipment Type Approval (ETA).  Customs duties may vary according to the product type, declared value, country of origin, and destination co"
+  Explanation: Tokens in the overlapping region appear in BOTH Chunk 1 and Chunk 2,
+               ensuring context near the boundary is preserved for RAG retrieval.
+======================================================================
+
+
+======================================================================
+2. OVERLAP VALUE COMPARISON EXPERIMENT
+======================================================================
+Document Base Token Count: 865 tokens (Target Chunk Size: 400 tokens)
+
+Overlap: 0
+Chunks: 3
+Total tokens: 865
+Duplicated tokens: 0
+Percentage overhead: 0.00%
+
+Overlap: 20
+Chunks: 3
+Total tokens: 905
+Duplicated tokens: 40
+Percentage overhead: 4.62%
+
+Overlap: 40
+Chunks: 3
+Total tokens: 945
+Duplicated tokens: 80
+Percentage overhead: 9.25%
+
+Overlap: 60
+Chunks: 3
+Total tokens: 985
+Duplicated tokens: 120
+Percentage overhead: 13.87%
+
+Takeaways:
+  - Higher overlap increases total chunk tokens and storage overhead.
+  - Overlap=60 (~15% of 400 tokens) provides strong boundary context retention with modest overhead.
+======================================================================
+
+
+======================================================================
+3. BOUNDARY CONTEXT PRESERVATION DEMONSTRATION
+======================================================================
+Synthetic Document Length: 803 tokens
+Target Chunk Size: 400 tokens
+
+--- Case A: No Overlap (overlap = 0 tokens) ---
+Generated 3 chunks.
+
+  [Chunk 1 Tail (tokens 350-400)]:
+  "icers in verifying cross-border documentation. All shipments passing through international trade corridors must strictly"
+
+  [Chunk 2 Head (tokens 400-450)]:
+  " adhere to import regulations. ShipRule CDLP is an automated customs compliance and duty classification platform. It ass"
+
+  Observation (Case A): The critical compliance requirement is split cleanly at token 400.
+  Neither Chunk 1 nor Chunk 2 alone contains the complete requirement sentence + context.
+
+--- Case B: 60-Token Overlap (overlap = 60 tokens) ---
+Generated 3 chunks.
+
+  [Chunk 1 Tail (tokens 340-400)]:
+  "t assists logistics operators, importers, and compliance officers in verifying cross-border documentation. All shipments passing through international trade corridors must strictly"
+
+  [Chunk 2 Head (tokens 340-400 overlap region + continuation)]:
+  " in verifying cross-border documentation. All shipments passing through international trade corridors must strictly adhere to import regulations. ShipRule CDLP is an automated customs compliance and d"
+
+  Observation (Case B): Chunk 2 includes the 60-token overlap starting from token 340.
+  The entire critical requirement sentence ('CRITICAL REQUIREMENT: ...') and its preceding context
+  are fully present inside Chunk 2, allowing RAG vector retrieval to successfully match and retrieve it.
+======================================================================

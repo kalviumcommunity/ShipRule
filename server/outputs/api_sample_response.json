@@ -1,0 +1,38 @@
+{
+  "answer": "International shipments must be accompanied by accurate shipping documentation. Required documents may include\u202f:\n\n- A commercial invoice and packing list  \n- A certificate of origin  \n- Transport documents such as a bill of lading or an air waybill  \n\n[1]",
+  "sources": [
+    {
+      "source": "shipping_rules.txt",
+      "chunk_id": "shipping_rules_paragraph_001",
+      "score": 5.79
+    },
+    {
+      "source": "customs_requirements.txt",
+      "chunk_id": "customs_requirements_paragraph_001",
+      "score": 3.6
+    },
+    {
+      "source": "shipping_rules.txt",
+      "chunk_id": "shipping_rules_paragraph_004",
+      "score": 3.32
+    }
+  ],
+  "status": "answered",
+  "metadata": {
+    "token_usage": {
+      "input_tokens": 421,
+      "context_tokens": 192,
+      "output_tokens": 50,
+      "total_tokens": 471
+    },
+    "timing": {
+      "embedding_ms": 1557.98,
+      "retrieval_ms": 254.34,
+      "reranking_ms": 0.32,
+      "context_assembly_ms": 298.4,
+      "generation_ms": 1610.9,
+      "total_pipeline_time_ms": 3725.99
+    },
+    "guardrail_decision": "ALLOW"
+  }
+}

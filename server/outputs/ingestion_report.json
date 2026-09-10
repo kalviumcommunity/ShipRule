@@ -1,0 +1,33 @@
+{
+  "corpus_directory": "C:\\Users\\hp\\Desktop\\ShipRule\\data\\sample_corpus",
+  "chunking_strategy": "paragraph",
+  "statistics": {
+    "files_discovered": 3,
+    "successfully_processed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "total_chunks_generated": 8,
+    "average_chunks_per_document": 2.7,
+    "total_characters_processed": 3044
+  },
+  "validation": {
+    "overall_status": "PASSED",
+    "reconciliation_status": "PASSED",
+    "reconciliation_details": "3 files = 3 successful + 0 failed + 0 skipped. No documents were silently dropped.",
+    "metadata_status": "PASSED",
+    "metadata_details": {
+      "total_chunks_validated": 8,
+      "unique_chunk_ids": 8,
+      "invalid_chunk_count": 0,
+      "invalid_chunk_ids": [],
+      "error_details": []
+    }
+  },
+  "output_files": {
+    "manifest": "outputs/corpus_manifest.json",
+    "report": "outputs/ingestion_report.json",
+    "failures": "outputs/ingestion_failures.json",
+    "processed_chunks": "outputs/processed_chunks.json",
+    "log": "outputs/ingestion_log.txt"
+  }
+}

@@ -1,0 +1,44 @@
+=================================================
+SHIPRULE CORPUS INGESTION PIPELINE
+=================================================
+
+Discovered 3 file(s) in 'C:\Users\hp\Desktop\ShipRule\data\sample_corpus'
+-------------------------------------------------
+[1/3] Processing customs_requirements.txt ... SUCCESS | 3 chunks (1,005 chars)
+[2/3] Processing international_shipping_guide.pdf ... SUCCESS | 1 chunks (1,213 chars)
+[3/3] Processing shipping_rules.txt ... SUCCESS | 4 chunks (826 chars)
+
+=================================================
+SHIPRULE CORPUS INGESTION REPORT
+=================================================
+Files discovered: 3
+Successfully processed: 3
+Failed: 0
+Skipped: 0
+Total chunks generated: 8
+Average chunks/document: 2.7
+Total characters processed: 3,044
+Validation: PASSED
+
+Reconciliation Check:
+3 files = 3 successful + 0 failed + 0 skipped. No documents were silently dropped.
+Metadata Validation: PASSED
+=================================================
+
+--- SAMPLE CHUNK INSPECTION ---
+Chunk ID: customs_requirements_paragraph_001
+Source: customs_requirements.txt
+Type: txt
+Strategy: paragraph
+Characters: 316
+Preview:
+"Customs duties may vary according to the product type, declared value, country of origin, and destination country. Every imported..."
+
+Chunk ID: customs_requirements_paragraph_002
+Source: customs_requirements.txt
+Type: txt
+Strategy: paragraph
+Characters: 278
+Preview:
+"Preferential tariff rates may be granted if the shipment is accompanied by a valid Certificate of Origin under a Bilateral or Mult..."
+

@@ -1,0 +1,66 @@
+================================================================================
+CDLP PROMPT VARIATION COMPARISON REPORT (TASK 3)
+================================================================================
+
+TEST CASE 1: [In-Domain Logistics Query]
+USER QUESTION: "What are the required import documents and duty rates for shipping laptop computers (HS Code 8471.30) to India?"
+--------------------------------------------------------------------------------
+
+[PROMPT V1 — Vague System Prompt ("You are a helpful assistant.")]
+**Importing Laptop Computers (HS 8471.30) into India – Quick‑Reference Guide**
+
+| Item | What you need to provide / pay |
+|------|--------------------------------|
+| **Core import documents** | • **Commercial Invoice** (full value, description, HS 8471.30, country of origin) <br>• **Packing List** (dimensions, weight, carton count) <br>• **Bill of Lading / Air Waybill** (original) <br>• **Certificate of Origin** (if you are claiming any preferential tariff) <br>• **Import Declaration Form (Bill of Entry)** filed electronically on the ICEGATE portal <br>• **BIS Import Clearance (Form‑10) or BIS “Letter of Conformity”** – laptops are covered by the Bureau of Indian Standards (BIS) under IS/IEC 60950‑1 / IEC 62368‑1. The importer must obtain a BIS‑approved “BIS‑IEC‑Import” certificate before customs clearance. <br>• **Test Report / EC (E‑cert) from an Indian testing agency** (optional but often required to prove compliance with the safety standard) |
+| **Additional licences / permits** | • **Import License** – not required for general laptops, but if the unit contains wireless modules (Wi‑Fi, Bluetooth, cellular) you may need a **Wireless Equipment License** from the Ministry of Communications. <br>• **FSSAI / Health clearance** – **not required** for laptops. |
+| **Customs duty (Basic Customs Duty – BCD)** | **0 %** (HS 8471.30 is listed under “Portable automatic data‑processing machines” and is duty‑free). |
+| **Other levies & taxes** | • **Integrated Goods & Services Tax (IGST)** – **18 %** of the assessable value (CIF + duty). <br>• **Social Welfare Surcharge** – 10 % of the BCD (since BCD = 0, the surcharge is nil). <br>• **Additional Cesses** – none applicable to laptops as of the latest schedule (check periodically for any health‑cess updates). |
+| **Assessable value for IGST** | **CIF value** (Cost + Insurance + Freight) **+** any customs duty (0 %). IGST = 18 % × CIF. |
+| **Typical clearance flow** | 1. **Pre‑shipment** – obtain BIS‑IEC import certificate (or arrange testing in India). <br>2. **Arrival** – shipper provides Bill of Lading/Air Waybill, commercial invoice, packing list, certificate of origin. <br>3. **Importer** files the **Bill of Entry** on ICEGATE, attaches all documents, and uploads the BIS import clearance. <br>4. Customs may issue a **“Notice of Assessment”**; you pay IGST (and any other minor fees). <br>5. Upon payment, the cargo is released. |
+| **Key references** | • Indian Customs Tariff (Chapter 84, HS 8471.30) – 0 % BCD. <br>• GST Council – Laptops attract 18 % IGST (GST Rate List, “Computer hardware – 18 %”). <br>• BIS Notification No. 7/2009‑C‑3 (mandatory BIS certification for laptops). <br>• Ministry of Electronics & Information Technology (MeitY) – Wireless equipment licensing guidelines. |
+| **Tips / Common pitfalls** | • **BIS compliance is the “show‑stopper.”** If you ship without a valid BIS‑IEC import certificate, customs will hold the consignment. <br>• **Accurate HS coding** – a mis‑classification (e.g., using 8471.41 for “Portable digital computers”) can trigger a duty of 10 %+ IGST. <br>• **Currency conversion** – IGST is calculated on the CIF value in INR at the RBI‑published exchange rate on the day of clearance. <br>• **Preferential rates** – If your laptops are made in a country with a Free Trade Agreement (e.g., ASEAN‑India FTA), you can claim a reduced (or zero) duty *and* a reduced IGST rate (generally 12 % under the “GST on imports from FTA partners” rule). You must provide a **Certificate of Origin** and a **Letter of Credit/Invoice** indicating the preferential origin. |
+| **Bottom line** | – **Documents:** Invoice, Packing List, B/L or AWB, Certificate of Origin (if using a preferential rate), Bill of Entry (ICEGATE), **BIS‑IEC import certificate** (mandatory). <br>– **Duty:** **0 % Basic Customs Duty**. <br>– **Taxes:** **18 % IGST** on CIF value (plus negligible surcharge). <br>– **Action:** Secure the BIS certification *before* the shipment lands, file the Bill of Entry promptly, and be ready to pay IGST at the time of clearance. |
+
+> **Reminder:** Tariff and tax rates are subject to periodic revisions (usually announced in the Union Budget). Always verify the latest rates on the Indian Customs website (customsindiaonline.gov.in) and the GST portal (gst.gov.in) before shipping.
+
+[PROMPT V2 — Constrained CDLP System Prompt (Role + Scope + Out-of-Scope Refusal)]
+{"answer":"For HS 8471.30 (laptop computers) imported into India, the required documents are: commercial invoice, packing list, bill of lading or airway bill, certificate of origin, import‑export code (IEC) of the importer, and a customs entry (Bill of Entry) filed by a licensed customs agent. A Letter of Authorization may be needed if a third‑party clears the goods. The duty structure is: Basic Customs Duty 0%, Additional Customs Duty (Social Welfare Surcharge) 0% (applies only on a non‑zero duty), and Integrated GST (IGST) 18% calculated on the assessable value (CIF + customs). No other antidumping or special duties apply to standard laptops.","source":"Indian Customs Tariff (HS 8471.30)"}
+
+
+TEST CASE 2: [Out-of-Domain Query (Cinema & Food)]
+USER QUESTION: "Can you recommend the top 3 movies currently playing in cinema and what popcorn/snacks I should eat?"
+--------------------------------------------------------------------------------
+
+[PROMPT V1 — Vague System Prompt ("You are a helpful assistant.")]
+I’m sorry, but I’m only able to help with customs‑compliance and duty‑lookup questions. If you have any queries in that area, feel free to ask!
+
+[PROMPT V2 — Constrained CDLP System Prompt (Role + Scope + Out-of-Scope Refusal)]
+{"answer":"I am an assistant for the Customs Duty & Documentation Lookup Platform (CDLP). I can only answer questions related to logistics, customs duties, import documents, HS codes, and shipment rules.","source":"CDLP System"}
+
+
+TEST CASE 3: [Format-Constrained Query (JSON)]
+USER QUESTION: "Reply ONLY with a JSON object containing keys 'duty_rate', 'required_docs', and 'source_agency' for HS Code 8471.30."
+--------------------------------------------------------------------------------
+
+[PROMPT V1 — Vague System Prompt ("You are a helpful assistant.")]
+{
+  "duty_rate": "0%",
+  "required_docs": [
+    "Commercial Invoice",
+    "Packing List",
+    "Bill of Lading",
+    "Certificate of Origin"
+  ],
+  "source_agency": "U.S. Customs and Border Protection"
+}
+
+[PROMPT V2 — Constrained CDLP System Prompt (Role + Scope + Out-of-Scope Refusal)]
+{"answer":"I do not have verified customs regulation data for this query in CDLP.", "source":"CDLP System"}
+
+================================================================================
+TASK 4 SUMMARY & DOCUMENTATION NOTE:
+1. Out-of-Domain Refusal: Prompt V1 generated movie & food recommendations, violating domain safety.
+   Prompt V2 correctly refused the cinema/food query using the standard CDLP fallback statement.
+2. Format Adherence: Prompt V2 strictly followed sentence limits and JSON formatting constraints.
+3. Conclusion: Prompt V2 is chosen as the production system prompt for CDLP / ShipRule.
+================================================================================

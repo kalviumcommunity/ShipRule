@@ -1,0 +1,73 @@
+========================================================================
+           CONVERSATIONAL RAG MULTI-TURN DEMONSTRATION REPORT          
+========================================================================
+
+--- TURN 1 ---
+Original Question : What evidence is required for project submission?
+Prior History     : []
+Rewritten Query   : What evidence is required for project submission?
+Retrieved Chunks  : 3
+  [1] Source: submission_guidelines.md | Snippet: Project Submission Guidelines & Evidence Requirements: All project submissions must include two core...
+  [2] Source: customs_reg_italy.json | Snippet: Customs Record for Motor Vehicles / Cars in Italy: Destination Country: Italy. Commodity: Cars / Mot...
+  [3] Source: shipping_rules.txt | Snippet: General International Shipping Documentation Requirements: All international shipments require stand...
+Generated Answer  : The submission must include two pieces of evidence:
+
+1. A link to the open GitHub pull‑request in the team repository.  
+2. A 3–5 minute screen‑share video walkthrough (uploaded to Google Drive with “Anyone with the link can view”). The video must cover the required topics (why follow‑up questions break naive retrieval, how follow‑ups are rewritten into standalone queries, multi‑turn dialogue examples, balancing history and token limits, and keeping long conversations grounded)【1】.
+Sources Cited     : [{'source': 'submission_guidelines.md', 'section': 'Evidence Requirements', 'doc_type': 'Guidelines', 'chunk_index': 1}, {'source': 'customs_reg_italy.json', 'section': 'Motor Vehicles (Italy)', 'doc_type': 'RegulationData', 'chunk_index': 2}, {'source': 'shipping_rules.txt', 'section': 'General Customs Clearance', 'doc_type': 'Policy', 'chunk_index': 3}]
+Turn Latency      : 1730.28 ms
+
+--- TURN 2 ---
+Original Question : What about the video?
+Prior History     : [{'role': 'user', 'content': 'What evidence is required for project submission?'}, {'role': 'assistant', 'content': 'The submission must include two pieces of evidence:\n\n1. A link to the open GitHub pull‑request in the team repository.  \n2. A 3–5\u202fminute screen‑share video walkthrough (uploaded to Google\u202fDrive with “Anyone with the link can view”). The video must cover the required topics (why follow‑up questions break naive retrieval, how follow‑ups are rewritten into standalone queries, multi‑turn dialogue examples, balancing history and token limits, and keeping long conversations grounded)【1】.'}]
+Rewritten Query   : project submission video walkthrough requirements
+Retrieved Chunks  : 3
+  [1] Source: submission_guidelines.md | Snippet: Project Submission Guidelines & Evidence Requirements: All project submissions must include two core...
+  [2] Source: shipping_rules.txt | Snippet: General International Shipping Documentation Requirements: All international shipments require stand...
+  [3] Source: customs_reg_italy.json | Snippet: Customs Record for Motor Vehicles / Cars in Italy: Destination Country: Italy. Commodity: Cars / Mot...
+Generated Answer  : The project submission must include a 3‑5 minute video that is a screen‑share walkthrough. The video should explain why follow‑up questions break naive retrieval, how follow‑ups are rewritten into standalone queries, provide multi‑turn dialogue examples, describe how history and token limits are balanced, and show how to keep long conversations grounded. The video should be uploaded to Google Drive and the sharing setting must be set to “Anyone with the link can view.” [1]
+Sources Cited     : [{'source': 'submission_guidelines.md', 'section': 'Evidence Requirements', 'doc_type': 'Guidelines', 'chunk_index': 1}, {'source': 'shipping_rules.txt', 'section': 'General Customs Clearance', 'doc_type': 'Policy', 'chunk_index': 3}, {'source': 'customs_reg_italy.json', 'section': 'Motor Vehicles (Italy)', 'doc_type': 'RegulationData', 'chunk_index': 2}]
+Turn Latency      : 2543.5 ms
+
+--- TURN 3 ---
+Original Question : What shipping documents are required for international customs clearance?
+Prior History     : [{'role': 'user', 'content': 'What evidence is required for project submission?'}, {'role': 'assistant', 'content': 'The submission must include two pieces of evidence:\n\n1. A link to the open GitHub pull‑request in the team repository.  \n2. A 3–5\u202fminute screen‑share video walkthrough (uploaded to Google\u202fDrive with “Anyone with the link can view”). The video must cover the required topics (why follow‑up questions break naive retrieval, how follow‑ups are rewritten into standalone queries, multi‑turn dialogue examples, balancing history and token limits, and keeping long conversations grounded)【1】.'}, {'role': 'user', 'content': 'What about the video?'}, {'role': 'assistant', 'content': 'The project submission must include a\u202f3‑5\u202fminute video that is a screen‑share walkthrough. The video should explain why follow‑up questions break naive retrieval, how follow‑ups are rewritten into standalone queries, provide multi‑turn dialogue examples, describe how history and token limits are balanced, and show how to keep long conversations grounded. The video should be uploaded to Google\u202fDrive and the sharing setting must be set to “Anyone with the link can view.”\u202f[1]'}]
+Rewritten Query   : shipping documents required for international customs clearance
+Retrieved Chunks  : 3
+  [1] Source: shipping_rules.txt | Snippet: General International Shipping Documentation Requirements: All international shipments require stand...
+  [2] Source: customs_reg_italy.json | Snippet: Customs Record for Motor Vehicles / Cars in Italy: Destination Country: Italy. Commodity: Cars / Mot...
+  [3] Source: submission_guidelines.md | Snippet: Project Submission Guidelines & Evidence Requirements: All project submissions must include two core...
+Generated Answer  : International shipments must include the standard customs‑clearance paperwork, which consists of:
+
+- Commercial Invoice  
+- Packing List  
+- Certificate of Origin  
+- Bill of Lading **or** Air Waybill  
+
+These documents are required for all international shipments【1】.
+Sources Cited     : [{'source': 'shipping_rules.txt', 'section': 'General Customs Clearance', 'doc_type': 'Policy', 'chunk_index': 3}, {'source': 'customs_reg_italy.json', 'section': 'Motor Vehicles (Italy)', 'doc_type': 'RegulationData', 'chunk_index': 2}, {'source': 'submission_guidelines.md', 'section': 'Evidence Requirements', 'doc_type': 'Guidelines', 'chunk_index': 1}]
+Turn Latency      : 2483.72 ms
+
+--- TURN 4 ---
+Original Question : What is the duty rate for cars in Italy?
+Prior History     : [{'role': 'user', 'content': 'What evidence is required for project submission?'}, {'role': 'assistant', 'content': 'The submission must include two pieces of evidence:\n\n1. A link to the open GitHub pull‑request in the team repository.  \n2. A 3–5\u202fminute screen‑share video walkthrough (uploaded to Google\u202fDrive with “Anyone with the link can view”). The video must cover the required topics (why follow‑up questions break naive retrieval, how follow‑ups are rewritten into standalone queries, multi‑turn dialogue examples, balancing history and token limits, and keeping long conversations grounded)【1】.'}, {'role': 'user', 'content': 'What about the video?'}, {'role': 'assistant', 'content': 'The project submission must include a\u202f3‑5\u202fminute video that is a screen‑share walkthrough. The video should explain why follow‑up questions break naive retrieval, how follow‑ups are rewritten into standalone queries, provide multi‑turn dialogue examples, describe how history and token limits are balanced, and show how to keep long conversations grounded. The video should be uploaded to Google\u202fDrive and the sharing setting must be set to “Anyone with the link can view.”\u202f[1]'}, {'role': 'user', 'content': 'What shipping documents are required for international customs clearance?'}, {'role': 'assistant', 'content': 'International shipments must include the standard customs‑clearance paperwork, which consists of:\n\n- Commercial Invoice  \n- Packing List  \n- Certificate of Origin  \n- Bill of Lading **or** Air Waybill  \n\nThese documents are required for all international shipments【1】.'}]
+Rewritten Query   : Italy car import duty rate
+Retrieved Chunks  : 3
+  [1] Source: customs_reg_italy.json | Snippet: Customs Record for Motor Vehicles / Cars in Italy: Destination Country: Italy. Commodity: Cars / Mot...
+  [2] Source: shipping_rules.txt | Snippet: General International Shipping Documentation Requirements: All international shipments require stand...
+  [3] Source: submission_guidelines.md | Snippet: Project Submission Guidelines & Evidence Requirements: All project submissions must include two core...
+Generated Answer  : The duty rate for cars imported into Italy is **10.0 % Basic Customs Duty plus a 22 % Value Added Tax (VAT)**【1】.
+Sources Cited     : [{'source': 'customs_reg_italy.json', 'section': 'Motor Vehicles (Italy)', 'doc_type': 'RegulationData', 'chunk_index': 2}, {'source': 'shipping_rules.txt', 'section': 'General Customs Clearance', 'doc_type': 'Policy', 'chunk_index': 3}, {'source': 'submission_guidelines.md', 'section': 'Evidence Requirements', 'doc_type': 'Guidelines', 'chunk_index': 1}]
+Turn Latency      : 1947.45 ms
+
+--- TURN 5 ---
+Original Question : Does it apply to space shuttles?
+Prior History     : [{'role': 'user', 'content': 'What evidence is required for project submission?'}, {'role': 'assistant', 'content': 'The submission must include two pieces of evidence:\n\n1. A link to the open GitHub pull‑request in the team repository.  \n2. A 3–5\u202fminute screen‑share video walkthrough (uploaded to Google\u202fDrive with “Anyone with the link can view”). The video must cover the required topics (why follow‑up questions break naive retrieval, how follow‑ups are rewritten into standalone queries, multi‑turn dialogue examples, balancing history and token limits, and keeping long conversations grounded)【1】.'}, {'role': 'user', 'content': 'What about the video?'}, {'role': 'assistant', 'content': 'The project submission must include a\u202f3‑5\u202fminute video that is a screen‑share walkthrough. The video should explain why follow‑up questions break naive retrieval, how follow‑ups are rewritten into standalone queries, provide multi‑turn dialogue examples, describe how history and token limits are balanced, and show how to keep long conversations grounded. The video should be uploaded to Google\u202fDrive and the sharing setting must be set to “Anyone with the link can view.”\u202f[1]'}, {'role': 'user', 'content': 'What shipping documents are required for international customs clearance?'}, {'role': 'assistant', 'content': 'International shipments must include the standard customs‑clearance paperwork, which consists of:\n\n- Commercial Invoice  \n- Packing List  \n- Certificate of Origin  \n- Bill of Lading **or** Air Waybill  \n\nThese documents are required for all international shipments【1】.'}, {'role': 'user', 'content': 'What is the duty rate for cars in Italy?'}, {'role': 'assistant', 'content': 'The duty rate for cars imported into Italy is **10.0\u202f% Basic Customs Duty plus a 22\u202f% Value Added Tax (VAT)**【1】.'}]
+Rewritten Query   : Italian import duty rate for cars applicability to space shuttles
+Retrieved Chunks  : 3
+  [1] Source: customs_reg_italy.json | Snippet: Customs Record for Motor Vehicles / Cars in Italy: Destination Country: Italy. Commodity: Cars / Mot...
+  [2] Source: shipping_rules.txt | Snippet: General International Shipping Documentation Requirements: All international shipments require stand...
+  [3] Source: submission_guidelines.md | Snippet: Project Submission Guidelines & Evidence Requirements: All project submissions must include two core...
+Generated Answer  : The provided context is insufficient to answer this question.
+Sources Cited     : [{'source': 'customs_reg_italy.json', 'section': 'Motor Vehicles (Italy)', 'doc_type': 'RegulationData', 'chunk_index': 2}, {'source': 'shipping_rules.txt', 'section': 'General Customs Clearance', 'doc_type': 'Policy', 'chunk_index': 3}, {'source': 'submission_guidelines.md', 'section': 'Evidence Requirements', 'doc_type': 'Guidelines', 'chunk_index': 1}]
+Turn Latency      : 2224.09 ms

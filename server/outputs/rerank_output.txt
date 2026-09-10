@@ -1,0 +1,72 @@
+========================================
+BEFORE RE-RANKING (Top-3 Initial Vector Candidates)
+========================================
+Query: What mandatory statutory registrations and import documents are required for IT hardware in India?
+
+Rank: 1
+Vector Score: 0.7084
+Source: customs_requirements.txt
+Section: General Customs
+Chunk Index: 3
+Text: Certain regulated product categories—including information technology hardware, telecommunications equipment, medical devices, and chemicals...
+
+Rank: 2
+Vector Score: 0.4161
+Source: shipping_rules.txt
+Section: General Customs
+Chunk Index: 1
+Text: All international shipments must include accurate shipping documentation. Required documents may include a commercial invoice and packing li...
+
+Rank: 3
+Vector Score: 0.4000
+Source: international_shipping_guide.pdf
+Section: General Customs
+Chunk Index: 1
+Text: [Page 1]
+Import and export shipments must comply with applicable customs procedures and destination-specific requirements.
+Cross-border trad...
+
+========================================
+AFTER RE-RANKING (Top-3 Final Re-Ranked Context)
+========================================
+Query: What mandatory statutory registrations and import documents are required for IT hardware in India?
+
+Rank: 1
+Vector Score: 0.7084
+Re-Rank Score: 6.2
+Source: customs_requirements.txt
+Section: General Customs
+Chunk Index: 3
+Text: Certain regulated product categories—including information technology hardware, telecommunications equipment, medical devices, and chemicals...
+
+Rank: 2
+Vector Score: 0.4000
+Re-Rank Score: 3.6
+Source: international_shipping_guide.pdf
+Section: General Customs
+Chunk Index: 1
+Text: [Page 1]
+Import and export shipments must comply with applicable customs procedures and destination-specific requirements.
+Cross-border trad...
+
+Rank: 3
+Vector Score: 0.4161
+Re-Rank Score: 3.2
+Source: shipping_rules.txt
+Section: General Customs
+Chunk Index: 1
+Text: All international shipments must include accurate shipping documentation. Required documents may include a commercial invoice and packing li...
+
+==================================================
+
+========================================
+CANDIDATE RANK MOVEMENT TRACKING
+========================================
+Original Rank    -> New Rank   Source                           Re-Rank Score
+---------------------------------------------------------------------------
+Rank 1           -> Rank 1     customs_requirements.txt         6.2         
+Rank 3           -> Rank 2     international_shipping_guide.pdf 3.6         
+Rank 2           -> Rank 3     shipping_rules.txt               3.2         
+===========================================================================
+
+==================================================
