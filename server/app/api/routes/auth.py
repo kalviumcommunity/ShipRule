@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, EmailStr
 
 from app.core.config import settings
 from app.api.dependencies import create_access_token, get_current_user
-from app.db.mongodb import create_user, find_user_by_email, verify_password
+from app.db.mongodb import create_user, find_user_by_email, verify_password, update_user_password
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -28,9 +28,16 @@ class SignupRequest(BaseModel):
     full_name: Optional[str] = Field(default="", description="User full name")
 
 
+class ChangePasswordRequest(BaseModel):
+    """Change password request payload."""
+    old_password: str = Field(..., description="Current user password")
+    new_password: str = Field(..., min_length=4, description="New user password")
+
+
 class MasterLoginRequest(BaseModel):
     """Master Admin login request payload."""
     access_key: str = Field(..., description="Master Admin access key")
+
 
 
 class AuthResponse(BaseModel):
@@ -129,3 +136,21 @@ def master_admin_login(payload: MasterLoginRequest):
 def get_me(user: dict = Depends(get_current_user)):
     """Returns details for current authenticated session."""
     return user
+
+
+@router.post("/change-password")
+def change_password(payload: ChangePasswordRequest, user: dict = Depends(get_current_user)):
+    """Updates user password in database."""
+    user_email = user.get("email") or user.get("sub")
+    if not user_email or user_email == "master_admin":
+        user_email = user.get("email", "admin@shiprule.local")
+
+    try:
+        update_user_password(user_email, payload.old_password, payload.new_password)
+        return {"status": "success", "message": "Password changed successfully."}
+    except ValueError as val_err:
+        raise HTTPException(
+            status_code=http_status.HTTP_400_BAD_REQUEST,
+            detail=str(val_err)
+        )
+

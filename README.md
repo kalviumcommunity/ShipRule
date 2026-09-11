@@ -85,3 +85,10 @@ python -m pytest
 | `POST` | `/query` | Execute grounded RAG query with source citations |
 | `GET` | `/documents` | List uploaded & indexed documents |
 | `POST` | `/documents` | Upload, clean, chunk, embed, and index `.txt`, `.md`, or `.pdf` file |
+
+---
+
+## 🚀 Live Deployment
+
+For complete instructions on deploying the **FastAPI backend on Render** and the **Next.js frontend on Vercel**, see the [Deployment Guide](deployment.md).
+
