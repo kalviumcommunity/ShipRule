@@ -189,6 +189,7 @@ export default function LoginPage() {
             src="/ship_hero.png"
             alt="Global Freight Solutions Cargo Ship"
             fill
+            sizes="(max-width: 1200px) 100vw, 45vw"
             priority
             className="object-cover"
           />

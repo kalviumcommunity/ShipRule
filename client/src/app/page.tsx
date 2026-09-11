@@ -90,6 +90,7 @@ export default function Home() {
                   src="/ship_hero.png"
                   alt="Global Freight Solutions Container Ship"
                   fill
+                  sizes="(max-width: 1200px) 100vw, 50vw"
                   priority
                   className="object-cover"
                 />

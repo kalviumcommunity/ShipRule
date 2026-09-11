@@ -23,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark scroll-smooth">
+    <html lang="en" data-scroll-behavior="smooth" className="dark scroll-smooth">
       <body className={`${inter.className} min-h-screen bg-[#0B192C] text-slate-100 antialiased`}>
         <AuthProvider>
           <IntroWrapper>
