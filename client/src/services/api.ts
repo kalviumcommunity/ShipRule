@@ -109,6 +109,23 @@ export const apiService = {
   },
 
   /**
+   * Updates user password.
+   */
+  async changePassword(old_password: string, new_password: string): Promise<{ status: string; message: string }> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/change-password`, {
+        method: 'POST',
+        headers: getHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ old_password, new_password }),
+      });
+      return await handleResponse<{ status: string; message: string }>(res);
+    } catch (err: any) {
+      if (err instanceof ApiError) throw err;
+      throw new ApiError(500, err.message || 'Failed to update password.');
+    }
+  },
+
+  /**
    * Fetches backend health status.
    */
   async checkHealth(): Promise<HealthResponse> {

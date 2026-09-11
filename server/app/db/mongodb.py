@@ -150,6 +150,34 @@ def find_user_by_email(email: str) -> Optional[Dict[str, Any]]:
     return None
 
 
+def update_user_password(email: str, old_password: str, new_password: str) -> bool:
+    """Verifies old password and updates user password in MongoDB / memory store."""
+    clean_email = email.strip().lower()
+    user = find_user_by_email(clean_email)
+    if not user:
+        raise ValueError("User not found.")
+
+    if not verify_password(old_password, user.get("password_hash", "")):
+        raise ValueError("Current password is incorrect.")
+
+    if len(new_password) < 4:
+        raise ValueError("New password must be at least 4 characters long.")
+
+    new_hash = hash_password(new_password)
+
+    collection = get_users_collection()
+    if collection is not None:
+        try:
+            collection.update_one({"email": clean_email}, {"$set": {"password_hash": new_hash}})
+        except Exception as e:
+            logger.warning(f"MongoDB password update error: {e}")
+
+    if clean_email in _MEMORY_USERS:
+        _MEMORY_USERS[clean_email]["password_hash"] = new_hash
+
+    return True
+
+
 def list_all_registered_users() -> list:
     """Lists all registered users from MongoDB or fallback memory store with aggregated query/token metrics."""
     collection = get_users_collection()
